@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: var(--font-sans);
+    }
+}
+
+@layer components {
+    .surface-card {
+        @apply rounded-[1.75rem] border border-stone-200 bg-white shadow-sm;
+    }
+
+    .trix-shell {
+        @apply overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white;
+    }
+
+    .trix-shell trix-toolbar {
+        @apply border-b border-stone-200 bg-stone-50 px-3 py-2;
+    }
+
+    .trix-shell .trix-button {
+        zoom: 0.85;
+    }
+
+    .trix-shell .trix-button--icon::before {
+        transform: scale(0.85);
+        transform-origin: center;
+    }
+
+    .trix-shell trix-editor {
+        min-height: 28rem !important;
+        @apply border-0 bg-white px-4 py-4 text-sm leading-7 text-stone-700 outline-none;
+    }
+
+    .trix-shell trix-editor:focus {
+        @apply ring-0;
+    }
+
+    .trix-shell .trix-button-group {
+        @apply rounded-xl border border-stone-200 bg-white shadow-none;
+    }
+}

@@ -1,0 +1,1072 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Support\LarashopApi;
+use App\Support\LarashopApiException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
+
+class AdminController extends Controller
+{
+    public function __construct(
+        private readonly LarashopApi $api,
+    ) {
+    }
+
+    public function dashboard(): View
+    {
+        $orders = collect($this->api->adminOrders())
+            ->take(5)
+            ->map(fn (array $order) => [
+                'code' => $order['code'],
+                'customer' => $order['customer'] ?? '-',
+                'amount' => $order['total'] ?? 'Rp0',
+                'status' => $order['status_label'] ?? ($order['status'] ?? '-'),
+            ])
+            ->values()
+            ->all();
+
+        return view('admin.dashboard.index', [
+            'stats' => [
+                ['label' => 'Produk API', 'value' => (string) count($this->api->adminProducts()), 'note' => 'Sinkron dari larashop-be'],
+                ['label' => 'Customer API', 'value' => (string) count($this->api->adminCustomers()), 'note' => 'Akun customer aktif dan pending'],
+                ['label' => 'Auth', 'value' => 'Sanctum', 'note' => 'Token admin dipakai dari frontend server'],
+            ],
+            'orders' => $orders,
+            'tasks' => [
+                'Validasi order yang masih menunggu pembayaran agar cepat masuk proses packing.',
+                'Cek shipment yang siap dibuat resi atau dijadwalkan pickup.',
+                'Tinjau stok produk aktif yang mulai menipis di katalog.',
+            ],
+        ]);
+    }
+
+    public function login(): View|RedirectResponse
+    {
+        if (session('admin.authenticated')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return view('admin.auth.login');
+    }
+
+    public function authenticate(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'login' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ]);
+
+        try {
+            $payload = $this->api->login($validated['login'], $validated['password'], 'larashop-fe-admin-panel');
+        } catch (LarashopApiException $exception) {
+            return back()
+                ->withInput($request->except('password'))
+                ->withErrors($exception->errors !== [] ? $exception->errors : ['login' => $exception->getMessage()]);
+        }
+
+        if (data_get($payload, 'user.role') !== 'admin') {
+            if (! empty($payload['token'])) {
+                try {
+                    $this->api->logout($payload['token']);
+                } catch (LarashopApiException) {
+                    // Abaikan revoke token jika backend sudah menolak.
+                }
+            }
+
+            return back()
+                ->withInput($request->except('password'))
+                ->withErrors(['login' => 'Akun ini bukan akun admin.']);
+        }
+
+        session([
+            'admin.authenticated' => true,
+            'admin.token' => $payload['token'],
+            'admin.user' => $payload['user'],
+        ]);
+
+        return redirect()->route('admin.dashboard')->with('success', 'Login admin berhasil.');
+    }
+
+    public function logout(): RedirectResponse
+    {
+        $this->api->logoutAdmin();
+
+        return redirect()->route('admin.login')->with('success', 'Session admin frontend berhasil dikeluarkan.');
+    }
+
+    public function accounts(Request $request): View
+    {
+        $accounts = collect($this->api->adminAccounts(['search' => $request->string('search')->toString()]));
+        $search = trim($request->string('search')->toString());
+        $role = $request->string('role')->toString();
+        $status = $request->string('status')->toString();
+
+        if ($role !== '' && $role !== 'all') {
+            $accounts = $accounts->where('role', $role);
+        }
+
+        if ($status !== '' && $status !== 'all') {
+            $accounts = $accounts->where('status', $status);
+        }
+
+        if ($search !== '') {
+            $needle = mb_strtolower($search);
+            $accounts = $accounts->filter(fn (array $account) => str_contains(mb_strtolower($account['name']), $needle) || str_contains(mb_strtolower($account['email']), $needle));
+        }
+
+        return view('admin.accounts.index', [
+            'accounts' => $accounts->values()->all(),
+            'search' => $search,
+            'activeRole' => $role === '' ? 'all' : $role,
+            'activeStatus' => $status === '' ? 'all' : $status,
+            'roles' => $this->adminAccountRoles(),
+            'statuses' => $this->adminAccountStatuses(),
+        ]);
+    }
+
+    public function createAccount(): View
+    {
+        return view('admin.accounts.create', [
+            'account' => [],
+            'roles' => $this->adminAccountRoles(),
+            'statuses' => $this->adminAccountStatuses(),
+        ]);
+    }
+
+    public function showAccount(string $id): View
+    {
+        return redirect()->route('admin.accounts.edit', $id);
+    }
+
+    public function editAccount(string $id): View
+    {
+        $account = $this->findAccountByCode($id);
+
+        return view('admin.accounts.edit', [
+            'account' => $account,
+            'roles' => $this->adminAccountRoles(),
+            'statuses' => $this->adminAccountStatuses(),
+        ]);
+    }
+
+    public function storeAccount(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email'],
+            'phone' => ['required', 'string', 'max:30'],
+            'role' => ['required', 'string'],
+            'status' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8'],
+        ]);
+
+        try {
+            $account = $this->api->createAdminAccount([
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'admin_role' => $this->adminRoleKey($validated['role']),
+                'status' => $this->adminStatusKey($validated['status']),
+                'password' => $validated['password'],
+                'password_confirmation' => $validated['password'],
+            ]);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.accounts.edit', $account['id'])->with('success', "Account {$validated['name']} berhasil dibuat.");
+    }
+
+    public function updateAccount(Request $request, string $id): RedirectResponse
+    {
+        $existingAccount = $this->findAccountByCode($id);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email'],
+            'phone' => ['required', 'string', 'max:30'],
+            'role' => ['required', 'string'],
+            'status' => ['required', 'string'],
+            'password' => ['nullable', 'string', 'min:8'],
+        ]);
+
+        try {
+            $this->api->updateAdminAccount($existingAccount['user_id'], [
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'admin_role' => $this->adminRoleKey($validated['role']),
+                'status' => $this->adminStatusKey($validated['status']),
+                'password' => $validated['password'] ?: null,
+                'password_confirmation' => $validated['password'] ?: null,
+            ]);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.accounts.edit', $id)->with('success', "Perubahan account {$validated['name']} berhasil disimpan.");
+    }
+
+    public function destroyAccount(string $id): RedirectResponse
+    {
+        $existingAccount = $this->findAccountByCode($id);
+
+        try {
+            $this->api->deleteAdminAccount($existingAccount['user_id']);
+        } catch (LarashopApiException $exception) {
+            return redirect()
+                ->route('admin.accounts.index')
+                ->with('error', $exception->errors['account'][0] ?? $exception->getMessage());
+        }
+
+        return redirect()->route('admin.accounts.index')->with('success', "Account {$existingAccount['name']} berhasil dihapus.");
+    }
+
+    public function customers(Request $request): View
+    {
+        $customers = collect($this->api->adminCustomers(['search' => $request->string('search')->toString()]))
+            ->map(fn (array $customer) => $this->mapCustomerSummary($customer));
+
+        $search = trim($request->string('search')->toString());
+        $status = $request->string('status')->toString();
+
+        if ($status !== '' && $status !== 'all') {
+            $customers = $customers->where('status', $this->customerStatuses()[$status] ?? $status);
+        }
+
+        $items = $customers->values()->all();
+
+        return view('admin.customers.index', [
+            'customers' => $items,
+            'search' => $search,
+            'activeStatus' => $status === '' ? 'all' : $status,
+            'statuses' => $this->customerStatuses(),
+            'stats' => [
+                ['label' => 'Total customer', 'value' => (string) count($items), 'note' => 'Sinkron dari backend API'],
+                ['label' => 'Username aktif', 'value' => (string) collect($items)->pluck('username')->filter()->count(), 'note' => 'Siap dipakai untuk login customer.'],
+                ['label' => 'Alamat tersimpan', 'value' => (string) collect($items)->sum('address_count'), 'note' => 'Total alamat pengiriman customer.'],
+                ['label' => 'Menunggu verifikasi', 'value' => (string) collect($items)->where('status', 'Menunggu verifikasi')->count(), 'note' => 'Perlu follow up aktivasi akun.'],
+            ],
+        ]);
+    }
+
+    public function createCustomer(): View
+    {
+        return view('admin.customers.create', [
+            'customer' => [],
+            'addresses' => [],
+            'statuses' => $this->customerStatuses(),
+        ]);
+    }
+
+    public function showCustomer(string $code): View
+    {
+        $customer = $this->findCustomerByCode($code);
+        $primaryAddress = collect($customer['addresses'])->firstWhere('is_primary', true) ?? $customer['addresses'][0] ?? [];
+
+        return view('admin.customers.show', [
+            'customer' => $customer,
+            'addresses' => $customer['addresses'],
+            'primaryAddress' => $primaryAddress,
+            'shippingAddress' => $this->shippingAddressSummary($primaryAddress),
+        ]);
+    }
+
+    public function editCustomer(string $code): View
+    {
+        $customer = $this->findCustomerByCode($code);
+
+        return view('admin.customers.edit', [
+            'customer' => $customer,
+            'addresses' => $customer['addresses'],
+            'statuses' => $this->customerStatuses(),
+        ]);
+    }
+
+    public function storeCustomer(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:20'],
+            'status' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8'],
+            'shipping_addresses' => ['required', 'json'],
+        ]);
+
+        try {
+            $customer = $this->api->createAdminCustomer([
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'phone' => $validated['phone'],
+                'status' => $validated['status'],
+                'password' => $validated['password'],
+                'password_confirmation' => $validated['password'],
+                'addresses' => $this->normalizeCustomerAddresses($validated['shipping_addresses']),
+            ]);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.customers.show', $customer['code'])->with('success', "Customer {$customer['name']} berhasil dibuat.");
+    }
+
+    public function updateCustomer(Request $request, string $code): RedirectResponse
+    {
+        $existingCustomer = $this->findCustomerByCode($code);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:20'],
+            'status' => ['required', 'string'],
+            'password' => ['nullable', 'string', 'min:8'],
+            'shipping_addresses' => ['required', 'json'],
+        ]);
+        $submittedAddresses = $this->normalizeCustomerAddresses($validated['shipping_addresses']);
+
+        try {
+            $this->api->updateAdminCustomer($existingCustomer['id'], [
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'phone' => $validated['phone'],
+                'status' => $validated['status'],
+                'password' => $validated['password'] ?: null,
+                'password_confirmation' => $validated['password'] ?: null,
+            ]);
+
+            $existingAddresses = collect($existingCustomer['addresses'])->keyBy('id');
+            $submittedAddressIds = collect($submittedAddresses)->pluck('id')->filter(fn ($id) => is_numeric($id));
+
+            foreach ($existingAddresses as $addressId => $address) {
+                if (! $submittedAddressIds->contains((string) $addressId) && ! $submittedAddressIds->contains((int) $addressId)) {
+                    $this->api->deleteAdminCustomerAddress($existingCustomer['id'], (int) $addressId);
+                }
+            }
+
+            foreach ($submittedAddresses as $address) {
+                $payload = Arr::except($address, ['id']);
+
+                if (isset($address['id']) && is_numeric($address['id'])) {
+                    $this->api->updateAdminCustomerAddress($existingCustomer['id'], (int) $address['id'], $payload);
+                    continue;
+                }
+
+                $this->api->createAdminCustomerAddress($existingCustomer['id'], $payload);
+            }
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.customers.show', $code)->with('success', "Perubahan customer {$validated['name']} berhasil disimpan.");
+    }
+
+    public function products(Request $request): View
+    {
+        $products = collect($this->api->adminProducts(['search' => $request->string('search')->toString()]))
+            ->map(fn (array $product) => $this->mapProductSummary($product));
+
+        $search = trim($request->string('search')->toString());
+        $category = $request->string('category')->toString();
+        $status = $request->string('status')->toString();
+        $sort = $request->string('sort')->toString();
+
+        if ($category !== '' && $category !== 'all') {
+            $products = $products->where('category', $this->productCategories()[$category] ?? $category);
+        }
+
+        if ($status !== '' && $status !== 'all') {
+            $products = $products->where('status', $this->productStatuses()[$status] ?? $status);
+        }
+
+        $products = match ($sort) {
+            'price_desc' => $products->sortByDesc('price_value'),
+            'price_asc' => $products->sortBy('price_value'),
+            'stock_asc' => $products->sortBy('stock'),
+            'stock_desc' => $products->sortByDesc('stock'),
+            'name_asc' => $products->sortBy(fn (array $product) => mb_strtolower($product['name'])),
+            default => $products,
+        };
+
+        $items = $products->values()->all();
+
+        return view('admin.products.index', [
+            'stats' => [
+                ['label' => 'Produk Aktif', 'value' => (string) collect($items)->where('status', 'Aktif')->count(), 'note' => 'Sedang tampil di katalog customer'],
+                ['label' => 'Draft Produk', 'value' => (string) collect($items)->where('status', 'Draft')->count(), 'note' => 'Belum dipublikasikan'],
+                ['label' => 'Stok Menipis', 'value' => (string) collect($items)->where('stock', '<=', 12)->count(), 'note' => 'Perlu restock atau penyesuaian'],
+                ['label' => 'Kategori', 'value' => (string) count($this->productCategories()), 'note' => 'Kategori produk aktif'],
+            ],
+            'products' => $items,
+            'lowStockProducts' => array_values(array_filter($items, fn (array $product) => $product['stock'] <= 12)),
+            'search' => $search,
+            'activeCategory' => $category === '' ? 'all' : $category,
+            'activeStatus' => $status === '' ? 'all' : $status,
+            'activeSort' => $sort === '' ? 'default' : $sort,
+            'categories' => $this->productCategories(),
+            'statuses' => $this->productStatuses(),
+        ]);
+    }
+
+    public function createProduct(): View
+    {
+        return view('admin.products.create', [
+            'categories' => $this->productCategories(),
+            'statuses' => $this->productStatuses(),
+            'images' => [],
+        ]);
+    }
+
+    public function showProduct(string $sku): View
+    {
+        $product = $this->findProductBySku($sku);
+
+        return view('admin.products.show', [
+            'product' => $product,
+            'images' => $product['images'],
+        ]);
+    }
+
+    public function editProduct(string $sku): View
+    {
+        $product = $this->findProductBySku($sku);
+
+        return view('admin.products.edit', [
+            'product' => $product,
+            'categories' => $this->productCategories(),
+            'statuses' => $this->productStatuses(),
+            'images' => $product['images'],
+        ]);
+    }
+
+    public function storeProduct(Request $request): RedirectResponse
+    {
+        $validated = $this->validateProductForm($request);
+
+        try {
+            $product = $this->api->createAdminProduct($this->buildProductPayload($validated, null, $request));
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.products.show', $product['sku'])->with('success', "Produk {$product['name']} berhasil disimpan.");
+    }
+
+    public function updateProduct(Request $request, string $sku): RedirectResponse
+    {
+        $existingProduct = $this->findProductBySku($sku);
+        $validated = $this->validateProductForm($request);
+
+        try {
+            $product = $this->api->updateAdminProduct($existingProduct['id'], $this->buildProductPayload($validated, $existingProduct, $request));
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.products.show', $product['sku'])->with('success', "Perubahan produk {$product['name']} berhasil disimpan.");
+    }
+
+    public function orders(Request $request): View
+    {
+        $orders = collect($this->api->adminOrders());
+        $allOrders = $orders;
+        $status = $request->string('status')->toString();
+        $search = trim($request->string('search')->toString());
+
+        $statusTabs = [
+            ['key' => 'all', 'label' => 'Semua', 'count' => $allOrders->count()],
+            ['key' => 'pending_payment', 'label' => 'Belum bayar', 'count' => $allOrders->where('status', 'pending_payment')->count()],
+            ['key' => 'paid', 'label' => 'Dibayar', 'count' => $allOrders->where('status', 'paid')->count()],
+            ['key' => 'processing', 'label' => 'Diproses', 'count' => $allOrders->where('status', 'processing')->count()],
+            ['key' => 'shipped', 'label' => 'Dikirim', 'count' => $allOrders->where('status', 'shipped')->count()],
+            ['key' => 'completed', 'label' => 'Selesai', 'count' => $allOrders->where('status', 'completed')->count()],
+            ['key' => 'cancelled', 'label' => 'Dibatalkan', 'count' => $allOrders->where('status', 'cancelled')->count()],
+        ];
+
+        if ($status !== '' && $status !== 'all') {
+            $orders = $orders->where('status', $status);
+        }
+
+        if ($search !== '') {
+            $needle = mb_strtolower($search);
+            $orders = $orders->filter(function (array $order) use ($needle): bool {
+                return str_contains(mb_strtolower($order['code']), $needle)
+                    || str_contains(mb_strtolower($order['customer'] ?? ''), $needle)
+                    || str_contains(mb_strtolower($order['phone'] ?? ''), $needle);
+            });
+        }
+
+        $items = $orders->values()->all();
+
+        return view('admin.orders.index', [
+            'orders' => $items,
+            'activeStatus' => $status ?: 'all',
+            'statusTabs' => $statusTabs,
+            'search' => $search,
+            'stats' => [
+                ['label' => 'Pending Payment', 'value' => (string) collect($items)->where('status', 'pending_payment')->count(), 'note' => 'Perlu follow up pembayaran'],
+                ['label' => 'Paid', 'value' => (string) collect($items)->where('status', 'paid')->count(), 'note' => 'Siap dibuat shipment'],
+                ['label' => 'Processing', 'value' => (string) collect($items)->where('status', 'processing')->count(), 'note' => 'Sedang dipacking'],
+                ['label' => 'Shipped', 'value' => (string) collect($items)->where('status', 'shipped')->count(), 'note' => 'Sudah memiliki AWB'],
+            ],
+        ]);
+    }
+
+    public function showOrder(string $code): View
+    {
+        $order = $this->findOrderByCode($code);
+
+        return view('admin.orders.show', [
+            'order' => $order,
+            'timeline' => [
+                ['label' => 'Order masuk', 'note' => 'Pesanan tercatat di sistem.', 'active' => true],
+                ['label' => 'Validasi pembayaran', 'note' => 'Admin mengecek mutasi dan nominal unik.', 'active' => in_array($order['status'], ['paid', 'processing', 'shipped', 'completed'], true)],
+                ['label' => 'Packing', 'note' => 'Pesanan disiapkan untuk pengiriman.', 'active' => in_array($order['status'], ['processing', 'shipped', 'completed'], true)],
+                ['label' => 'Shipment', 'note' => 'Order pengiriman dibuat dan resi diterbitkan.', 'active' => in_array($order['status'], ['shipped', 'completed'], true)],
+                ['label' => 'Order selesai', 'note' => 'Customer sudah menerima pesanan dan order ditutup.', 'active' => ($order['status'] ?? null) === 'completed'],
+                ['label' => 'Order dibatalkan', 'note' => 'Order dihentikan dan tidak dilanjutkan ke proses berikutnya.', 'active' => ($order['status'] ?? null) === 'cancelled', 'tone' => 'cancelled'],
+            ],
+        ]);
+    }
+
+    public function validatePayment(string $code): RedirectResponse
+    {
+        $order = $this->findOrderByCode($code);
+        $updated = $this->api->validateAdminOrderPayment($order['id']);
+
+        return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Pembayaran order {$updated['code']} berhasil divalidasi.");
+    }
+
+    public function processShipment(string $code): RedirectResponse
+    {
+        $order = $this->findOrderByCode($code);
+        $updated = $this->api->processAdminOrderShipment($order['id']);
+
+        return redirect()->route('admin.shipments.index')->with('success', "Shipment untuk order {$updated['code']} berhasil diproses.");
+    }
+
+    public function completeOrder(string $code): RedirectResponse
+    {
+        $order = $this->findOrderByCode($code);
+        $updated = $this->api->completeAdminOrder($order['id']);
+
+        return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Order {$updated['code']} berhasil ditandai selesai.");
+    }
+
+    public function cancelOrder(string $code): RedirectResponse
+    {
+        $order = $this->findOrderByCode($code);
+        $updated = $this->api->cancelAdminOrder($order['id']);
+
+        return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Order {$updated['code']} berhasil dibatalkan.");
+    }
+
+    public function shipments(Request $request): View
+    {
+        $shipments = collect($this->api->adminShipments());
+        $status = $request->string('status')->toString();
+
+        if ($status !== '' && $status !== 'all') {
+            $shipments = $shipments->where('status', $status);
+        }
+
+        $items = $shipments->values()->all();
+
+        return view('admin.shipments.index', [
+            'shipments' => $items,
+            'activeStatus' => $status ?: 'all',
+            'shipmentSettings' => $this->api->adminShipmentSettings(),
+            'stats' => [
+                ['label' => 'Ready to Create', 'value' => (string) collect($items)->where('status', 'ready_to_create')->count(), 'note' => 'Menunggu action admin'],
+                ['label' => 'Pickup Scheduled', 'value' => (string) collect($items)->where('status', 'pickup_scheduled')->count(), 'note' => 'Pickup sudah diminta'],
+                ['label' => 'In Transit', 'value' => (string) collect($items)->where('status', 'in_transit')->count(), 'note' => 'Dalam perjalanan'],
+            ],
+        ]);
+    }
+
+    public function shipmentSettings(): View
+    {
+        $settings = $this->api->adminShipmentSettings();
+        $settings['destination_label'] = collect([
+            $settings['subdistrict'] ?? null,
+            $settings['district'] ?? null,
+            $settings['city'] ?? null,
+            $settings['province'] ?? null,
+            $settings['postal_code'] ?? null,
+        ])->filter()->implode(', ');
+        $settings['selected_couriers'] = collect(explode(':', (string) ($settings['selected_courier'] ?? '')))
+            ->map(fn (string $courier) => trim($courier))
+            ->filter()
+            ->values()
+            ->all();
+
+        return view('admin.shipments.settings', [
+            'settings' => $settings,
+        ]);
+    }
+
+    public function searchShipmentDestinations(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'search' => ['required', 'string', 'min:3', 'max:100'],
+        ]);
+
+        try {
+            $destinations = $this->api->adminShipmentDestinations($validated['search']);
+        } catch (LarashopApiException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], $exception->status >= 400 ? $exception->status : 500);
+        }
+
+        return response()->json([
+            'data' => $destinations,
+        ]);
+    }
+
+    public function updateShipmentSettings(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'label' => ['required', 'string', 'max:100'],
+            'contact_name' => ['required', 'string', 'max:255'],
+            'contact_phone' => ['required', 'string', 'max:30'],
+            'origin_id' => ['nullable', 'integer'],
+            'selected_couriers' => ['required', 'array', 'min:1'],
+            'selected_couriers.*' => ['required', 'string', 'max:30'],
+            'province' => ['required', 'string', 'max:100'],
+            'city' => ['required', 'string', 'max:100'],
+            'district' => ['required', 'string', 'max:100'],
+            'subdistrict' => ['required', 'string', 'max:100'],
+            'postal_code' => ['required', 'string', 'max:10'],
+            'address_line' => ['required', 'string'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $validated['selected_courier'] = collect($validated['selected_couriers'])
+            ->map(fn (string $courier) => trim($courier))
+            ->filter()
+            ->unique()
+            ->implode(':');
+        unset($validated['selected_couriers']);
+
+        try {
+            $this->api->updateAdminShipmentSettings($validated);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['label' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.shipments.settings')->with('success', 'Setting shipment berhasil diperbarui.');
+    }
+
+    public function showShipment(string $code): View
+    {
+        $shipment = $this->api->adminShipment($code);
+
+        return view('admin.shipments.show', [
+            'shipment' => $shipment,
+        ]);
+    }
+
+    private function validateProductForm(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'sku' => ['required', 'string', 'max:50'],
+            'category' => ['required', 'string'],
+            'status' => ['required', 'string'],
+            'description' => ['required', 'string'],
+            'variants_json' => ['nullable', 'json'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'stock' => ['nullable', 'integer', 'min:0'],
+            'unit' => ['nullable', 'string', 'max:50'],
+            'weight' => ['nullable', 'numeric', 'min:0'],
+            'length' => ['nullable', 'numeric', 'min:0'],
+            'width' => ['nullable', 'numeric', 'min:0'],
+            'height' => ['nullable', 'numeric', 'min:0'],
+            'product_images' => ['nullable', 'array'],
+            'product_images.*' => ['file'],
+            'primary_image' => ['nullable', 'string'],
+            'removed_images' => ['nullable', 'string'],
+            'existing_image_count' => ['nullable', 'integer', 'min:0'],
+        ]);
+    }
+
+    private function buildProductPayload(array $validated, ?array $existingProduct, Request $request): array
+    {
+        $existingImages = collect($existingProduct['images'] ?? []);
+        $removedIds = collect(json_decode((string) ($validated['removed_images'] ?? '[]'), true) ?: []);
+        $remainingImages = $existingImages
+            ->reject(fn (array $image) => $removedIds->contains($image['id']))
+            ->pluck('path')
+            ->values()
+            ->all();
+
+        $newImages = collect($request->file('product_images', []))
+            ->values()
+            ->map(fn ($file, int $index) => $this->placeholderGalleryPath($index))
+            ->all();
+
+        $imagePaths = array_values(array_filter([...$remainingImages, ...$newImages]));
+
+        if ($imagePaths === []) {
+            $imagePaths = ['/images/products/gallery-detail.svg'];
+        }
+
+        $variants = filled($validated['variants_json'] ?? null)
+            ? $this->normalizeProductVariants($validated['variants_json'])
+            : [[
+                'sku' => strtoupper($validated['sku']).'-1',
+                'label' => $validated['unit'] ?? 'Default',
+                'price' => (int) ($validated['price'] ?? 0),
+                'compare_at_price' => null,
+                'stock' => (int) ($validated['stock'] ?? 0),
+                'weight_grams' => isset($validated['weight']) ? (int) round(((float) $validated['weight']) * 1000) : null,
+                'length_cm' => filled($validated['length'] ?? null) ? (float) $validated['length'] : null,
+                'width_cm' => filled($validated['width'] ?? null) ? (float) $validated['width'] : null,
+                'height_cm' => filled($validated['height'] ?? null) ? (float) $validated['height'] : null,
+                'is_default' => true,
+                'is_active' => true,
+            ]];
+        $defaultVariant = collect($variants)->firstWhere('is_default', true) ?? $variants[0];
+        $totalStock = collect($variants)
+            ->filter(fn (array $variant) => $variant['is_active'])
+            ->sum('stock');
+
+        if (Str::startsWith((string) ($validated['primary_image'] ?? ''), 'new-') && count($newImages) > 0) {
+            $primaryPath = $newImages[0];
+            $imagePaths = collect($imagePaths)->reject(fn (string $path) => $path === $primaryPath)->prepend($primaryPath)->values()->all();
+        } elseif (Str::startsWith((string) ($validated['primary_image'] ?? ''), 'existing-')) {
+            $primaryIndex = (int) Str::after((string) $validated['primary_image'], 'existing-');
+            $primaryPath = $existingImages[$primaryIndex]['path'] ?? null;
+            if ($primaryPath !== null) {
+                $imagePaths = collect($imagePaths)->reject(fn (string $path) => $path === $primaryPath)->prepend($primaryPath)->values()->all();
+            }
+        }
+
+        return [
+            'sku' => strtoupper($validated['sku']),
+            'slug' => Str::slug($validated['name']),
+            'name' => $validated['name'],
+            'category_slug' => $validated['category'],
+            'short_description' => Str::limit(trim(strip_tags($validated['description'])), 180, ''),
+            'description' => trim(strip_tags($validated['description'])),
+            'variants' => $variants,
+            'price' => $defaultVariant['price'],
+            'compare_at_price' => $defaultVariant['compare_at_price'],
+            'stock' => (int) $totalStock,
+            'weight_label' => $defaultVariant['label'],
+            'weight_grams' => $defaultVariant['weight_grams'],
+            'public_status' => $validated['status'],
+            'catalog_status' => $validated['status'] === 'preorder'
+                ? 'preorder'
+                : ((int) $totalStock === 0 ? 'sold_out' : 'available'),
+            'badge_label' => $existingProduct['badge_label'] ?? null,
+            'sold_count' => $existingProduct['sold_count'] ?? 0,
+            'highlights' => $existingProduct['highlights'] ?? [],
+            'image_paths' => $imagePaths,
+            'is_featured' => $existingProduct['is_featured'] ?? false,
+            'published_at' => $validated['status'] === 'active' ? now()->toISOString() : null,
+        ];
+    }
+
+    private function findProductBySku(string $sku): array
+    {
+        $summary = collect($this->api->adminProducts())->firstWhere('sku', strtoupper($sku));
+        abort_if($summary === null, 404);
+
+        return $this->mapProductDetail($this->api->adminProduct((int) $summary['id']));
+    }
+
+    private function findCustomerByCode(string $code): array
+    {
+        $summary = collect($this->api->adminCustomers())->firstWhere('code', strtoupper($code));
+        abort_if($summary === null, 404);
+
+        return $this->mapCustomerDetail($this->api->adminCustomer((int) $summary['id']));
+    }
+
+    private function mapProductSummary(array $product): array
+    {
+        return [
+            'id' => $product['id'],
+            'slug' => $product['slug'],
+            'sku' => $product['sku'],
+            'name' => $product['name'],
+            'image' => $product['image'] ?? '/images/products/gallery-detail.svg',
+            'category' => $product['category'],
+            'category_key' => $product['category_slug'] ?? Str::slug($product['category']),
+            'price' => $product['price'],
+            'price_value' => $product['price_value'] ?? (int) preg_replace('/\D/', '', $product['price']),
+            'stock' => $product['stock'],
+            'weight' => $product['weight_label'] ?? '-',
+            'dimension' => $product['dimension'] ?? 'Belum diatur',
+            'length' => (string) ($product['length_cm'] ?? 0),
+            'width' => (string) ($product['width_cm'] ?? 0),
+            'height' => (string) ($product['height_cm'] ?? 0),
+            'unit' => $product['default_variant']['label'] ?? ($product['weight_label'] ?? '-'),
+            'default_variant' => $product['default_variant'] ?? null,
+            'variant_count' => (int) ($product['variant_count'] ?? 0),
+            'variants' => collect($product['variants'] ?? [])->map(fn (array $variant) => $this->mapProductVariant($variant))->values()->all(),
+            'status' => $product['status'],
+            'status_key' => $product['public_status'],
+            'highlight' => ($product['badge_label'] ?? null) ?: ($product['stock'] <= 12 ? 'Stok menipis' : 'Siap tampil'),
+            'description' => '<div>'.e($product['description']).'</div>',
+            'images' => [],
+        ];
+    }
+
+    private function mapProductDetail(array $product): array
+    {
+        $summary = $this->mapProductSummary($product);
+        $summary['description'] = '<div>'.e($product['description']).'</div>';
+        $summary['images'] = collect($product['images'] ?? [])
+            ->map(fn (array $image, int $index) => [
+                'id' => $image['id'],
+                'path' => $image['path'],
+                'label' => $image['alt'] ?: 'Foto '.($index + 1),
+                'name' => $image['alt'] ?: $product['name'],
+                'is_primary' => $image['is_primary'] ?? false,
+            ])
+            ->values()
+            ->all();
+
+        return $summary;
+    }
+
+    private function mapProductVariant(array $variant): array
+    {
+        return [
+            'sku' => $variant['sku'],
+            'label' => $variant['label'],
+            'price_value' => (int) ($variant['price_value'] ?? 0),
+            'price' => $variant['price'] ?? 'Rp0',
+            'compare_at_price' => $variant['compare_at_price'] ?? null,
+            'stock' => (int) ($variant['stock'] ?? 0),
+            'weight_grams' => $variant['weight_grams'] ?? null,
+            'length_cm' => $variant['length_cm'] ?? null,
+            'width_cm' => $variant['width_cm'] ?? null,
+            'height_cm' => $variant['height_cm'] ?? null,
+            'dimension' => $variant['dimension'] ?? 'Belum diatur',
+            'is_default' => (bool) ($variant['is_default'] ?? false),
+            'is_active' => (bool) ($variant['is_active'] ?? true),
+        ];
+    }
+
+    private function normalizeProductVariants(string $json): array
+    {
+        $variants = collect(json_decode($json, true) ?: [])
+            ->values()
+            ->map(function (array $variant, int $index): array {
+                return [
+                    'sku' => strtoupper(trim((string) ($variant['sku'] ?? ''))),
+                    'label' => trim((string) ($variant['label'] ?? '')),
+                    'price' => (int) ($variant['price'] ?? 0),
+                    'compare_at_price' => filled($variant['compare_at_price'] ?? null) ? (int) $variant['compare_at_price'] : null,
+                    'stock' => (int) ($variant['stock'] ?? 0),
+                    'weight_grams' => filled($variant['weight_grams'] ?? null) ? (int) $variant['weight_grams'] : null,
+                    'length_cm' => filled($variant['length_cm'] ?? null) ? (float) $variant['length_cm'] : null,
+                    'width_cm' => filled($variant['width_cm'] ?? null) ? (float) $variant['width_cm'] : null,
+                    'height_cm' => filled($variant['height_cm'] ?? null) ? (float) $variant['height_cm'] : null,
+                    'is_default' => (bool) ($variant['is_default'] ?? false),
+                    'is_active' => array_key_exists('is_active', $variant) ? (bool) $variant['is_active'] : true,
+                ];
+            })
+            ->filter(fn (array $variant) => $variant['sku'] !== '' && $variant['label'] !== '')
+            ->values();
+
+        if ($variants->isEmpty()) {
+            return [[
+                'sku' => strtoupper(Str::slug((string) now()->timestamp)),
+                'label' => 'Default',
+                'price' => 0,
+                'compare_at_price' => null,
+                'stock' => 0,
+                'weight_grams' => null,
+                'length_cm' => null,
+                'width_cm' => null,
+                'height_cm' => null,
+                'is_default' => true,
+                'is_active' => true,
+            ]];
+        }
+
+        if (! $variants->contains(fn (array $variant) => $variant['is_default'])) {
+            $variants[0]['is_default'] = true;
+        }
+
+        $defaultIndex = $variants->search(fn (array $variant) => $variant['is_default']);
+
+        return $variants
+            ->map(function (array $variant, int $index) use ($defaultIndex): array {
+                $variant['is_default'] = $index === $defaultIndex;
+
+                return $variant;
+            })
+            ->all();
+    }
+
+    private function mapCustomerSummary(array $customer): array
+    {
+        return [
+            'id' => $customer['id'],
+            'code' => $customer['code'],
+            'name' => $customer['name'],
+            'username' => $customer['username'],
+            'phone' => $customer['phone'],
+            'status' => $customer['status'],
+            'status_key' => $customer['status_key'] ?? 'active',
+            'address_count' => $customer['address_count'] ?? 0,
+            'addresses' => [],
+            'joined_at' => '-',
+            'last_order' => '-',
+            'total_orders' => 0,
+            'total_spent' => 'Rp0',
+        ];
+    }
+
+    private function mapCustomerDetail(array $customer): array
+    {
+        $summary = $this->mapCustomerSummary($customer);
+        $summary['addresses'] = collect($customer['addresses'] ?? [])
+            ->map(fn (array $address) => [
+                'id' => $address['id'],
+                'label' => $address['label'],
+                'recipient_name' => $address['name'],
+                'recipient_phone' => $address['phone'],
+                'province' => $address['province'],
+                'city' => $address['city'],
+                'district' => $address['district'],
+                'subdistrict' => $address['subdistrict'],
+                'postal_code' => $address['postal_code'],
+                'address_line' => $address['address_line'],
+                'address_note' => $address['note'] ?? '',
+                'is_primary' => $address['is_primary'],
+            ])
+            ->values()
+            ->all();
+        $summary['address_count'] = count($summary['addresses']);
+
+        return $summary;
+    }
+
+    private function normalizeCustomerAddresses(string $json): array
+    {
+        return collect(json_decode($json, true) ?: [])
+            ->map(fn (array $address) => [
+                'id' => $address['id'] ?? null,
+                'label' => $address['label'] ?? 'Alamat',
+                'recipient_name' => $address['recipient_name'] ?? '',
+                'recipient_phone' => $address['recipient_phone'] ?? '',
+                'province' => $address['province'] ?? '',
+                'city' => $address['city'] ?? '',
+                'district' => $address['district'] ?? '',
+                'subdistrict' => $address['subdistrict'] ?? '',
+                'postal_code' => $address['postal_code'] ?? '',
+                'address_line' => $address['address_line'] ?? '',
+                'note' => $address['address_note'] ?? '',
+                'is_primary' => (bool) ($address['is_primary'] ?? false),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function shippingAddressSummary(array $address): string
+    {
+        return collect([
+            $address['address_line'] ?? null,
+            $address['subdistrict'] ?? null,
+            isset($address['district']) ? 'Kec. '.$address['district'] : null,
+            $address['city'] ?? null,
+            $address['province'] ?? null,
+            $address['postal_code'] ?? null,
+        ])->filter()->implode(', ');
+    }
+
+    private function placeholderGalleryPath(int $index): string
+    {
+        $paths = [
+            '/images/products/gallery-detail.svg',
+            '/images/products/gallery-usage.svg',
+            '/images/products/gallery-seed.svg',
+            '/images/products/gallery-field.svg',
+        ];
+
+        return $paths[$index % count($paths)];
+    }
+
+    private function productCategories(): array
+    {
+        return [
+            'pupuk' => 'Pupuk',
+            'benih' => 'Benih',
+            'perlindungan-tanaman' => 'Perlindungan Tanaman',
+        ];
+    }
+
+    private function productStatuses(): array
+    {
+        return [
+            'draft' => 'Draft',
+            'active' => 'Aktif',
+            'inactive' => 'Nonaktif',
+            'preorder' => 'Pre-order',
+        ];
+    }
+
+    private function customerStatuses(): array
+    {
+        return [
+            'active' => 'Aktif',
+            'pending_verification' => 'Menunggu verifikasi',
+            'inactive' => 'Nonaktif',
+        ];
+    }
+
+    private function adminAccountRoles(): array
+    {
+        return ['Super Admin', 'Admin Operasional', 'Admin Gudang'];
+    }
+
+    private function adminAccountStatuses(): array
+    {
+        return ['Aktif', 'Nonaktif'];
+    }
+
+    private function adminRoleKey(string $label): string
+    {
+        return match ($label) {
+            'Super Admin' => 'super_admin',
+            'Admin Operasional' => 'operational_admin',
+            default => 'warehouse_admin',
+        };
+    }
+
+    private function adminStatusKey(string $label): string
+    {
+        return $label === 'Nonaktif' ? 'inactive' : 'active';
+    }
+
+    private function findAccountByCode(string $code): array
+    {
+        $account = collect($this->api->adminAccounts())->firstWhere('id', strtoupper($code));
+        abort_if($account === null, 404);
+
+        return $account;
+    }
+
+    private function findOrderByCode(string $code): array
+    {
+        $summary = collect($this->api->adminOrders())->firstWhere('code', strtoupper($code));
+        abort_if($summary === null, 404);
+
+        return $this->api->adminOrder((int) $summary['id']);
+    }
+}

@@ -1,0 +1,37 @@
+<x-layouts.customer title="Larashop | Login">
+    <section class="mx-auto max-w-xl space-y-6">
+        <x-customer-section-title
+            eyebrow="Login Customer"
+            title="Masuk untuk lanjut checkout dan cek pesanan"
+            description="Customer tetap bisa melihat katalog tanpa login, tetapi checkout, riwayat order, dan status pesanan membutuhkan akun."
+        />
+
+        <div class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+            <form method="POST" action="{{ route('login.store') }}" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-stone-700">Username atau email</label>
+                    <input type="text" name="login" value="{{ old('login') }}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Masukkan username atau email">
+                    @error('login')
+                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-stone-700">Password</label>
+                    <input type="password" name="password" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Masukkan password">
+                    @error('password')
+                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
+                    @enderror
+                </div>
+                <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3.5 text-sm font-semibold text-white">
+                    Masuk
+                </button>
+            </form>
+
+            <p class="mt-4 text-center text-sm text-stone-500">
+                Belum punya akun?
+                <a href="{{ route('register') }}" class="font-semibold text-emerald-700">Daftar sekarang</a>
+            </p>
+        </div>
+    </section>
+</x-layouts.customer>

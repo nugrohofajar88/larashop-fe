@@ -1,0 +1,75 @@
+<?php
+
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\StorefrontController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', [StorefrontController::class, 'catalog'])->name('home');
+Route::get('/catalog', [StorefrontController::class, 'catalog'])->name('catalog');
+Route::get('/products/{slug}', [StorefrontController::class, 'product'])->name('products.show');
+Route::get('/cart', [StorefrontController::class, 'cart'])->name('cart');
+Route::post('/cart/items', [StorefrontController::class, 'addToCart'])->name('cart.items.store');
+Route::put('/cart/items/{id}', [StorefrontController::class, 'updateCartItem'])->name('cart.items.update');
+Route::delete('/cart/items/{id}', [StorefrontController::class, 'destroyCartItem'])->name('cart.items.destroy');
+Route::get('/checkout', [StorefrontController::class, 'checkout'])->name('checkout');
+Route::get('/checkout/data', [StorefrontController::class, 'checkoutData'])->name('checkout.data');
+Route::post('/checkout', [StorefrontController::class, 'placeOrder'])->name('checkout.place-order');
+Route::get('/login', [StorefrontController::class, 'login'])->name('login');
+Route::post('/login', [StorefrontController::class, 'authenticate'])->name('login.store');
+Route::get('/register', [StorefrontController::class, 'register'])->name('register');
+Route::post('/register', [StorefrontController::class, 'storeRegistration'])->name('register.store');
+Route::post('/logout', [StorefrontController::class, 'logout'])->name('logout');
+Route::get('/profile', [StorefrontController::class, 'profile'])->name('profile');
+Route::put('/profile', [StorefrontController::class, 'updateProfile'])->name('profile.update');
+Route::get('/addresses', [StorefrontController::class, 'addresses'])->name('addresses');
+Route::get('/addresses/destination-search', [StorefrontController::class, 'searchAddressDestinations'])->name('addresses.destination-search');
+Route::get('/addresses/{id}/detail', [StorefrontController::class, 'addressDetail'])->name('addresses.detail');
+Route::post('/addresses/save', [StorefrontController::class, 'saveAddress'])->name('addresses.save');
+Route::post('/addresses', [StorefrontController::class, 'storeAddress'])->name('addresses.store');
+Route::put('/addresses/{id}', [StorefrontController::class, 'updateAddress'])->name('addresses.update');
+Route::post('/addresses/{id}/primary', [StorefrontController::class, 'makePrimaryAddress'])->name('addresses.primary');
+Route::delete('/addresses/{id}', [StorefrontController::class, 'destroyAddress'])->name('addresses.destroy');
+Route::get('/orders', [StorefrontController::class, 'orders'])->name('customer.orders');
+Route::get('/orders/{code}', [StorefrontController::class, 'orderDetail'])->name('customer.orders.show');
+Route::post('/orders/{code}/cancel', [StorefrontController::class, 'cancelOrder'])->name('customer.orders.cancel');
+Route::post('/orders/{code}/complete', [StorefrontController::class, 'completeOrder'])->name('customer.orders.complete');
+
+Route::prefix('admin')->group(function (): void {
+    Route::get('/login', [AdminController::class, 'login'])->name('admin.login');
+    Route::post('/login', [AdminController::class, 'authenticate'])->name('admin.login.store');
+});
+
+Route::prefix('admin')->middleware('admin.session')->group(function (): void {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
+    Route::get('/accounts', [AdminController::class, 'accounts'])->name('admin.accounts.index');
+    Route::get('/accounts/create', [AdminController::class, 'createAccount'])->name('admin.accounts.create');
+    Route::post('/accounts', [AdminController::class, 'storeAccount'])->name('admin.accounts.store');
+    Route::get('/accounts/{id}', [AdminController::class, 'showAccount'])->name('admin.accounts.show');
+    Route::get('/accounts/{id}/edit', [AdminController::class, 'editAccount'])->name('admin.accounts.edit');
+    Route::put('/accounts/{id}', [AdminController::class, 'updateAccount'])->name('admin.accounts.update');
+    Route::delete('/accounts/{id}', [AdminController::class, 'destroyAccount'])->name('admin.accounts.destroy');
+    Route::get('/customers', [AdminController::class, 'customers'])->name('admin.customers.index');
+    Route::get('/customers/create', [AdminController::class, 'createCustomer'])->name('admin.customers.create');
+    Route::post('/customers', [AdminController::class, 'storeCustomer'])->name('admin.customers.store');
+    Route::get('/customers/{code}', [AdminController::class, 'showCustomer'])->name('admin.customers.show');
+    Route::get('/customers/{code}/edit', [AdminController::class, 'editCustomer'])->name('admin.customers.edit');
+    Route::put('/customers/{code}', [AdminController::class, 'updateCustomer'])->name('admin.customers.update');
+    Route::get('/products', [AdminController::class, 'products'])->name('admin.products.index');
+    Route::get('/products/create', [AdminController::class, 'createProduct'])->name('admin.products.create');
+    Route::post('/products', [AdminController::class, 'storeProduct'])->name('admin.products.store');
+    Route::get('/products/{sku}', [AdminController::class, 'showProduct'])->name('admin.products.show');
+    Route::get('/products/{sku}/edit', [AdminController::class, 'editProduct'])->name('admin.products.edit');
+    Route::put('/products/{sku}', [AdminController::class, 'updateProduct'])->name('admin.products.update');
+    Route::get('/orders', [AdminController::class, 'orders'])->name('admin.orders.index');
+    Route::get('/orders/{code}', [AdminController::class, 'showOrder'])->name('admin.orders.show');
+    Route::post('/orders/{code}/validate-payment', [AdminController::class, 'validatePayment'])->name('admin.orders.validate-payment');
+    Route::post('/orders/{code}/cancel', [AdminController::class, 'cancelOrder'])->name('admin.orders.cancel');
+    Route::post('/orders/{code}/process-shipment', [AdminController::class, 'processShipment'])->name('admin.orders.process-shipment');
+    Route::post('/orders/{code}/complete', [AdminController::class, 'completeOrder'])->name('admin.orders.complete');
+    Route::get('/shipments', [AdminController::class, 'shipments'])->name('admin.shipments.index');
+    Route::get('/shipments/settings', [AdminController::class, 'shipmentSettings'])->name('admin.shipments.settings');
+    Route::get('/shipments/settings/destination-search', [AdminController::class, 'searchShipmentDestinations'])->name('admin.shipments.settings.destination-search');
+    Route::put('/shipments/settings', [AdminController::class, 'updateShipmentSettings'])->name('admin.shipments.settings.update');
+    Route::get('/shipments/{code}', [AdminController::class, 'showShipment'])->name('admin.shipments.show');
+});
