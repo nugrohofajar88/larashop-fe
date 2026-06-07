@@ -4,85 +4,132 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $title ?? 'Larashop' }}</title>
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-[#f6f1e7] text-stone-900">
-        <div class="relative min-h-screen overflow-x-hidden">
-            <div class="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(56,189,121,0.22),_transparent_55%)]"></div>
+    <body class="font-body-md text-on-surface">
+        @php
+            $cartCount = $cartCount ?? 0;
+            $isCatalog = request()->routeIs('home') || request()->routeIs('catalog') || request()->routeIs('products.show');
+            $isCart = request()->routeIs('cart');
+            $isOrders = request()->routeIs('customer.orders') || request()->routeIs('customer.orders.*');
+            $isAccount = request()->routeIs('profile') || request()->routeIs('addresses');
+            $navActive = 'text-primary border-b-2 border-primary pb-1 font-bold';
+            $navIdle = 'text-on-surface-variant hover:text-primary transition-colors';
+        @endphp
 
-            <header class="sticky top-0 z-30 border-b border-stone-200/80 bg-[#f6f1e7]/90 backdrop-blur">
-                <div class="mx-auto flex max-w-md items-center justify-between px-4 py-4 sm:max-w-2xl sm:px-6 lg:max-w-6xl lg:px-8">
-                    <a href="{{ route('home') }}" class="flex items-center gap-3">
-                        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-sm font-bold tracking-wide text-white shadow-lg shadow-emerald-900/20">
-                            LS
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-stone-950">Larashop</p>
-                            <p class="text-xs text-stone-500">Kebutuhan pertanian yang ringkas dan siap kirim</p>
-                        </div>
-                    </a>
-                    <div class="flex items-center gap-2">
-                        @if (session('customer.user'))
-                            <div class="relative" data-customer-menu>
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-emerald-500 hover:text-emerald-700"
-                                    data-customer-menu-trigger
-                                    aria-expanded="false"
-                                >
-                                    <span>{{ data_get(session('customer.user'), 'username', 'Profil') }}</span>
-                                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
+        {{-- ===== Top navigation bar ===== --}}
+        <header class="sticky top-0 z-50 w-full border-b border-outline-variant/20 bg-surface/80 bg-gradient-to-b from-primary/5 to-transparent backdrop-blur-md shadow-[0_4px_12px_rgba(0,108,74,0.08)]">
+            <nav class="mx-auto flex h-20 w-full max-w-[1280px] items-center justify-between px-margin-mobile md:px-margin-desktop">
+                <a href="{{ route('home') }}" class="font-display text-headline-md font-semibold text-primary">Larashop</a>
 
-                                <div
-                                    class="absolute right-0 top-full z-40 mt-3 hidden w-56 overflow-hidden rounded-[1.4rem] border border-stone-200 bg-white shadow-2xl shadow-stone-900/10"
-                                    data-customer-menu-panel
-                                >
-                                    <a href="{{ route('profile') }}" class="block px-5 py-4 text-sm font-medium text-stone-800 transition hover:bg-stone-50">
-                                        Akun Saya
-                                    </a>
-                                    <a href="{{ route('customer.orders') }}" class="block px-5 py-4 text-sm font-medium text-stone-800 transition hover:bg-stone-50">
-                                        Pesanan Saya
-                                    </a>
-                                    <form method="POST" action="{{ route('logout') }}" class="border-t border-stone-100">
-                                        @csrf
-                                        <button type="submit" class="block w-full px-5 py-4 text-left text-sm font-medium text-stone-800 transition hover:bg-stone-50">
-                                            Log Out
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        @else
-                            <a href="{{ route('login') }}" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-emerald-500 hover:text-emerald-700">
-                                Masuk
-                            </a>
+                {{-- Desktop links --}}
+                <div class="hidden items-center gap-8 md:flex">
+                    <a href="{{ route('home') }}" class="text-label-lg {{ $isCatalog ? $navActive : $navIdle }}">Katalog</a>
+                    <a href="{{ route('cart') }}" class="text-label-lg flex items-center gap-1.5 {{ $isCart ? $navActive : $navIdle }}">
+                        Keranjang
+                        @if ($cartCount > 0)
+                            <span class="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error px-1.5 text-[11px] font-bold text-on-error">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
                         @endif
-                    </div>
+                    </a>
+                    <a href="{{ route('customer.orders') }}" class="text-label-lg {{ $isOrders ? $navActive : $navIdle }}">Pesanan</a>
+
+                    @if (session('customer.user'))
+                        <div class="relative" data-customer-menu>
+                            <button
+                                type="button"
+                                class="flex items-center gap-2 rounded-full border border-outline-variant/50 bg-surface-container-lowest py-1.5 pl-1.5 pr-3 text-label-lg text-on-surface transition hover:border-primary"
+                                data-customer-menu-trigger
+                                aria-expanded="false"
+                            >
+                                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
+                                    {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
+                                </span>
+                                <span class="max-w-[8rem] truncate">{{ data_get(session('customer.user'), 'username', 'Profil') }}</span>
+                                <span class="material-symbols-outlined text-lg text-outline">expand_more</span>
+                            </button>
+
+                            <div
+                                class="absolute right-0 top-full z-40 mt-3 hidden w-60 overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest shadow-[0_20px_50px_rgba(28,25,23,0.15)]"
+                                data-customer-menu-panel
+                            >
+                                <div class="border-b border-outline-variant/20 px-5 py-4">
+                                    <p class="truncate text-body-md font-semibold text-on-surface">{{ data_get(session('customer.user'), 'name', 'Customer Larashop') }}</p>
+                                    <p class="mt-0.5 truncate text-body-sm text-on-surface-variant">{{ data_get(session('customer.user'), 'username', '') }}</p>
+                                </div>
+                                <a href="{{ route('profile') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
+                                    <span class="material-symbols-outlined text-xl text-outline">person</span> Akun Saya
+                                </a>
+                                <a href="{{ route('customer.orders') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
+                                    <span class="material-symbols-outlined text-xl text-outline">receipt_long</span> Pesanan Saya
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}" class="border-t border-outline-variant/20">
+                                    @csrf
+                                    <button type="submit" class="flex w-full items-center gap-3 px-5 py-3.5 text-left text-body-md font-medium text-error transition hover:bg-error-container/40">
+                                        <span class="material-symbols-outlined text-xl">logout</span> Log Out
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-6 py-2 text-label-lg text-on-primary transition-all duration-200 ease-in-out hover:bg-primary active:scale-95">Masuk</a>
+                    @endif
                 </div>
-            </header>
 
-            <main class="mx-auto max-w-md px-4 pb-24 pt-6 sm:max-w-2xl sm:px-6 lg:max-w-6xl lg:px-8 lg:pb-10">
-                @if (session('success'))
-                    <div class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('success') }}</div>
-                @endif
-                @if (session('error'))
-                    <div class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ session('error') }}</div>
-                @endif
-                {{ $slot }}
-            </main>
-
-            <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 backdrop-blur lg:hidden">
-                <div class="mx-auto grid max-w-md grid-cols-4 px-4 py-3 text-center text-xs font-medium text-stone-500">
-                    <a href="{{ route('home') }}" class="{{ request()->routeIs('home') || request()->routeIs('catalog') || request()->routeIs('products.show') ? 'text-emerald-700' : '' }}">Produk</a>
-                    <a href="{{ route('cart') }}" class="{{ request()->routeIs('cart') ? 'text-emerald-700' : '' }}">Keranjang</a>
-                    <a href="{{ route('customer.orders') }}" class="{{ request()->routeIs('customer.orders') ? 'text-emerald-700' : '' }}">Pesanan</a>
-                    <a href="{{ route('profile') }}" class="{{ request()->routeIs('profile') || request()->routeIs('addresses') ? 'text-emerald-700' : '' }}">Profil</a>
+                {{-- Mobile account / login (bottom nav handles primary nav) --}}
+                <div class="md:hidden">
+                    @if (session('customer.user'))
+                        <a href="{{ route('profile') }}" class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
+                            {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-4 py-1.5 text-body-sm font-medium text-on-primary">Masuk</a>
+                    @endif
                 </div>
             </nav>
-        </div>
+        </header>
+
+        {{-- ===== Main ===== --}}
+        <main class="mx-auto w-full max-w-[1280px] px-margin-mobile py-8 md:px-margin-desktop md:py-12 mb-24">
+            @if (session('success'))
+                <div class="mb-6 flex items-start gap-3 rounded-xl border border-secondary-container bg-secondary-container/30 px-4 py-3 text-body-sm text-on-secondary-container">
+                    <span class="material-symbols-outlined text-xl">check_circle</span>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="mb-6 flex items-start gap-3 rounded-xl border border-error-container bg-error-container/40 px-4 py-3 text-body-sm text-on-error-container">
+                    <span class="material-symbols-outlined text-xl">error</span>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+            {{ $slot }}
+        </main>
+
+        {{-- ===== Mobile bottom navigation ===== --}}
+        <nav class="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around rounded-t-2xl border-t border-outline-variant/30 bg-surface px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,108,74,0.06)] md:hidden">
+            <a href="{{ route('home') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isCatalog ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+                <span class="material-symbols-outlined">grid_view</span>
+                <span class="text-label-md">Produk</span>
+            </a>
+            <a href="{{ route('cart') }}" class="relative flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isCart ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                <span class="text-label-md">Keranjang</span>
+                @if ($cartCount > 0)
+                    <span class="absolute right-2 top-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
+                @endif
+            </a>
+            <a href="{{ route('customer.orders') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isOrders ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span class="text-label-md">Pesanan</span>
+            </a>
+            <a href="{{ route('profile') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isAccount ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+                <span class="material-symbols-outlined">person</span>
+                <span class="text-label-md">Profil</span>
+            </a>
+        </nav>
     </body>
 </html>

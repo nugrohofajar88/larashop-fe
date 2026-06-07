@@ -1,119 +1,119 @@
 <x-layouts.customer title="Larashop | Katalog">
-    <section class="space-y-6">
+    @php $hasFilter = $search !== '' || $activeCategory !== 'all' || $activeStatus !== 'all' || $activeSort !== 'default'; @endphp
+
+    {{-- Section title --}}
+    <section class="mb-10">
         <x-customer-section-title
             eyebrow="Hai, Sobat Petani Sukses!"
             title="Yuk, belanja kebutuhan pertanianmu!"
-            description="Cek barang dari beragam kategori"
+            description="Cek barang dari beragam kategori mulai dari benih unggul, pupuk organik, hingga alat pertanian modern."
         />
+    </section>
 
-        <form method="GET" action="{{ route('catalog') }}" class="rounded-[1.75rem] border border-stone-200 bg-white p-4 shadow-sm">
-            <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_200px_200px_220px_auto]">
+    {{-- Filter card --}}
+    <form method="GET" action="{{ route('catalog') }}" class="mb-8 rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-5 soft-warm-shadow sm:p-6">
+        <div class="flex flex-col items-center gap-4 lg:flex-row">
+            <div class="relative w-full flex-grow">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
                 <input
                     type="text"
                     name="search"
                     value="{{ $search }}"
                     placeholder="Cari produk, kategori, atau kebutuhan pertanian..."
-                    class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 outline-none transition placeholder:text-stone-400 focus:border-emerald-500 focus:bg-white"
+                    class="w-full rounded-lg border-none bg-surface-container-low py-3 pl-12 pr-4 font-body-md text-on-surface transition-all placeholder:text-outline focus:ring-2 focus:ring-primary/30"
                 >
-                <select
-                    name="category"
-                    class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-emerald-500 focus:bg-white"
-                >
+            </div>
+            <div class="grid w-full grid-cols-2 gap-3 lg:flex lg:w-auto">
+                <select name="category" class="min-w-[150px] appearance-none rounded-lg border-none bg-surface-container-low px-4 py-3 font-body-md text-on-surface-variant focus:ring-2 focus:ring-primary/30">
                     <option value="all" {{ $activeCategory === 'all' ? 'selected' : '' }}>Semua kategori</option>
                     @foreach ($categories as $category)
                         <option value="{{ $category }}" {{ $activeCategory === $category ? 'selected' : '' }}>{{ $category }}</option>
                     @endforeach
                 </select>
-                <select
-                    name="status"
-                    class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-emerald-500 focus:bg-white"
-                >
+                <select name="status" class="min-w-[150px] appearance-none rounded-lg border-none bg-surface-container-low px-4 py-3 font-body-md text-on-surface-variant focus:ring-2 focus:ring-primary/30">
                     <option value="all" {{ $activeStatus === 'all' ? 'selected' : '' }}>Semua status</option>
                     @foreach ($statuses as $status)
                         <option value="{{ $status }}" {{ $activeStatus === $status ? 'selected' : '' }}>{{ $status }}</option>
                     @endforeach
                 </select>
-                <select
-                    name="sort"
-                    class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-emerald-500 focus:bg-white"
-                >
+                <select name="sort" class="min-w-[150px] appearance-none rounded-lg border-none bg-surface-container-low px-4 py-3 font-body-md text-on-surface-variant focus:ring-2 focus:ring-primary/30">
                     <option value="default" {{ $activeSort === 'default' ? 'selected' : '' }}>Urutkan default</option>
                     <option value="price_asc" {{ $activeSort === 'price_asc' ? 'selected' : '' }}>Harga termurah</option>
                     <option value="price_desc" {{ $activeSort === 'price_desc' ? 'selected' : '' }}>Harga termahal</option>
                     <option value="name_asc" {{ $activeSort === 'name_asc' ? 'selected' : '' }}>Nama A-Z</option>
                 </select>
-                <button class="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white">Cari</button>
             </div>
-        </form>
+            <button class="flex w-full items-center justify-center gap-2 rounded-lg bg-on-background px-8 py-3 text-on-primary transition-colors hover:bg-primary lg:w-auto">
+                <span class="material-symbols-outlined text-base">search</span>
+                <span>Cari</span>
+            </button>
+        </div>
+    </form>
 
-        <div class="flex items-center justify-between gap-4 text-sm text-stone-500">
-            <p>Menampilkan {{ count($products) }} produk{{ $search !== '' || $activeCategory !== 'all' || $activeStatus !== 'all' || $activeSort !== 'default' ? ' sesuai filter' : '' }}.</p>
-            @if ($search !== '' || $activeCategory !== 'all' || $activeStatus !== 'all' || $activeSort !== 'default')
-                <a href="{{ route('catalog') }}" class="font-semibold text-emerald-700">Reset filter</a>
+    {{-- Results + active chips --}}
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <span class="font-body-md text-on-surface-variant">Menampilkan <span class="font-bold text-on-surface">{{ count($products) }} produk</span>{{ $hasFilter ? ' sesuai filter' : '' }}</span>
+            @if ($hasFilter)
+                <a href="{{ route('catalog') }}" class="font-bold text-primary hover:underline">Reset filter</a>
             @endif
         </div>
-
-        @if ($search !== '' || $activeCategory !== 'all' || $activeStatus !== 'all' || $activeSort !== 'default')
+        @if ($hasFilter)
             <div class="flex flex-wrap gap-2">
                 @if ($search !== '')
-                    <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Cari: {{ $search }}</span>
+                    <span class="flex items-center gap-2 rounded-full border border-secondary-container bg-secondary-container/30 px-3 py-1 text-body-sm font-medium text-on-secondary-container">Cari: {{ $search }}</span>
                 @endif
                 @if ($activeCategory !== 'all')
-                    <span class="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">Kategori: {{ $activeCategory }}</span>
+                    <span class="flex items-center gap-2 rounded-full border border-outline-variant/40 bg-surface-container px-3 py-1 text-body-sm font-medium text-on-surface-variant">Kategori: {{ $activeCategory }}</span>
                 @endif
                 @if ($activeStatus !== 'all')
-                    <span class="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">Status: {{ $activeStatus }}</span>
+                    <span class="flex items-center gap-2 rounded-full border border-outline-variant/40 bg-surface-container px-3 py-1 text-body-sm font-medium text-on-surface-variant">Status: {{ $activeStatus }}</span>
                 @endif
-                @if ($activeSort === 'price_asc')
-                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Urutkan: Harga termurah</span>
-                @elseif ($activeSort === 'price_desc')
-                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Urutkan: Harga termahal</span>
-                @elseif ($activeSort === 'name_asc')
-                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Urutkan: Nama A-Z</span>
+                @if ($activeSort !== 'default')
+                    <span class="flex items-center gap-2 rounded-full border border-outline-variant/40 bg-surface-container px-3 py-1 text-body-sm font-medium text-on-surface-variant">
+                        Urutkan: {{ ['price_asc' => 'Harga termurah', 'price_desc' => 'Harga termahal', 'name_asc' => 'Nama A-Z'][$activeSort] ?? $activeSort }}
+                    </span>
                 @endif
             </div>
         @endif
+    </div>
 
-        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-5">
-            @forelse ($products as $product)
-                <a href="{{ route('products.show', array_merge(['slug' => $product['slug']], $catalogQuery)) }}" class="group block">
-                    <article class="relative overflow-hidden rounded-[1.35rem] border border-stone-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
-                        <div class="overflow-hidden border-b border-stone-200 bg-white">
-                            <div class="aspect-[0.9] bg-white p-2">
-                                <img
-                                    src="{{ $product['image'] }}"
-                                    alt="{{ $product['name'] }}"
-                                    class="h-full w-full rounded-[1rem] object-cover"
-                                >
-                            </div>
+    {{-- Product grid --}}
+    <div class="grid grid-cols-2 gap-gutter md:grid-cols-4">
+        @forelse ($products as $product)
+            <a href="{{ route('products.show', array_merge(['slug' => $product['slug']], $catalogQuery)) }}" class="group block">
+                <article class="h-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 soft-warm-shadow hover-lift">
+                    <div class="relative mb-4 aspect-square overflow-hidden rounded-lg bg-gradient-to-br from-surface-container to-white">
+                        @if (!empty($product['discount_badge']))
+                            <span class="absolute left-2 top-2 z-10 rounded-full bg-error px-2 py-1 font-label-eyebrow text-label-eyebrow text-on-error">{{ $product['discount_badge'] }}</span>
+                        @endif
+                        <img
+                            src="{{ $product['image'] }}"
+                            alt="{{ $product['name'] }}"
+                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        >
+                    </div>
+                    <div class="px-1">
+                        <h3 class="mb-2 line-clamp-2 min-h-[3rem] font-body-md font-medium text-on-surface">{{ $product['name'] }}</h3>
+                        <div class="mb-3 flex items-center gap-2">
+                            <span class="font-headline-md text-xl text-error">{{ $product['price'] }}</span>
+                            @if (!empty($product['original_price']))
+                                <span class="text-body-sm text-outline line-through">{{ $product['original_price'] }}</span>
+                            @endif
                         </div>
-
-                        <div class="space-y-3 p-3">
-                            <div class="space-y-2">
-                                <h3 class="min-h-[3.3rem] text-[0.95rem] font-semibold leading-5 text-stone-900">
-                                    {{ $product['name'] }}
-                                </h3>
-                            </div>
-
-                            <div class="space-y-1.5">
-                                <div class="flex items-end gap-2">
-                                    <p class="text-[1.1rem] font-bold tracking-tight text-rose-600">{{ $product['price'] }}</p>
-                                    <span class="rounded-md bg-rose-50 px-1.5 py-0.5 text-[11px] font-semibold text-rose-500">{{ $product['discount_badge'] }}</span>
-                                </div>
-                                <p class="text-xs text-stone-400 line-through">{{ $product['original_price'] }}</p>
-                            </div>
-
-                            <div class="border-t border-stone-100 pt-2 text-xs text-stone-500">
-                                <span class="truncate">{{ $product['sold_label'] }}</span>
-                            </div>
+                        <div class="flex items-center justify-between border-t border-outline-variant/20 pt-3">
+                            <span class="text-body-sm text-on-surface-variant">{{ $product['sold_label'] }}</span>
+                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-container/50 text-on-secondary-container transition-colors group-hover:bg-primary group-hover:text-on-primary">
+                                <span class="material-symbols-outlined text-xl">shopping_cart</span>
+                            </span>
                         </div>
-                    </article>
-                </a>
-            @empty
-                <div class="col-span-full rounded-[1.75rem] border border-dashed border-stone-300 bg-stone-50 px-6 py-10 text-center text-sm text-stone-500">
-                    Produk tidak ditemukan untuk kata kunci atau kategori yang dipilih.
-                </div>
-            @endforelse
-        </div>
-    </section>
+                    </div>
+                </article>
+            </a>
+        @empty
+            <div class="col-span-full rounded-xl border border-dashed border-outline-variant/50 bg-surface-container-low px-6 py-12 text-center text-body-md text-on-surface-variant">
+                Produk tidak ditemukan untuk kata kunci atau kategori yang dipilih.
+            </div>
+        @endforelse
+    </div>
 </x-layouts.customer>

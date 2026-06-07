@@ -5,9 +5,135 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/* =====================================================================
+   Larashop — "Agri-Luxe" design system (ported from Google Stitch)
+   Material-3 style token set, compiled into Tailwind v4 (no CDN).
+   ===================================================================== */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* ---- Fonts -------------------------------------------------- */
+    --font-display: 'Literata', ui-serif, Georgia, serif;
+    --font-headline-xl: 'Literata', ui-serif, Georgia, serif;
+    --font-headline-lg: 'Literata', ui-serif, Georgia, serif;
+    --font-headline-lg-mobile: 'Literata', ui-serif, Georgia, serif;
+    --font-headline-md: 'Literata', ui-serif, Georgia, serif;
+    --font-body-lg: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-body-md: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-body-sm: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-label-eyebrow: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-label-lg: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-label-md: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* ---- Type scale -------------------------------------------- */
+    --text-headline-xl: 48px;
+    --text-headline-xl--line-height: 1.2;
+    --text-headline-xl--font-weight: 600;
+    --text-headline-xl--letter-spacing: -0.02em;
+
+    --text-headline-lg: 32px;
+    --text-headline-lg--line-height: 1.3;
+    --text-headline-lg--font-weight: 600;
+
+    --text-headline-lg-mobile: 28px;
+    --text-headline-lg-mobile--line-height: 1.3;
+    --text-headline-lg-mobile--font-weight: 600;
+
+    --text-headline-md: 24px;
+    --text-headline-md--line-height: 1.4;
+    --text-headline-md--font-weight: 500;
+
+    --text-body-lg: 18px;
+    --text-body-lg--line-height: 1.6;
+    --text-body-lg--font-weight: 400;
+
+    --text-body-md: 16px;
+    --text-body-md--line-height: 1.6;
+    --text-body-md--font-weight: 400;
+
+    --text-body-sm: 14px;
+    --text-body-sm--line-height: 1.5;
+    --text-body-sm--font-weight: 400;
+
+    --text-label-lg: 15px;
+    --text-label-lg--line-height: 1.4;
+    --text-label-lg--font-weight: 600;
+
+    --text-label-md: 12px;
+    --text-label-md--line-height: 1.2;
+    --text-label-md--font-weight: 500;
+
+    --text-label-eyebrow: 12px;
+    --text-label-eyebrow--line-height: 1.2;
+    --text-label-eyebrow--font-weight: 700;
+    --text-label-eyebrow--letter-spacing: 0.15em;
+
+    /* ---- Spacing tokens ---------------------------------------- */
+    --spacing-unit: 4px;
+    --spacing-gutter: 24px;
+    --spacing-card-gap: 24px;
+    --spacing-margin-mobile: 16px;
+    --spacing-margin-desktop: 40px;
+    --container-container-max: 1280px;
+
+    /* ---- Material-3 colour roles ------------------------------- */
+    --color-surface: #fbf9f8;
+    --color-surface-dim: #dbdad9;
+    --color-surface-bright: #fbf9f8;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f5f3f2;
+    --color-surface-container: #efedec;
+    --color-surface-container-high: #eae8e7;
+    --color-surface-container-highest: #e4e2e1;
+    --color-surface-variant: #e4e2e1;
+    --color-surface-tint: #006c4a;
+    --color-on-surface: #1b1c1b;
+    --color-on-surface-variant: #3d4a42;
+    --color-inverse-surface: #303030;
+    --color-inverse-on-surface: #f2f0ef;
+
+    --color-background: #fbf9f8;
+    --color-on-background: #1b1c1b;
+
+    --color-outline: #6d7a72;
+    --color-outline-variant: #bccac0;
+
+    --color-primary: #006948;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #00855d;
+    --color-on-primary-container: #f5fff7;
+    --color-inverse-primary: #68dba9;
+    --color-primary-fixed: #85f8c4;
+    --color-primary-fixed-dim: #68dba9;
+    --color-on-primary-fixed: #002114;
+    --color-on-primary-fixed-variant: #005137;
+
+    --color-secondary: #006c4e;
+    --color-on-secondary: #ffffff;
+    --color-secondary-container: #97f5cc;
+    --color-on-secondary-container: #007353;
+    --color-secondary-fixed: #97f5cc;
+    --color-secondary-fixed-dim: #7bd8b1;
+    --color-on-secondary-fixed: #002115;
+    --color-on-secondary-fixed-variant: #00513a;
+
+    --color-tertiary: #605b58;
+    --color-on-tertiary: #ffffff;
+    --color-tertiary-container: #797371;
+    --color-on-tertiary-container: #fffbff;
+    --color-tertiary-fixed: #e9e1dd;
+    --color-tertiary-fixed-dim: #ccc5c2;
+    --color-on-tertiary-fixed: #1e1b19;
+    --color-on-tertiary-fixed-variant: #4a4643;
+
+    --color-error: #ba1a1a;
+    --color-on-error: #ffffff;
+    --color-error-container: #ffdad6;
+    --color-on-error-container: #93000a;
+
+    /* Brand-specific accents used on some screens */
+    --color-larashop-emerald: #059669;
+    --color-larashop-rose: #e11d48;
+    --color-larashop-stone: #0c0a09;
+    --color-larashop-cream: #f6f1e7;
 }
 
 @layer base {
@@ -16,15 +142,48 @@
     }
 
     body {
-        font-family: var(--font-sans);
+        font-family: var(--font-body-md);
+        background-color: var(--color-surface);
+        color: var(--color-on-surface);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
     }
 }
 
 @layer components {
-    .surface-card {
-        @apply rounded-[1.75rem] border border-stone-200 bg-white shadow-sm;
+    /* Stitch atmospheric helpers */
+    .soft-warm-shadow {
+        box-shadow: 0px 4px 20px rgba(28, 25, 23, 0.04);
     }
 
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-4px) scale(1.01);
+        box-shadow: 0px 10px 30px rgba(28, 25, 23, 0.08);
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        line-height: 1;
+    }
+
+    /* Google's Material Symbols font CSS sets `display` on this class from an
+       unlayered stylesheet, which beats Tailwind's layered `.hidden`. Re-assert
+       it so `hidden` (used by the password-toggle icons) actually hides. */
+    .material-symbols-outlined.hidden {
+        display: none !important;
+    }
+
+    /* ---- Legacy helpers kept so not-yet-ported pages still render -- */
+    .surface-card {
+        @apply rounded-[1.75rem] border border-outline-variant/30 bg-surface-container-lowest;
+        box-shadow: 0px 4px 20px rgba(28, 25, 23, 0.04);
+    }
+
+    /* ---- Trix (unchanged) -------------------------------------- */
     .trix-shell {
         @apply overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white;
     }

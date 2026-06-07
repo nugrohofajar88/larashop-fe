@@ -1,230 +1,194 @@
 <x-layouts.customer :title="'Larashop | ' . $product['name']">
-    <section class="space-y-6">
-        <div class="space-y-3">
-            <a href="{{ route('catalog', $catalogQuery) }}" class="inline-flex items-center text-sm font-medium text-emerald-700">
-                Kembali ke katalog
-            </a>
-            <div class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
-                <div class="flex flex-col gap-5 lg:grid lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-                    <div class="space-y-3" data-storefront-gallery>
-                        <div class="rounded-[1.75rem] border border-stone-200 bg-stone-50 p-4">
-                            <button type="button" class="block w-full cursor-zoom-in" data-gallery-main-trigger aria-label="Buka foto produk">
-                                <img
-                                    src="{{ $gallery[0]['path'] }}"
-                                    alt="{{ $product['name'] }}"
-                                    class="aspect-square w-full rounded-[1.5rem] object-cover"
-                                    data-gallery-main-image
-                                >
-                            </button>
-                        </div>
+    {{-- Breadcrumb --}}
+    <nav class="mb-8 flex items-center gap-2 font-body-sm text-body-sm text-on-surface-variant">
+        <a href="{{ route('home') }}" class="transition-colors hover:text-primary">Home</a>
+        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        <a href="{{ route('catalog', $catalogQuery) }}" class="transition-colors hover:text-primary">Katalog</a>
+        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        <span class="font-medium text-on-surface">{{ $product['name'] }}</span>
+    </nav>
 
-                        <div class="-mx-1 overflow-x-auto pb-1">
-                            <div class="flex min-w-full gap-3 px-1">
-                                @foreach ($gallery as $image)
-                                    <button
-                                        type="button"
-                                        class="w-28 shrink-0 rounded-[1.1rem] border {{ $loop->first ? 'border-emerald-500 ring-2 ring-emerald-100' : 'border-stone-200' }} bg-white p-2 text-left shadow-sm transition hover:border-emerald-400 sm:w-32"
-                                        data-gallery-thumb
-                                        data-gallery-image="{{ $image['path'] }}"
-                                        data-gallery-alt="{{ $image['label'] }} {{ $product['name'] }}"
-                                        aria-pressed="{{ $loop->first ? 'true' : 'false' }}"
-                                    >
-                                        <img
-                                            src="{{ $image['path'] }}"
-                                            alt="{{ $image['label'] }} {{ $product['name'] }}"
-                                            class="aspect-square w-full rounded-[0.9rem] object-cover"
-                                        >
-                                        <p class="mt-2 line-clamp-2 text-[11px] font-medium leading-4 text-stone-600">{{ $image['label'] }}</p>
-                                    </button>
-                                @endforeach
-                            </div>
-                        </div>
+    <div class="mb-20 grid grid-cols-1 gap-12 lg:grid-cols-2">
+        {{-- Gallery --}}
+        <div class="space-y-6" data-storefront-gallery>
+            <div class="group aspect-square overflow-hidden rounded-3xl bg-surface-container-lowest soft-warm-shadow">
+                <button type="button" class="block h-full w-full cursor-zoom-in" data-gallery-main-trigger aria-label="Buka foto produk">
+                    <img src="{{ $gallery[0]['path'] }}" alt="{{ $product['name'] }}"
+                        class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" data-gallery-main-image>
+                </button>
+            </div>
 
-                        <div class="fixed inset-0 z-50 hidden bg-stone-950/88 p-4 backdrop-blur-sm" data-gallery-lightbox aria-hidden="true">
-                            <div class="flex h-full flex-col justify-center gap-4">
-                                <div class="flex items-center justify-between text-white">
-                                    <p class="text-sm font-medium" data-gallery-lightbox-label>{{ $gallery[0]['label'] }}</p>
-                                    <button
-                                        type="button"
-                                        class="rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white"
-                                        data-gallery-close
-                                    >
-                                        Tutup
-                                    </button>
-                                </div>
+            <div class="grid grid-cols-4 gap-4">
+                @foreach ($gallery as $image)
+                    <button type="button"
+                        class="aspect-square overflow-hidden rounded-2xl border-2 bg-surface-container-lowest p-1 soft-warm-shadow transition-all hover:border-primary {{ $loop->first ? 'border-primary' : 'border-surface-container-highest' }}"
+                        data-gallery-thumb
+                        data-gallery-image="{{ $image['path'] }}"
+                        data-gallery-alt="{{ $image['label'] }} {{ $product['name'] }}"
+                        aria-pressed="{{ $loop->first ? 'true' : 'false' }}">
+                        <img src="{{ $image['path'] }}" alt="{{ $image['label'] }} {{ $product['name'] }}" class="h-full w-full rounded-xl object-cover">
+                    </button>
+                @endforeach
+            </div>
 
-                                <div class="relative">
-                                    <button
-                                        type="button"
-                                        class="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white"
-                                        data-gallery-prev
-                                    >
-                                        Prev
-                                    </button>
-                                    <img
-                                        src="{{ $gallery[0]['path'] }}"
-                                        alt="{{ $product['name'] }}"
-                                        class="mx-auto max-h-[75vh] w-full rounded-[1.5rem] object-contain"
-                                        data-gallery-lightbox-image
-                                    >
-                                    <button
-                                        type="button"
-                                        class="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white"
-                                        data-gallery-next
-                                    >
-                                        Next
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            {{-- Lightbox --}}
+            <div class="fixed inset-0 z-[60] hidden bg-larashop-stone/90 p-4 backdrop-blur-sm" data-gallery-lightbox aria-hidden="true" style="--tw-bg-opacity:1; background-color: rgba(12,10,9,0.9);">
+                <div class="flex h-full flex-col justify-center gap-4">
+                    <div class="flex items-center justify-between text-white">
+                        <p class="font-body-sm text-body-sm font-medium" data-gallery-lightbox-label>{{ $gallery[0]['label'] }}</p>
+                        <button type="button" class="rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white" data-gallery-close>Tutup</button>
                     </div>
-
-                    <div class="space-y-5">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">{{ $product['category'] }}</p>
-                                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-stone-950">{{ $product['name'] }}</h1>
-                            </div>
-                            <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">{{ $product['badge'] }}</span>
-                        </div>
-
-                        <p class="text-sm leading-7 text-stone-600">{{ $product['description'] }}</p>
-
-                        <div class="grid gap-3 sm:grid-cols-3">
-                            <div class="rounded-2xl bg-stone-50 px-4 py-3">
-                                <p class="text-xs text-stone-500">Harga</p>
-                                <p class="mt-1 text-lg font-semibold text-emerald-700">{{ $product['default_variant']['price'] ?? $product['price'] }}</p>
-                            </div>
-                            <div class="rounded-2xl bg-stone-50 px-4 py-3">
-                                <p class="text-xs text-stone-500">Varian default</p>
-                                <p class="mt-1 text-sm font-semibold text-stone-900">{{ $product['default_variant']['label'] ?? $product['weight'] }}</p>
-                            </div>
-                            <div class="rounded-2xl bg-stone-50 px-4 py-3">
-                                <p class="text-xs text-stone-500">Total stok</p>
-                                <p class="mt-1 text-sm font-semibold text-stone-900">{{ $product['stock'] }}</p>
-                            </div>
-                        </div>
-
-                        @if (! empty($product['variants']))
-                            <form method="POST" action="{{ route('cart.items.store') }}" class="space-y-4">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product['id'] }}">
-
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <p class="text-sm font-semibold text-stone-900">Pilih varian</p>
-                                        <p class="text-xs text-stone-500">Harga, stok, dan berat checkout akan mengikuti varian yang dipilih.</p>
-                                    </div>
-                                    <div class="grid gap-3">
-                                        @foreach ($product['variants'] as $variant)
-                                            <label class="block cursor-pointer rounded-2xl border {{ $variant['is_default'] ? 'border-emerald-300 bg-emerald-50/60' : 'border-stone-200 bg-white' }} px-4 py-4">
-                                                <div class="flex items-start gap-3">
-                                                    <input
-                                                        type="radio"
-                                                        name="product_variant_id"
-                                                        value="{{ $variant['id'] }}"
-                                                        class="mt-1 h-4 w-4 border-stone-300 text-emerald-600 focus:ring-emerald-500"
-                                                        {{ old('product_variant_id', $product['default_variant']['id'] ?? null) == $variant['id'] ? 'checked' : '' }}
-                                                    >
-                                                    <div class="min-w-0 flex-1">
-                                                        <div class="flex flex-wrap items-start justify-between gap-3">
-                                                            <div>
-                                                                <div class="flex flex-wrap items-center gap-2">
-                                                                    <p class="font-semibold text-stone-900">{{ $variant['label'] }}</p>
-                                                                    @if ($variant['is_default'])
-                                                                        <span class="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold text-emerald-700">Default</span>
-                                                                    @endif
-                                                                </div>
-                                                                <p class="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500">{{ $variant['sku'] }}</p>
-                                                            </div>
-                                                            <div class="text-right">
-                                                                <p class="text-sm font-semibold text-emerald-700">{{ $variant['price'] }}</p>
-                                                                <p class="mt-1 text-xs text-stone-500">Stok {{ $variant['stock'] }}</p>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="mt-3 grid gap-3 sm:grid-cols-3">
-                                                            <div class="rounded-2xl bg-stone-50 px-3 py-3">
-                                                                <p class="text-[11px] uppercase tracking-[0.18em] text-stone-500">Berat</p>
-                                                                <p class="mt-2 text-sm font-semibold text-stone-900">{{ $variant['weight_grams'] ? number_format($variant['weight_grams'], 0, ',', '.') . ' gram' : '-' }}</p>
-                                                            </div>
-                                                            <div class="rounded-2xl bg-stone-50 px-3 py-3">
-                                                                <p class="text-[11px] uppercase tracking-[0.18em] text-stone-500">Dimensi</p>
-                                                                <p class="mt-2 text-sm font-semibold text-stone-900">{{ $variant['dimension'] }}</p>
-                                                            </div>
-                                                            <div class="rounded-2xl bg-stone-50 px-3 py-3">
-                                                                <p class="text-[11px] uppercase tracking-[0.18em] text-stone-500">Harga coret</p>
-                                                                <p class="mt-2 text-sm font-semibold text-stone-900">{{ $variant['original_price'] ?? '-' }}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                    @error('product_variant_id')
-                                        <p class="text-sm text-rose-700">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="flex flex-wrap items-end gap-3">
-                                    <div class="w-28">
-                                        <label class="mb-2 block text-sm font-medium text-stone-700">Qty</label>
-                                        <input type="number" min="1" name="quantity" value="{{ old('quantity', 1) }}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white">
-                                    </div>
-
-                                    <div class="flex flex-1 gap-3">
-                                        <button type="submit" class="inline-flex flex-1 items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3.5 text-sm font-semibold text-white">
-                                            Tambah ke keranjang
-                                        </button>
-                                        <button type="submit" name="redirect_to" value="checkout" class="inline-flex items-center justify-center rounded-2xl border border-stone-300 px-5 py-3.5 text-sm font-semibold text-stone-800">
-                                            Checkout
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        @endif
-
-                        <div class="space-y-3">
-                            <p class="text-sm font-semibold text-stone-900">Keunggulan produk</p>
-                            <div class="grid gap-3">
-                                @foreach ($product['highlights'] as $highlight)
-                                    <div class="rounded-2xl border border-stone-200 px-4 py-3 text-sm text-stone-700">
-                                        {{ $highlight }}
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-
+                    <div class="relative">
+                        <button type="button" class="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white" data-gallery-prev>Prev</button>
+                        <img src="{{ $gallery[0]['path'] }}" alt="{{ $product['name'] }}" class="mx-auto max-h-[75vh] w-full rounded-3xl object-contain" data-gallery-lightbox-image>
+                        <button type="button" class="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white" data-gallery-next>Next</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <section class="space-y-4">
-            <x-customer-section-title
-                eyebrow="Produk Lainnya"
-                title="Pilihan lain yang relevan untuk customer"
-                description="Bagian ini nantinya bisa diisi rekomendasi produk berdasarkan kategori atau perilaku belanja."
-            />
+        {{-- Info --}}
+        <div class="flex flex-col">
+            <div class="mb-4">
+                <span class="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-700">{{ $product['category'] }}</span>
+            </div>
+            <h1 class="mb-4 font-headline-lg text-headline-lg leading-tight text-on-surface">{{ $product['name'] }}</h1>
 
-            <div class="grid gap-4 lg:grid-cols-3">
+            <div class="mb-6 flex items-center gap-4">
+                <div class="flex flex-col">
+                    <span class="font-headline-md text-4xl font-bold text-larashop-rose">{{ $product['default_variant']['price'] ?? $product['price'] }}</span>
+                    @if (!empty($product['default_variant']['original_price']))
+                        <span class="font-body-sm text-body-sm text-on-surface-variant line-through">{{ $product['default_variant']['original_price'] }}</span>
+                    @endif
+                </div>
+                <div class="mx-2 h-10 w-px bg-surface-container-highest"></div>
+                <div class="flex flex-col">
+                    <span class="flex items-center rounded-full bg-primary/5 px-3 py-1 text-xs font-bold text-primary">
+                        <span class="material-symbols-outlined mr-1 text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        {{ $product['badge'] ?? 'Tersedia' }}
+                    </span>
+                    <span class="ml-1 mt-1 font-body-sm text-xs text-on-surface-variant">Stok: {{ $product['stock'] }}</span>
+                </div>
+            </div>
+
+            <p class="mb-6 font-body-md text-body-md leading-relaxed text-on-surface-variant">{{ $product['description'] }}</p>
+
+            @if (! empty($product['variants']))
+                <form method="POST" action="{{ route('cart.items.store') }}" class="space-y-6">
+                    @csrf
+                    <input type="hidden" name="product_id" value="{{ $product['id'] }}">
+
+                    <div>
+                        <label class="mb-3 block font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Pilih varian</label>
+                        <div class="grid gap-3">
+                            @foreach ($product['variants'] as $variant)
+                                <label class="group/variant relative block cursor-pointer">
+                                    <input type="radio" name="product_variant_id" value="{{ $variant['id'] }}" class="peer sr-only"
+                                        {{ old('product_variant_id', $product['default_variant']['id'] ?? null) == $variant['id'] ? 'checked' : '' }}>
+                                    <div class="rounded-2xl border border-surface-container-highest bg-surface-container-lowest p-4 transition-all peer-checked:border-primary peer-checked:ring-2 peer-checked:ring-primary/15 peer-checked:bg-secondary-container/20">
+                                        <div class="flex flex-wrap items-start justify-between gap-3">
+                                            <div>
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <p class="font-body-md font-semibold text-on-surface">{{ $variant['label'] }}</p>
+                                                    @if ($variant['is_default'])
+                                                        <span class="rounded-full bg-secondary-container px-2.5 py-0.5 text-[11px] font-semibold text-on-secondary-container">Default</span>
+                                                    @endif
+                                                </div>
+                                                <p class="mt-1 font-label-eyebrow text-[11px] uppercase tracking-[0.18em] text-outline">{{ $variant['sku'] }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-body-md font-semibold text-larashop-rose">{{ $variant['price'] }}</p>
+                                                <p class="mt-1 font-body-sm text-xs text-on-surface-variant">Stok {{ $variant['stock'] }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 grid gap-2 sm:grid-cols-3">
+                                            <div class="rounded-xl bg-surface-container-low px-3 py-2">
+                                                <p class="text-[10px] uppercase tracking-[0.18em] text-outline">Berat</p>
+                                                <p class="mt-1 font-body-sm text-sm font-semibold text-on-surface">{{ $variant['weight_grams'] ? number_format($variant['weight_grams'], 0, ',', '.') . ' gram' : '-' }}</p>
+                                            </div>
+                                            <div class="rounded-xl bg-surface-container-low px-3 py-2">
+                                                <p class="text-[10px] uppercase tracking-[0.18em] text-outline">Dimensi</p>
+                                                <p class="mt-1 font-body-sm text-sm font-semibold text-on-surface">{{ $variant['dimension'] }}</p>
+                                            </div>
+                                            <div class="rounded-xl bg-surface-container-low px-3 py-2">
+                                                <p class="text-[10px] uppercase tracking-[0.18em] text-outline">Harga coret</p>
+                                                <p class="mt-1 font-body-sm text-sm font-semibold text-on-surface">{{ $variant['original_price'] ?? '-' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('product_variant_id')
+                            <p class="mt-2 font-body-sm text-body-sm text-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="flex flex-wrap items-end gap-4">
+                        <div class="w-28">
+                            <label class="mb-2 block font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Qty</label>
+                            <input type="number" min="1" name="quantity" value="{{ old('quantity', 1) }}"
+                                class="w-full rounded-xl border border-surface-container-highest bg-surface-container-low px-4 py-3 font-body-md text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div class="flex flex-1 gap-3">
+                            <button type="submit" name="redirect_to" value="checkout"
+                                class="flex h-14 flex-1 items-center justify-center rounded-2xl bg-primary font-body-md text-lg font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:bg-secondary active:scale-95">
+                                Beli Sekarang
+                            </button>
+                            <button type="submit"
+                                class="flex h-14 items-center justify-center gap-2 rounded-2xl border border-surface-container-highest bg-surface-container-lowest px-6 font-body-md text-lg font-bold text-on-surface soft-warm-shadow transition-all hover:bg-surface-container-low active:scale-95">
+                                <span class="material-symbols-outlined">shopping_cart</span>
+                                Keranjang
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            @endif
+
+            {{-- Highlights --}}
+            @if (!empty($product['highlights']))
+                <div class="mt-8 grid grid-cols-1 gap-3 rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-6 soft-warm-shadow md:grid-cols-2">
+                    @foreach ($product['highlights'] as $highlight)
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
+                            </div>
+                            <span class="font-body-sm text-sm font-semibold text-on-surface">{{ $highlight }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Related products --}}
+    @if (!empty($relatedProducts))
+        <section class="mt-4">
+            <div class="mb-8">
+                <h2 class="font-headline-lg text-headline-lg text-on-surface">Produk Lainnya</h2>
+                <p class="mt-1 font-body-md text-on-surface-variant">Lengkapi kebutuhan pertanian Anda</p>
+            </div>
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
                 @foreach ($relatedProducts as $related)
-                    <article class="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
-                        <img
-                            src="{{ $related['image'] }}"
-                            alt="{{ $related['name'] }}"
-                            class="aspect-[1.1] w-full rounded-[1.25rem] object-cover"
-                        >
-                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">{{ $related['category'] }}</p>
-                        <h3 class="mt-3 text-lg font-semibold text-stone-950">{{ $related['name'] }}</h3>
-                        <p class="mt-2 text-sm text-stone-600">{{ $related['price'] }} • {{ $related['weight'] }}</p>
-                        <a href="{{ route('products.show', array_merge(['slug' => $related['slug']], $catalogQuery)) }}" class="mt-5 inline-flex rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white">
-                            Lihat detail
-                        </a>
-                    </article>
+                    <a href="{{ route('products.show', array_merge(['slug' => $related['slug']], $catalogQuery)) }}" class="group block">
+                        <article class="overflow-hidden rounded-3xl border border-surface-container-highest bg-surface-container-lowest soft-warm-shadow hover-lift">
+                            <div class="aspect-square overflow-hidden bg-surface-container-low">
+                                <img src="{{ $related['image'] }}" alt="{{ $related['name'] }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            </div>
+                            <div class="p-6">
+                                <p class="mb-2 font-label-eyebrow text-xs font-bold uppercase tracking-widest text-primary">{{ $related['category'] }}</p>
+                                <h3 class="mb-3 line-clamp-1 font-headline-md text-xl text-on-surface">{{ $related['name'] }}</h3>
+                                <div class="flex items-center justify-between">
+                                    <span class="font-body-md text-xl font-bold text-larashop-rose">{{ $related['price'] }}</span>
+                                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-on-background text-on-primary transition-colors group-hover:bg-primary">
+                                        <span class="material-symbols-outlined">arrow_forward</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </article>
+                    </a>
                 @endforeach
             </div>
         </section>
-    </section>
+    @endif
 </x-layouts.customer>

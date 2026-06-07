@@ -1,57 +1,78 @@
-<x-layouts.customer title="Larashop | Register">
-    <section class="mx-auto max-w-xl space-y-6">
-        <x-customer-section-title
-            eyebrow="Register Customer"
-            title="Buat akun customer dengan proses singkat"
-            description="Form awal dibuat sederhana agar cepat diisi di mobile dan langsung siap dipakai untuk checkout."
-        />
+<x-layouts.customer title="Larashop | Daftar">
+    <div class="flex min-h-[60vh] items-center justify-center py-4">
+        <div class="relative w-full max-w-[480px] overflow-hidden rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-8 soft-warm-shadow md:p-12">
+            <header class="mb-8 flex flex-col items-center text-center">
+                <div class="mb-6 flex h-16 w-16 rotate-3 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary shadow-lg transition-transform duration-500 hover:rotate-0">
+                    <span class="font-headline-md text-2xl font-bold italic tracking-tighter text-on-primary">LS</span>
+                </div>
+                <h1 class="mb-3 font-headline-lg text-headline-lg text-on-surface">Buat akun Larashop</h1>
+                <p class="max-w-[300px] font-body-md text-body-md text-on-surface-variant">Proses singkat, langsung siap dipakai untuk checkout.</p>
+            </header>
 
-        <div class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+            @if ($errors->any())
+                <div class="mb-6 flex items-center gap-3 rounded-2xl border border-error-container bg-error-container/40 p-4">
+                    <span class="material-symbols-outlined text-[20px] text-on-error-container">error</span>
+                    <p class="font-body-sm text-body-sm text-on-error-container">{{ $errors->first() }}</p>
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('register.store') }}" class="space-y-4">
                 @csrf
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-stone-700">Nama lengkap</label>
-                    <input type="text" name="name" value="{{ old('name') }}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Masukkan nama lengkap">
-                    @error('name')
-                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
-                    @enderror
+                <div class="space-y-2">
+                    <label class="ml-1 font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Nama lengkap</label>
+                    <input type="text" name="name" value="{{ old('name') }}" placeholder="Masukkan nama lengkap"
+                        class="w-full rounded-2xl border border-transparent bg-surface-container-low px-5 py-3.5 font-body-md text-body-md outline-none transition-all placeholder:text-outline focus:border-primary focus:ring-4 focus:ring-primary/10">
                 </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-stone-700">Username</label>
-                    <input type="text" name="username" value="{{ old('username') }}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Masukkan username">
-                    @error('username')
-                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
-                    @enderror
+                <div class="space-y-2">
+                    <label class="ml-1 font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Username</label>
+                    <input type="text" name="username" value="{{ old('username') }}" placeholder="Masukkan username"
+                        class="w-full rounded-2xl border border-transparent bg-surface-container-low px-5 py-3.5 font-body-md text-body-md outline-none transition-all placeholder:text-outline focus:border-primary focus:ring-4 focus:ring-primary/10">
                 </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-stone-700">Nomor WhatsApp</label>
-                    <input type="text" name="phone" value="{{ old('phone') }}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="08xxxxxxxxxx">
-                    @error('phone')
-                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
-                    @enderror
+                <div class="space-y-2">
+                    <label class="ml-1 font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Nomor WhatsApp</label>
+                    <input type="text" name="phone" value="{{ old('phone') }}" placeholder="08xxxxxxxxxx"
+                        class="w-full rounded-2xl border border-transparent bg-surface-container-low px-5 py-3.5 font-body-md text-body-md outline-none transition-all placeholder:text-outline focus:border-primary focus:ring-4 focus:ring-primary/10">
                 </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-stone-700">Email</label>
-                    <input type="email" name="email" value="{{ old('email') }}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="opsional@email.com">
-                    @error('email')
-                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
-                    @enderror
+                <div class="space-y-2">
+                    <label class="ml-1 font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Email <span class="lowercase text-outline">(opsional)</span></label>
+                    <input type="email" name="email" value="{{ old('email') }}" placeholder="opsional@email.com"
+                        class="w-full rounded-2xl border border-transparent bg-surface-container-low px-5 py-3.5 font-body-md text-body-md outline-none transition-all placeholder:text-outline focus:border-primary focus:ring-4 focus:ring-primary/10">
                 </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-stone-700">Password</label>
-                    <input type="password" name="password" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Buat password">
-                    @error('password')
-                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
-                    @enderror
+                <div class="space-y-2">
+                    <label class="ml-1 font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Password</label>
+                    <div class="relative" data-password-field>
+                        <input type="password" name="password" placeholder="Buat password" data-password-input
+                            class="w-full rounded-2xl border border-transparent bg-surface-container-low px-5 py-3.5 pr-14 font-body-md text-body-md outline-none transition-all placeholder:text-outline focus:border-primary focus:ring-4 focus:ring-primary/10">
+                        <button type="button" data-password-toggle aria-label="Tampilkan password" aria-pressed="false"
+                            class="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-outline transition-colors hover:text-primary">
+                            <span class="material-symbols-outlined" data-eye-open>visibility</span>
+                            <span class="material-symbols-outlined hidden" data-eye-closed>visibility_off</span>
+                        </button>
+                    </div>
                 </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-stone-700">Konfirmasi password</label>
-                    <input type="password" name="password_confirmation" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Ulangi password">
+                <div class="space-y-2">
+                    <label class="ml-1 font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Konfirmasi password</label>
+                    <div class="relative" data-password-field>
+                        <input type="password" name="password_confirmation" placeholder="Ulangi password" data-password-input
+                            class="w-full rounded-2xl border border-transparent bg-surface-container-low px-5 py-3.5 pr-14 font-body-md text-body-md outline-none transition-all placeholder:text-outline focus:border-primary focus:ring-4 focus:ring-primary/10">
+                        <button type="button" data-password-toggle aria-label="Tampilkan password" aria-pressed="false"
+                            class="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-outline transition-colors hover:text-primary">
+                            <span class="material-symbols-outlined" data-eye-open>visibility</span>
+                            <span class="material-symbols-outlined hidden" data-eye-closed>visibility_off</span>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-stone-900 px-5 py-3.5 text-sm font-semibold text-white">
+                <button type="submit" class="mt-2 w-full rounded-2xl bg-on-background py-4 font-body-md font-bold text-on-primary shadow-lg transition-all duration-200 hover:bg-primary active:scale-95">
                     Buat akun
                 </button>
             </form>
+
+            <footer class="mt-8 text-center">
+                <p class="font-body-md text-body-md text-on-surface-variant">
+                    Sudah punya akun?
+                    <a href="{{ route('login') }}" class="ml-1 font-bold text-primary hover:underline">Masuk</a>
+                </p>
+            </footer>
         </div>
-    </section>
+    </div>
 </x-layouts.customer>
