@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Admin Larashop | Edit ' . $account['name']">
+<x-layouts.admin :title="'Admin Sobat Akar Tani Kimia | Edit ' . $account['name']">
     <section class="space-y-6">
         <x-admin.page-header
             eyebrow="Admin Account"

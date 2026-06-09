@@ -1,4 +1,4 @@
-<x-layouts.customer title="Larashop | Alamat">
+<x-layouts.customer title="Sobat Akar Tani Kimia | Alamat">
     @php
         $openOnLoad = $errors->any();
         $formMode = old('_address_mode', 'create');

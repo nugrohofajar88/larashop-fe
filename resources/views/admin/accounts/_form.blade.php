@@ -11,7 +11,7 @@
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Email</label>
-                    <input type="email" name="email" value="{{ old('email', $account['email'] ?? '') }}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="nama@larashop.test">
+                    <input type="email" name="email" value="{{ old('email', $account['email'] ?? '') }}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="nama@email.com">
                     @error('email')
                         <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
                     @enderror

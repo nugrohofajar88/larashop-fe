@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Admin Larashop | ' . $order['code']">
+<x-layouts.admin :title="'Admin Sobat Akar Tani Kimia | ' . $order['code']">
     <section class="space-y-6">
         @php
             $status = $order['status'] ?? '';
@@ -30,11 +30,32 @@
                             Validasi pembayaran
                         </button>
                     </form>
-                @elseif (in_array($order['status'], ['paid', 'processing'], true))
+                @elseif ($order['status'] === 'paid')
+                    <form method="POST" action="{{ route('admin.orders.schedule-pickup', $order['code']) }}" class="flex flex-wrap items-end gap-2 rounded-2xl border border-stone-200 bg-stone-50 p-3">
+                        @csrf
+                        <div>
+                            <label class="block text-xs font-medium text-stone-500">Tanggal pickup</label>
+                            <input type="date" name="pickup_date" value="{{ now()->addDay()->format('Y-m-d') }}" required class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-stone-500">Jam</label>
+                            <input type="time" name="pickup_time" value="10:00" required class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-stone-500">Kendaraan</label>
+                            <select name="pickup_vehicle" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800">
+                                <option value="Motor">Motor</option>
+                                <option value="Mobil">Mobil</option>
+                                <option value="Truk">Truk</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white">Jadwalkan Pickup</button>
+                    </form>
+                @elseif ($order['status'] === 'processing')
                     <form method="POST" action="{{ route('admin.orders.process-shipment', $order['code']) }}">
                         @csrf
                         <button type="submit" class="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white">
-                            Process Shipment
+                            Tandai Dikirim
                         </button>
                     </form>
                 @endif
@@ -164,6 +185,31 @@
                             <p class="mt-1 leading-6 text-stone-700">{{ $order['address'] }}</p>
                         </div>
                     </div>
+                </section>
+
+                <section class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
+                    <h2 class="text-xl font-semibold text-stone-950">Riwayat status</h2>
+                    @if (! empty($order['trackings']))
+                        <ol class="mt-5 space-y-4">
+                            @foreach (array_reverse($order['trackings']) as $t)
+                                <li class="flex gap-3">
+                                    <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {{ $loop->first ? 'bg-emerald-600' : 'bg-stone-300' }}"></span>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-semibold text-stone-900">{{ $t['label'] }}</p>
+                                        <p class="text-xs text-stone-500">{{ $t['time'] }} · {{ ucfirst($t['source']) }}@if (! empty($t['raw_status'])) · {{ $t['raw_status'] }}@endif</p>
+                                        @if (! empty($t['awb']))
+                                            <p class="text-xs text-stone-500">AWB: {{ $t['awb'] }}</p>
+                                        @endif
+                                        @if (! empty($t['note']))
+                                            <p class="text-xs text-stone-500">{{ $t['note'] }}</p>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ol>
+                    @else
+                        <p class="mt-3 text-sm text-stone-500">Belum ada riwayat status.</p>
+                    @endif
                 </section>
             </aside>
         </div>

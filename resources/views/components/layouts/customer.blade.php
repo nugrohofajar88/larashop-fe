@@ -3,7 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ $title ?? 'Larashop' }}</title>
+        <title>{{ $title ?? 'Sobat Akar Tani Kimia' }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
@@ -24,7 +25,10 @@
         {{-- ===== Top navigation bar ===== --}}
         <header class="sticky top-0 z-50 w-full border-b border-outline-variant/20 bg-surface/80 bg-gradient-to-b from-primary/5 to-transparent backdrop-blur-md shadow-[0_4px_12px_rgba(0,108,74,0.08)]">
             <nav class="mx-auto flex h-20 w-full max-w-[1280px] items-center justify-between px-margin-mobile md:px-margin-desktop">
-                <a href="{{ route('home') }}" class="font-display text-headline-md font-semibold text-primary">Larashop</a>
+                <a href="{{ route('home') }}" class="flex items-center gap-2.5">
+                    <img src="{{ asset('images/logo.png') }}" alt="Sobat Akar Tani Kimia" class="h-10 w-auto sm:h-11">
+                    <span class="hidden font-display text-headline-md font-semibold text-primary sm:inline">Akar Tani Kimia</span>
+                </a>
 
                 {{-- Desktop links --}}
                 <div class="hidden items-center gap-8 md:flex">
@@ -57,7 +61,7 @@
                                 data-customer-menu-panel
                             >
                                 <div class="border-b border-outline-variant/20 px-5 py-4">
-                                    <p class="truncate text-body-md font-semibold text-on-surface">{{ data_get(session('customer.user'), 'name', 'Customer Larashop') }}</p>
+                                    <p class="truncate text-body-md font-semibold text-on-surface">{{ data_get(session('customer.user'), 'name', 'Pelanggan') }}</p>
                                     <p class="mt-0.5 truncate text-body-sm text-on-surface-variant">{{ data_get(session('customer.user'), 'username', '') }}</p>
                                 </div>
                                 <a href="{{ route('profile') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">

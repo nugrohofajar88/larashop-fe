@@ -1,4 +1,12 @@
-<x-layouts.customer :title="'Larashop | ' . $product['name']">
+<x-layouts.customer :title="'Sobat Akar Tani Kimia | ' . $product['name']">
+    @php
+        // Fallback kalau produk belum punya foto -> pakai placeholder (cegah error $gallery[0]).
+        $gallery = ! empty($gallery) ? $gallery : [[
+            'path' => asset('images/placeholder-product.png'),
+            'label' => 'Foto belum tersedia',
+        ]];
+    @endphp
+
     {{-- Breadcrumb --}}
     <nav class="mb-8 flex items-center gap-2 font-body-sm text-body-sm text-on-surface-variant">
         <a href="{{ route('home') }}" class="transition-colors hover:text-primary">Home</a>
@@ -54,12 +62,16 @@
             </div>
             <h1 class="mb-4 font-headline-lg text-headline-lg leading-tight text-on-surface">{{ $product['name'] }}</h1>
 
+            @php
+                $defaultVariantId = $product['default_variant']['id'] ?? ($product['variants'][0]['id'] ?? null);
+                $selectedId = old('product_variant_id', $defaultVariantId);
+                $activeVariant = collect($product['variants'] ?? [])->firstWhere('id', $selectedId) ?? ($product['variants'][0] ?? []);
+            @endphp
+
             <div class="mb-6 flex items-center gap-4">
                 <div class="flex flex-col">
-                    <span class="font-headline-md text-4xl font-bold text-larashop-rose">{{ $product['default_variant']['price'] ?? $product['price'] }}</span>
-                    @if (!empty($product['default_variant']['original_price']))
-                        <span class="font-body-sm text-body-sm text-on-surface-variant line-through">{{ $product['default_variant']['original_price'] }}</span>
-                    @endif
+                    <span class="font-headline-md text-4xl font-bold text-larashop-rose" data-variant-main-price>{{ $activeVariant['price'] ?? $product['price'] }}</span>
+                    <span class="font-body-sm text-body-sm text-on-surface-variant line-through {{ empty($activeVariant['original_price']) ? 'hidden' : '' }}" data-variant-main-original>{{ $activeVariant['original_price'] ?? '' }}</span>
                 </div>
                 <div class="mx-2 h-10 w-px bg-surface-container-highest"></div>
                 <div class="flex flex-col">
@@ -80,45 +92,52 @@
 
                     <div>
                         <label class="mb-3 block font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Pilih varian</label>
-                        <div class="grid gap-3">
+
+                        {{-- Chip varian (bisa dipilih) --}}
+                        <div class="flex flex-wrap gap-2.5">
                             @foreach ($product['variants'] as $variant)
-                                <label class="group/variant relative block cursor-pointer">
+                                <label class="cursor-pointer">
                                     <input type="radio" name="product_variant_id" value="{{ $variant['id'] }}" class="peer sr-only"
-                                        {{ old('product_variant_id', $product['default_variant']['id'] ?? null) == $variant['id'] ? 'checked' : '' }}>
-                                    <div class="rounded-2xl border border-surface-container-highest bg-surface-container-lowest p-4 transition-all peer-checked:border-primary peer-checked:ring-2 peer-checked:ring-primary/15 peer-checked:bg-secondary-container/20">
-                                        <div class="flex flex-wrap items-start justify-between gap-3">
-                                            <div>
-                                                <div class="flex flex-wrap items-center gap-2">
-                                                    <p class="font-body-md font-semibold text-on-surface">{{ $variant['label'] }}</p>
-                                                    @if ($variant['is_default'])
-                                                        <span class="rounded-full bg-secondary-container px-2.5 py-0.5 text-[11px] font-semibold text-on-secondary-container">Default</span>
-                                                    @endif
-                                                </div>
-                                                <p class="mt-1 font-label-eyebrow text-[11px] uppercase tracking-[0.18em] text-outline">{{ $variant['sku'] }}</p>
-                                            </div>
-                                            <div class="text-right">
-                                                <p class="font-body-md font-semibold text-larashop-rose">{{ $variant['price'] }}</p>
-                                                <p class="mt-1 font-body-sm text-xs text-on-surface-variant">Stok {{ $variant['stock'] }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="mt-3 grid gap-2 sm:grid-cols-3">
-                                            <div class="rounded-xl bg-surface-container-low px-3 py-2">
-                                                <p class="text-[10px] uppercase tracking-[0.18em] text-outline">Berat</p>
-                                                <p class="mt-1 font-body-sm text-sm font-semibold text-on-surface">{{ $variant['weight_grams'] ? number_format($variant['weight_grams'], 0, ',', '.') . ' gram' : '-' }}</p>
-                                            </div>
-                                            <div class="rounded-xl bg-surface-container-low px-3 py-2">
-                                                <p class="text-[10px] uppercase tracking-[0.18em] text-outline">Dimensi</p>
-                                                <p class="mt-1 font-body-sm text-sm font-semibold text-on-surface">{{ $variant['dimension'] }}</p>
-                                            </div>
-                                            <div class="rounded-xl bg-surface-container-low px-3 py-2">
-                                                <p class="text-[10px] uppercase tracking-[0.18em] text-outline">Harga coret</p>
-                                                <p class="mt-1 font-body-sm text-sm font-semibold text-on-surface">{{ $variant['original_price'] ?? '-' }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        data-variant
+                                        data-label="{{ $variant['label'] }}"
+                                        data-sku="{{ $variant['sku'] }}"
+                                        data-price="{{ $variant['price'] }}"
+                                        data-original="{{ $variant['original_price'] ?? '' }}"
+                                        data-stock="{{ $variant['stock'] }}"
+                                        data-weight="{{ $variant['weight_grams'] ? number_format($variant['weight_grams'], 0, ',', '.') . ' gram' : '-' }}"
+                                        data-dimension="{{ $variant['dimension'] }}"
+                                        {{ $selectedId == $variant['id'] ? 'checked' : '' }}>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-surface-container-highest bg-surface-container-lowest px-5 py-2.5 font-body-md text-sm font-semibold text-on-surface transition-all hover:border-primary peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-primary peer-checked:shadow-md">
+                                        {{ $variant['label'] }}
+                                    </span>
                                 </label>
                             @endforeach
                         </div>
+
+                        {{-- Card keterangan varian terpilih (berubah sesuai pilihan) --}}
+                        <div class="mt-4 rounded-2xl border border-primary/30 bg-secondary-container/15 p-4">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <p class="font-body-md font-semibold text-on-surface" data-variant-label>{{ $activeVariant['label'] ?? '-' }}</p>
+                                    <p class="mt-0.5 font-label-eyebrow text-[11px] uppercase tracking-[0.18em] text-outline" data-variant-sku>{{ $activeVariant['sku'] ?? '' }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-headline-md text-xl font-bold text-larashop-rose" data-variant-price>{{ $activeVariant['price'] ?? $product['price'] }}</p>
+                                    <p class="mt-0.5 font-body-sm text-xs text-on-surface-variant">Stok <span data-variant-stock>{{ $activeVariant['stock'] ?? $product['stock'] }}</span></p>
+                                </div>
+                            </div>
+                            <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                                <div class="rounded-xl bg-surface-container-low px-3 py-2">
+                                    <p class="text-[10px] uppercase tracking-[0.18em] text-outline">Berat</p>
+                                    <p class="mt-1 font-body-sm text-sm font-semibold text-on-surface" data-variant-weight>{{ ($activeVariant['weight_grams'] ?? 0) ? number_format($activeVariant['weight_grams'], 0, ',', '.') . ' gram' : '-' }}</p>
+                                </div>
+                                <div class="rounded-xl bg-surface-container-low px-3 py-2">
+                                    <p class="text-[10px] uppercase tracking-[0.18em] text-outline">Dimensi</p>
+                                    <p class="mt-1 font-body-sm text-sm font-semibold text-on-surface" data-variant-dimension>{{ $activeVariant['dimension'] ?? '-' }}</p>
+                                </div>
+                            </div>
+                        </div>
+
                         @error('product_variant_id')
                             <p class="mt-2 font-body-sm text-body-sm text-error">{{ $message }}</p>
                         @enderror
@@ -173,7 +192,7 @@
                     <a href="{{ route('products.show', array_merge(['slug' => $related['slug']], $catalogQuery)) }}" class="group block">
                         <article class="overflow-hidden rounded-3xl border border-surface-container-highest bg-surface-container-lowest soft-warm-shadow hover-lift">
                             <div class="aspect-square overflow-hidden bg-surface-container-low">
-                                <img src="{{ $related['image'] }}" alt="{{ $related['name'] }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                <img src="{{ ($related['image'] ?? '') ?: asset('images/placeholder-product.png') }}" alt="{{ $related['name'] }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110">
                             </div>
                             <div class="p-6">
                                 <p class="mb-2 font-label-eyebrow text-xs font-bold uppercase tracking-widest text-primary">{{ $related['category'] }}</p>
@@ -191,4 +210,30 @@
             </div>
         </section>
     @endif
+
+    <script>
+    (function () {
+        const radios = document.querySelectorAll('input[data-variant]');
+        if (!radios.length) return;
+        const setText = (sel, val) => { const el = document.querySelector(sel); if (el) el.textContent = val; };
+        function apply(r) {
+            const d = r.dataset;
+            setText('[data-variant-label]', d.label);
+            setText('[data-variant-sku]', d.sku);
+            setText('[data-variant-price]', d.price);
+            setText('[data-variant-stock]', d.stock);
+            setText('[data-variant-weight]', d.weight);
+            setText('[data-variant-dimension]', d.dimension);
+            setText('[data-variant-main-price]', d.price);
+            const orig = document.querySelector('[data-variant-main-original]');
+            if (orig) {
+                if (d.original && d.original.trim() !== '') { orig.textContent = d.original; orig.classList.remove('hidden'); }
+                else { orig.classList.add('hidden'); }
+            }
+        }
+        radios.forEach((r) => r.addEventListener('change', () => { if (r.checked) apply(r); }));
+        const checked = document.querySelector('input[data-variant]:checked') || radios[0];
+        if (checked) { checked.checked = true; apply(checked); }
+    })();
+    </script>
 </x-layouts.customer>

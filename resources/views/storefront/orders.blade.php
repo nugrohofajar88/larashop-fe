@@ -1,4 +1,4 @@
-<x-layouts.customer title="Larashop | Pesanan">
+<x-layouts.customer title="Sobat Akar Tani Kimia | Pesanan">
     <div class="flex flex-col gap-10 md:flex-row">
         <x-customer.account-nav />
 

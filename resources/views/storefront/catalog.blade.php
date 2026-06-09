@@ -1,4 +1,4 @@
-<x-layouts.customer title="Larashop | Katalog">
+<x-layouts.customer title="Sobat Akar Tani Kimia | Katalog">
     @php $hasFilter = $search !== '' || $activeCategory !== 'all' || $activeStatus !== 'all' || $activeSort !== 'default'; @endphp
 
     {{-- Section title --}}
@@ -87,8 +87,11 @@
                         @if (!empty($product['discount_badge']))
                             <span class="absolute left-2 top-2 z-10 rounded-full bg-error px-2 py-1 font-label-eyebrow text-label-eyebrow text-on-error">{{ $product['discount_badge'] }}</span>
                         @endif
+                        @if (!empty($product['badge']))
+                            <span class="absolute right-2 top-2 z-10 rounded-full bg-primary px-2 py-1 font-label-eyebrow text-label-eyebrow text-on-primary">{{ $product['badge'] }}</span>
+                        @endif
                         <img
-                            src="{{ $product['image'] }}"
+                            src="{{ ($product['image'] ?? '') ?: asset('images/placeholder-product.png') }}"
                             alt="{{ $product['name'] }}"
                             class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                         >

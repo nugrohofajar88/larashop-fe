@@ -39,6 +39,14 @@
                     @enderror
                 </div>
                 <div class="md:col-span-2">
+                    <label class="mb-2 block text-sm font-medium text-stone-700">Badge (opsional)</label>
+                    <input type="text" name="badge_label" value="{{ old('badge_label', $product['badge_label'] ?? '') }}" maxlength="50" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="mis. Terlaris, Baru, Promo, Stok Terbatas">
+                    <p class="mt-2 text-xs text-stone-500">Label kecil di kartu produk storefront (home). Kosongkan jika tak perlu.</p>
+                    @error('badge_label')
+                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="md:col-span-2">
                     <label class="mb-2 block text-sm font-medium text-stone-700">Deskripsi singkat</label>
                     <input id="product-description" name="description" type="hidden" value="{{ old('description', $product['description'] ?? '') }}">
                     <div class="trix-shell">

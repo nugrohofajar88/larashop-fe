@@ -1,9 +1,9 @@
-<x-layouts.customer title="Larashop | Login Admin">
+<x-layouts.customer title="Sobat Akar Tani Kimia | Login Admin">
     <section class="mx-auto max-w-xl space-y-6">
         <x-customer-section-title
             eyebrow="Login Admin"
-            title="Masuk ke panel operasional Larashop"
-            description="Panel admin dipakai untuk mengelola produk, customer, pesanan, dan shipment."
+            title="Masuk ke panel Admin"
+            description="Kelola produk, customer, pesanan, dan shipment"
         />
 
         <div class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm sm:p-6">

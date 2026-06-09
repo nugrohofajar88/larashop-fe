@@ -1,4 +1,4 @@
-<x-layouts.admin title="Admin Larashop | Tambah Account">
+<x-layouts.admin title="Admin Sobat Akar Tani Kimia | Tambah Account">
     <section class="space-y-6">
         <x-admin.page-header
             eyebrow="Admin Account"

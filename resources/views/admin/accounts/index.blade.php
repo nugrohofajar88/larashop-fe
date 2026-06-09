@@ -1,4 +1,4 @@
-<x-layouts.admin title="Admin Larashop | Account">
+<x-layouts.admin title="Admin Sobat Akar Tani Kimia | Account">
     <section class="space-y-6">
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
@@ -54,7 +54,8 @@
                 @endif
             </div>
 
-            <div class="mt-5 overflow-hidden rounded-2xl border border-stone-200">
+            {{-- Desktop: tabel --}}
+            <div class="mt-5 hidden overflow-x-auto rounded-2xl border border-stone-200 md:block">
                 <table class="min-w-full text-left text-sm">
                     <thead class="bg-stone-50 text-stone-500">
                         <tr>
@@ -100,6 +101,44 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            {{-- Mobile: kartu --}}
+            <div class="mt-5 space-y-3 md:hidden">
+                @forelse ($accounts as $account)
+                    <article class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-stone-900">{{ $account['name'] }}</p>
+                                <p class="mt-0.5 text-xs uppercase tracking-[0.18em] text-stone-500">{{ $account['id'] }}</p>
+                                <p class="mt-1 text-sm text-stone-600">{{ $account['email'] }}</p>
+                            </div>
+                            <span class="shrink-0 rounded-full {{ $account['status'] === 'Aktif' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-700' }} px-2.5 py-1 text-xs font-semibold">
+                                {{ $account['status'] }}
+                            </span>
+                        </div>
+                        <dl class="mt-3 space-y-2 text-sm">
+                            <div class="flex items-start justify-between gap-3">
+                                <dt class="text-stone-500">Role</dt>
+                                <dd class="text-stone-800">{{ $account['role'] }}</dd>
+                            </div>
+                            <div class="flex items-start justify-between gap-3">
+                                <dt class="text-stone-500">Last login</dt>
+                                <dd class="text-stone-700">{{ $account['last_login'] }}</dd>
+                            </div>
+                        </dl>
+                        <div class="mt-3 flex gap-2">
+                            <a href="{{ route('admin.accounts.edit', $account['id']) }}" class="flex-1 rounded-full bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white">Edit</a>
+                            <form method="POST" action="{{ route('admin.accounts.destroy', $account['id']) }}" onsubmit="return confirm('Hapus account {{ $account['name'] }}?')" class="flex-1">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="w-full rounded-full border border-rose-200 px-3 py-2 text-xs font-medium text-rose-600">Hapus</button>
+                            </form>
+                        </div>
+                    </article>
+                @empty
+                    <p class="rounded-2xl border border-stone-200 bg-white px-4 py-8 text-center text-sm text-stone-500">Belum ada account admin yang cocok dengan filter saat ini.</p>
+                @endforelse
             </div>
         </section>
     </section>

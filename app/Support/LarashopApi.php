@@ -193,6 +193,56 @@ class LarashopApi
         $this->requestAsAdmin('DELETE', '/admin/accounts/'.$id);
     }
 
+    public function adminPaymentAccounts(): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/payment-accounts')['data'] ?? [];
+    }
+
+    public function createAdminPaymentAccount(array $payload): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/payment-accounts', ['json' => $payload])['data'] ?? [];
+    }
+
+    public function updateAdminPaymentAccount(int $id, array $payload): array
+    {
+        return $this->requestAsAdmin('PUT', '/admin/payment-accounts/'.$id, ['json' => $payload])['data'] ?? [];
+    }
+
+    public function deleteAdminPaymentAccount(int $id): void
+    {
+        $this->requestAsAdmin('DELETE', '/admin/payment-accounts/'.$id);
+    }
+
+    public function adminCategories(): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/categories')['data'] ?? [];
+    }
+
+    public function createAdminCategory(array $payload): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/categories', ['json' => $payload])['data'] ?? [];
+    }
+
+    public function updateAdminCategory(int $id, array $payload): array
+    {
+        return $this->requestAsAdmin('PUT', '/admin/categories/'.$id, ['json' => $payload])['data'] ?? [];
+    }
+
+    public function deleteAdminCategory(int $id): void
+    {
+        $this->requestAsAdmin('DELETE', '/admin/categories/'.$id);
+    }
+
+    public function adminSettings(): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/settings')['data'] ?? [];
+    }
+
+    public function updateAdminSettings(array $payload): array
+    {
+        return $this->requestAsAdmin('PUT', '/admin/settings', ['json' => $payload])['data'] ?? [];
+    }
+
     public function adminProducts(array $query = []): array
     {
         return $this->requestAsAdmin('GET', '/admin/products', ['query' => $query])['data'] ?? [];
@@ -256,6 +306,11 @@ class LarashopApi
     public function processAdminOrderShipment(int $id): array
     {
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/process-shipment')['data'] ?? [];
+    }
+
+    public function scheduleAdminPickup(int $id, array $payload): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/schedule-pickup', ['json' => $payload])['data'] ?? [];
     }
 
     public function completeAdminOrder(int $id): array

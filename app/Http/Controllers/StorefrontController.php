@@ -231,6 +231,7 @@ class StorefrontController extends Controller
             'shippingOptions' => data_get($payload, 'shipping_options', []),
             'paymentSummary' => data_get($payload, 'payment_summary', []),
             'shipmentOrigin' => data_get($payload, 'shipment_origin'),
+            'items' => data_get($payload, 'items', []),
         ]);
     }
 

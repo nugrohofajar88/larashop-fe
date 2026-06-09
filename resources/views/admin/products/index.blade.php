@@ -1,4 +1,4 @@
-<x-layouts.admin title="Admin Larashop | Produk">
+<x-layouts.admin title="Admin Sobat Akar Tani Kimia | Produk">
     <section class="space-y-6">
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
@@ -101,7 +101,8 @@
                     </div>
                 @endif
 
-                <div class="mt-5 overflow-hidden rounded-2xl border border-stone-200">
+                {{-- Desktop: tabel --}}
+                <div class="mt-5 hidden overflow-x-auto rounded-2xl border border-stone-200 md:block">
                     <table class="min-w-full text-left text-sm">
                         <thead class="bg-stone-50 text-stone-500">
                             <tr>
@@ -161,6 +162,42 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                {{-- Mobile: kartu --}}
+                <div class="mt-5 space-y-3 md:hidden">
+                    @forelse ($products as $product)
+                        <article class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+                            <div class="flex items-start gap-3">
+                                <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}" class="h-14 w-14 shrink-0 rounded-2xl border border-stone-200 object-cover">
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-stone-900">{{ $product['name'] }}</p>
+                                    <p class="mt-0.5 text-xs uppercase tracking-[0.18em] text-stone-500">{{ $product['category'] }} / {{ $product['sku'] }}</p>
+                                </div>
+                                <span class="shrink-0 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">{{ $product['status'] }}</span>
+                            </div>
+                            <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                                <div>
+                                    <dt class="text-stone-500">Harga</dt>
+                                    <dd class="font-medium text-stone-900">{{ $product['price'] }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-stone-500">Stok</dt>
+                                    <dd class="font-semibold {{ $product['stock'] <= 12 ? 'text-amber-700' : 'text-stone-900' }}">{{ $product['stock'] }} <span class="text-xs font-normal text-stone-500">({{ $product['variant_count'] }} varian)</span></dd>
+                                </div>
+                                <div class="col-span-2">
+                                    <dt class="text-stone-500">Berat / Dimensi</dt>
+                                    <dd class="text-stone-700">{{ $product['default_variant']['label'] ?? $product['weight'] }} · {{ $product['dimension'] }}</dd>
+                                </div>
+                            </dl>
+                            <div class="mt-3 flex gap-2">
+                                <a href="{{ route('admin.products.show', $product['sku']) }}" class="flex-1 rounded-full border border-stone-300 px-3 py-2 text-center text-xs font-medium text-stone-700">Detail</a>
+                                <a href="{{ route('admin.products.edit', $product['sku']) }}" class="flex-1 rounded-full bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white">Edit</a>
+                            </div>
+                        </article>
+                    @empty
+                        <p class="rounded-2xl border border-stone-200 bg-white px-4 py-8 text-center text-sm text-stone-500">Belum ada produk yang cocok dengan filter saat ini.</p>
+                    @endforelse
                 </div>
             </section>
         </div>

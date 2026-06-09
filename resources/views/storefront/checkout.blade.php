@@ -1,4 +1,4 @@
-<x-layouts.customer title="Larashop | Checkout">
+<x-layouts.customer title="Sobat Akar Tani Kimia | Checkout">
     <section data-checkout-page>
         <div class="mb-10">
             <x-customer-section-title
@@ -8,6 +8,18 @@
             />
         </div>
 
+        @if ($errors->any())
+            <div class="mb-6 flex items-start gap-3 rounded-2xl border border-error-container bg-error-container/40 px-4 py-3 font-body-sm text-body-sm text-on-error-container">
+                <span class="material-symbols-outlined text-[20px]">error</span>
+                <div class="space-y-1">
+                    <p class="font-semibold">Pesanan belum bisa dibuat:</p>
+                    @foreach ($errors->all() as $error)
+                        <p>{{ $error }}</p>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <div class="mb-6 hidden items-center gap-3 rounded-2xl border border-secondary-container bg-secondary-container/30 px-4 py-3 font-body-sm text-body-sm font-medium text-on-secondary-container" data-checkout-loading>
             <span class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
             Sedang mencari layanan kurir...
@@ -15,6 +27,26 @@
 
         <div class="grid grid-cols-1 items-start gap-gutter lg:grid-cols-[1fr_0.95fr]">
             <div class="space-y-6">
+                <article class="rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-6 soft-warm-shadow">
+                    <h2 class="font-headline-md text-headline-md text-on-surface">Item pesanan</h2>
+                    <div class="mt-4 space-y-3">
+                        @forelse ($items as $item)
+                            <div class="flex items-start justify-between gap-4 {{ !$loop->last ? 'border-b border-dashed border-surface-container-highest pb-3' : '' }}">
+                                <div>
+                                    <p class="font-body-md font-semibold text-on-surface">{{ $item['name'] }}</p>
+                                    @if (!empty($item['variant_label']))
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant">{{ $item['variant_label'] }}</p>
+                                    @endif
+                                    <p class="mt-0.5 font-body-sm text-body-sm text-on-surface-variant">{{ $item['quantity'] }} × {{ $item['price'] }}</p>
+                                </div>
+                                <p class="shrink-0 font-body-md font-semibold text-on-surface">{{ $item['subtotal'] }}</p>
+                            </div>
+                        @empty
+                            <p class="font-body-sm text-body-sm text-on-surface-variant">Belum ada item terpilih di keranjang. Pilih produk dulu di keranjang ya.</p>
+                        @endforelse
+                    </div>
+                </article>
+
                 <x-customer.checkout-address-selector :address="$address" :addresses="$addresses" />
                 <x-customer.checkout-shipping-selector :shipping-options="$shippingOptions" />
 

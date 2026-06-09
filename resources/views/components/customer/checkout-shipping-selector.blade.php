@@ -5,7 +5,7 @@
 @php($selectedShipping = collect($shippingOptions)->firstWhere('selected', true) ?? $shippingOptions[0] ?? [
     'service' => 'Opsi pengiriman belum tersedia',
     'price' => 'Rp0',
-    'estimate' => 'belum tersedia',
+    'estimate' => '',
     'selected' => false,
 ])
 
@@ -19,7 +19,7 @@
             <p class="font-body-md font-semibold text-on-surface" data-shipping-service>{{ $selectedShipping['service'] }}</p>
             <p class="font-body-md font-semibold text-primary" data-shipping-price>{{ $selectedShipping['price'] }}</p>
         </div>
-        <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant" data-shipping-estimate>Estimasi {{ $selectedShipping['estimate'] }}</p>
+        <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant" data-shipping-estimate>{{ ($selectedShipping['estimate'] ?? '') !== '' ? 'Estimasi '.$selectedShipping['estimate'] : '' }}</p>
     </div>
 
     <div class="fixed inset-0 z-[60] hidden p-4 backdrop-blur-sm" style="background-color: rgba(12,10,9,0.45);" data-selector-modal aria-hidden="true">
@@ -47,7 +47,7 @@
                                     data-service="{{ $option['service'] }}"
                                     data-price="{{ $option['price'] }}"
                                     data-price-value="{{ $option['price_value'] }}"
-                                    data-estimate="Estimasi {{ $option['estimate'] }}"
+                                    data-estimate="{{ ($option['estimate'] ?? '') !== '' ? 'Estimasi '.$option['estimate'] : '' }}"
                                     {{ $option['selected'] ? 'checked' : '' }}
                                 >
                                 <div class="flex-1">
@@ -55,7 +55,9 @@
                                         <p class="font-body-md font-semibold text-on-surface">{{ $option['service'] }}</p>
                                         <p class="font-body-md font-semibold text-primary">{{ $option['price'] }}</p>
                                     </div>
-                                    <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant">Estimasi {{ $option['estimate'] }}</p>
+                                    @if (($option['estimate'] ?? '') !== '')
+                                        <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant">Estimasi {{ $option['estimate'] }}</p>
+                                    @endif
                                 </div>
                             </div>
                         </label>

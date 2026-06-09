@@ -1,4 +1,4 @@
-<x-layouts.customer title="Larashop | Katalog Pertanian">
+<x-layouts.customer title="Sobat Akar Tani Kimia | Katalog Pertanian">
     <section class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
         <div class="space-y-5">
             <div class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
@@ -48,7 +48,9 @@
                                 <p class="text-sm font-semibold text-stone-950">{{ $product['name'] }}</p>
                                 <p class="mt-1 text-xs text-stone-500">{{ $product['unit'] }}</p>
                             </div>
-                            <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">{{ $product['badge'] }}</span>
+                            @if (! empty($product['badge']))
+                                <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">{{ $product['badge'] }}</span>
+                            @endif
                         </div>
                         <div class="mt-4 flex items-center justify-between">
                             <div>

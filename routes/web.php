@@ -66,10 +66,21 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::post('/orders/{code}/validate-payment', [AdminController::class, 'validatePayment'])->name('admin.orders.validate-payment');
     Route::post('/orders/{code}/cancel', [AdminController::class, 'cancelOrder'])->name('admin.orders.cancel');
     Route::post('/orders/{code}/process-shipment', [AdminController::class, 'processShipment'])->name('admin.orders.process-shipment');
+    Route::post('/orders/{code}/schedule-pickup', [AdminController::class, 'schedulePickup'])->name('admin.orders.schedule-pickup');
     Route::post('/orders/{code}/complete', [AdminController::class, 'completeOrder'])->name('admin.orders.complete');
     Route::get('/shipments', [AdminController::class, 'shipments'])->name('admin.shipments.index');
     Route::get('/shipments/settings', [AdminController::class, 'shipmentSettings'])->name('admin.shipments.settings');
     Route::get('/shipments/settings/destination-search', [AdminController::class, 'searchShipmentDestinations'])->name('admin.shipments.settings.destination-search');
     Route::put('/shipments/settings', [AdminController::class, 'updateShipmentSettings'])->name('admin.shipments.settings.update');
     Route::get('/shipments/{code}', [AdminController::class, 'showShipment'])->name('admin.shipments.show');
+    Route::get('/payments/settings', [AdminController::class, 'paymentSettings'])->name('admin.payments.settings');
+    Route::post('/payments/accounts', [AdminController::class, 'storePaymentAccount'])->name('admin.payments.accounts.store');
+    Route::put('/payments/accounts/{id}', [AdminController::class, 'updatePaymentAccount'])->name('admin.payments.accounts.update');
+    Route::delete('/payments/accounts/{id}', [AdminController::class, 'deletePaymentAccount'])->name('admin.payments.accounts.destroy');
+    Route::put('/payments/store-settings', [AdminController::class, 'updateStoreSettings'])->name('admin.payments.store-settings.update');
+
+    Route::get('/categories', [AdminController::class, 'categories'])->name('admin.categories.index');
+    Route::post('/categories', [AdminController::class, 'storeCategory'])->name('admin.categories.store');
+    Route::put('/categories/{id}', [AdminController::class, 'updateCategory'])->name('admin.categories.update');
+    Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory'])->name('admin.categories.destroy');
 });

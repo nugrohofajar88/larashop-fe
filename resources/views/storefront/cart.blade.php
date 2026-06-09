@@ -1,4 +1,4 @@
-<x-layouts.customer title="Larashop | Keranjang">
+<x-layouts.customer title="Sobat Akar Tani Kimia | Keranjang">
     <section
         data-cart-page
         data-cart-update-template="{{ route('cart.items.update', ['id' => '__ID__']) }}"
@@ -36,7 +36,7 @@
                             data-cart-select {{ $item['selected'] ? 'checked' : '' }}>
 
                         <div class="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-surface-container">
-                            <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}" class="h-full w-full object-cover">
+                            <img src="{{ ($item['image'] ?? '') ?: asset('images/placeholder-product.png') }}" alt="{{ $item['name'] }}" class="h-full w-full object-cover">
                         </div>
 
                         <div class="min-w-0 flex-grow">

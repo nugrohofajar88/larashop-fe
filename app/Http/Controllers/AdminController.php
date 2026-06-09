@@ -553,6 +553,25 @@ class AdminController extends Controller
         return redirect()->route('admin.shipments.index')->with('success', "Shipment untuk order {$updated['code']} berhasil diproses.");
     }
 
+    public function schedulePickup(Request $request, string $code): RedirectResponse
+    {
+        $validated = $request->validate([
+            'pickup_date' => ['required', 'date'],
+            'pickup_time' => ['required', 'string'],
+            'pickup_vehicle' => ['required', 'in:Motor,Mobil,Truk'],
+        ]);
+
+        $order = $this->findOrderByCode($code);
+
+        try {
+            $updated = $this->api->scheduleAdminPickup($order['id'], $validated);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal menjadwalkan pickup: '.$e->getMessage());
+        }
+
+        return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Pickup order {$updated['code']} berhasil dijadwalkan.");
+    }
+
     public function completeOrder(string $code): RedirectResponse
     {
         $order = $this->findOrderByCode($code);
@@ -647,6 +666,7 @@ class AdminController extends Controller
             'subdistrict' => ['required', 'string', 'max:100'],
             'postal_code' => ['required', 'string', 'max:10'],
             'address_line' => ['required', 'string'],
+            'pin_point' => ['nullable', 'string', 'max:60'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -666,6 +686,146 @@ class AdminController extends Controller
         return redirect()->route('admin.shipments.settings')->with('success', 'Setting shipment berhasil diperbarui.');
     }
 
+    public function paymentSettings(): View
+    {
+        return view('admin.payments.settings', [
+            'accounts' => $this->api->adminPaymentAccounts(),
+            'settings' => $this->api->adminSettings(),
+        ]);
+    }
+
+    public function updateStoreSettings(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'store_whatsapp' => ['nullable', 'string', 'max:20'],
+            'store_brand' => ['nullable', 'string', 'max:100'],
+            'store_email' => ['nullable', 'email', 'max:100'],
+            'unique_code_enabled' => ['nullable', 'boolean'],
+        ]);
+
+        // Checkbox: selalu kirim true/false eksplisit (kalau tak dicentang, key tak ada).
+        $validated['unique_code_enabled'] = $request->boolean('unique_code_enabled');
+
+        try {
+            $this->api->updateAdminSettings($validated);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['store_whatsapp' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.payments.settings')->with('success', 'Nomor WhatsApp toko berhasil disimpan.');
+    }
+
+    public function storePaymentAccount(Request $request): RedirectResponse
+    {
+        $validated = $this->validatePaymentAccount($request);
+
+        try {
+            $this->api->createAdminPaymentAccount($validated);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['bank_name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.payments.settings')->with('success', 'Rekening pembayaran berhasil ditambahkan.');
+    }
+
+    public function updatePaymentAccount(Request $request, int $id): RedirectResponse
+    {
+        $validated = $this->validatePaymentAccount($request);
+
+        try {
+            $this->api->updateAdminPaymentAccount($id, $validated);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['bank_name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.payments.settings')->with('success', 'Rekening pembayaran berhasil diperbarui.');
+    }
+
+    public function deletePaymentAccount(int $id): RedirectResponse
+    {
+        try {
+            $this->api->deleteAdminPaymentAccount($id);
+        } catch (LarashopApiException $exception) {
+            return back()->withErrors(['payment' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.payments.settings')->with('success', 'Rekening pembayaran berhasil dihapus.');
+    }
+
+    public function categories(): View
+    {
+        return view('admin.categories.index', [
+            'categories' => $this->api->adminCategories(),
+        ]);
+    }
+
+    public function storeCategory(Request $request): RedirectResponse
+    {
+        $validated = $this->validateCategory($request);
+
+        try {
+            $this->api->createAdminCategory($validated);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil ditambahkan.');
+    }
+
+    public function updateCategory(Request $request, int $id): RedirectResponse
+    {
+        $validated = $this->validateCategory($request);
+
+        try {
+            $this->api->updateAdminCategory($id, $validated);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['name' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil diperbarui.');
+    }
+
+    public function deleteCategory(int $id): RedirectResponse
+    {
+        try {
+            $this->api->deleteAdminCategory($id);
+        } catch (LarashopApiException $exception) {
+            return back()->withErrors(['category' => $exception->errors['category'][0] ?? $exception->getMessage()]);
+        }
+
+        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil dihapus.');
+    }
+
+    protected function validateCategory(Request $request): array
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'slug' => ['nullable', 'string', 'max:120'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $validated['is_active'] = $request->boolean('is_active');
+
+        return $validated;
+    }
+
+    protected function validatePaymentAccount(Request $request): array
+    {
+        $validated = $request->validate([
+            'bank_name' => ['required', 'string', 'max:100'],
+            'account_number' => ['required', 'string', 'max:50'],
+            'account_holder' => ['required', 'string', 'max:255'],
+            'note' => ['nullable', 'string', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $validated['is_active'] = $request->boolean('is_active');
+
+        return $validated;
+    }
+
     public function showShipment(string $code): View
     {
         $shipment = $this->api->adminShipment($code);
@@ -682,6 +842,7 @@ class AdminController extends Controller
             'sku' => ['required', 'string', 'max:50'],
             'category' => ['required', 'string'],
             'status' => ['required', 'string'],
+            'badge_label' => ['nullable', 'string', 'max:50'],
             'description' => ['required', 'string'],
             'variants_json' => ['nullable', 'json'],
             'price' => ['nullable', 'numeric', 'min:0'],
@@ -768,7 +929,7 @@ class AdminController extends Controller
             'catalog_status' => $validated['status'] === 'preorder'
                 ? 'preorder'
                 : ((int) $totalStock === 0 ? 'sold_out' : 'available'),
-            'badge_label' => $existingProduct['badge_label'] ?? null,
+            'badge_label' => trim((string) ($validated['badge_label'] ?? '')) ?: null,
             'sold_count' => $existingProduct['sold_count'] ?? 0,
             'highlights' => $existingProduct['highlights'] ?? [],
             'image_paths' => $imagePaths,
@@ -817,6 +978,7 @@ class AdminController extends Controller
             'variants' => collect($product['variants'] ?? [])->map(fn (array $variant) => $this->mapProductVariant($variant))->values()->all(),
             'status' => $product['status'],
             'status_key' => $product['public_status'],
+            'badge_label' => $product['badge_label'] ?? null,
             'highlight' => ($product['badge_label'] ?? null) ?: ($product['stock'] <= 12 ? 'Stok menipis' : 'Siap tampil'),
             'description' => '<div>'.e($product['description']).'</div>',
             'images' => [],
@@ -1004,6 +1166,21 @@ class AdminController extends Controller
 
     private function productCategories(): array
     {
+        // Ambil kategori AKTIF dari API (sumber tunggal) -> slug => nama.
+        // Supaya dropdown form produk & filter selalu sinkron dengan CRUD kategori.
+        try {
+            $map = collect($this->api->adminCategories())
+                ->filter(fn (array $c) => $c['is_active'] ?? true)
+                ->mapWithKeys(fn (array $c) => [$c['slug'] => $c['name']])
+                ->all();
+
+            if ($map !== []) {
+                return $map;
+            }
+        } catch (\Throwable) {
+            // Fallback ke default kalau API gagal.
+        }
+
         return [
             'pupuk' => 'Pupuk',
             'benih' => 'Benih',

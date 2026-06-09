@@ -34,7 +34,8 @@ export const initCheckoutSelector = () => {
     };
 
     const getSelectedShippingOptionId = () => {
-        const selected = Array.from(shippingRoot.querySelectorAll('[data-selector-input]')).find((input) => input.checked);
+        const inputs = Array.from(shippingRoot.querySelectorAll('[data-selector-input]'));
+        const selected = inputs.find((input) => input.checked) || inputs[0];
 
         return selected?.getAttribute('data-option-id') || '';
     };
@@ -213,7 +214,7 @@ export const initCheckoutSelector = () => {
                                 data-service="${escapeHtml(option.service)}"
                                 data-price="${escapeHtml(option.price)}"
                                 data-price-value="${escapeHtml(option.price_value)}"
-                                data-estimate="${escapeHtml(`Estimasi ${option.estimate}`)}"
+                                data-estimate="${option.estimate ? escapeHtml(`Estimasi ${option.estimate}`) : ''}"
                                 ${option.selected ? 'checked' : ''}
                             >
                             <div class="flex-1">
@@ -221,7 +222,7 @@ export const initCheckoutSelector = () => {
                                     <p class="font-semibold text-stone-900">${escapeHtml(option.service)}</p>
                                     <p class="font-semibold text-emerald-700">${escapeHtml(option.price)}</p>
                                 </div>
-                                <p class="mt-1 text-sm text-stone-500">Estimasi ${escapeHtml(option.estimate)}</p>
+                                ${option.estimate ? `<p class="mt-1 text-sm text-stone-500">Estimasi ${escapeHtml(option.estimate)}</p>` : ''}
                             </div>
                         </div>
                     </label>
@@ -337,7 +338,7 @@ export const initCheckoutSelector = () => {
         }
 
         if (estimate) {
-            estimate.textContent = `Estimasi ${selectedShipping?.estimate || 'belum tersedia'}`;
+            estimate.textContent = selectedShipping?.estimate ? `Estimasi ${selectedShipping.estimate}` : '';
         }
 
         if (optionsContainer) {
@@ -477,8 +478,26 @@ export const initCheckoutSelector = () => {
         addressIdField.value = getSelectedAddressId();
     }
 
+    // Pastikan ada opsi pengiriman terpilih kalau server tidak menandai default,
+    // supaya shipping_option_id tidak kosong saat submit.
+    const shippingInputs = Array.from(shippingRoot.querySelectorAll('[data-selector-input]'));
+    if (shippingInputs.length > 0 && !shippingInputs.some((input) => input.checked)) {
+        shippingInputs[0].checked = true;
+        syncOptionStyles(shippingRoot);
+    }
+
     if (shippingOptionIdField) {
         shippingOptionIdField.value = getSelectedShippingOptionId();
+    }
+
+    // Cegah submit kalau opsi pengiriman belum ada/terpilih (hindari error mentah dari server).
+    if (orderForm) {
+        orderForm.addEventListener('submit', (event) => {
+            if (!shippingOptionIdField || shippingOptionIdField.value === '') {
+                event.preventDefault();
+                window.alert('Opsi pengiriman belum tersedia. Periksa alamat tujuan, lalu pilih layanan pengiriman dulu ya.');
+            }
+        });
     }
 
     page.querySelectorAll('[data-selector-open]').forEach((button) => {

@@ -1,4 +1,4 @@
-<x-layouts.admin :title="'Admin Larashop | ' . $product['name']">
+<x-layouts.admin :title="'Admin Sobat Akar Tani Kimia | ' . $product['name']">
     <section class="space-y-6">
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>

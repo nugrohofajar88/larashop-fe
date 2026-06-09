@@ -1,4 +1,4 @@
-<x-layouts.admin title="Admin Larashop | Dashboard">
+<x-layouts.admin title="Admin Sobat Akar Tani Kimia | Dashboard">
     <section class="space-y-6">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -34,7 +34,8 @@
                     <a href="{{ route('admin.orders.index') }}" class="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700">Lihat semua</a>
                 </div>
 
-                <div class="mt-5 overflow-hidden rounded-2xl border border-stone-200">
+                {{-- Desktop: tabel --}}
+                <div class="mt-5 hidden overflow-x-auto rounded-2xl border border-stone-200 md:block">
                     <table class="min-w-full text-left text-sm">
                         <thead class="bg-stone-50 text-stone-500">
                             <tr>
@@ -61,6 +62,19 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                {{-- Mobile: kartu --}}
+                <div class="mt-5 space-y-2 md:hidden">
+                    @foreach ($orders as $order)
+                        <a href="{{ route('admin.orders.show', $order['code']) }}" class="flex items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-3">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-stone-900">{{ $order['code'] }}</p>
+                                <p class="truncate text-xs text-stone-500">{{ $order['customer'] }} · {{ $order['amount'] }}</p>
+                            </div>
+                            <span class="shrink-0 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">{{ $order['status'] }}</span>
+                        </a>
+                    @endforeach
                 </div>
             </section>
 

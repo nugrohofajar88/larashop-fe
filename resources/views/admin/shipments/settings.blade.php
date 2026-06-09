@@ -1,4 +1,4 @@
-<x-layouts.admin title="Admin Larashop | Shipment Settings">
+<x-layouts.admin title="Admin Sobat Akar Tani Kimia | Shipment Settings">
     <section class="space-y-6" data-admin-shipment-settings data-destination-search-url="{{ route('admin.shipments.settings.destination-search') }}">
         <x-admin.page-header
             eyebrow="Shipment Settings"
@@ -91,6 +91,11 @@
                     <div class="md:col-span-2">
                         <label class="mb-2 block text-sm font-medium text-stone-700">Alamat lengkap <span class="text-rose-500">*</span></label>
                         <textarea name="address_line" rows="3" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Nama jalan, nomor rumah, area gudang, patokan" required data-admin-shipment-address-line>{{ old('address_line', $settings['address_line'] ?? '') }}</textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="mb-2 block text-sm font-medium text-stone-700">Koordinat gudang (lat, long)</label>
+                        <input type="text" name="pin_point" value="{{ old('pin_point', $settings['pin_point'] ?? '') }}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="-7.968106, 112.676096">
+                        <p class="mt-1 text-xs text-stone-400">Titik jemput (pickup) gudang untuk hitung ongkir Komerce. Opsional.</p>
                     </div>
                     <div class="md:col-span-2">
                         <label class="mb-2 block text-sm font-medium text-stone-700">Catatan</label>

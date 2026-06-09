@@ -1,11 +1,9 @@
-<x-layouts.customer title="Larashop | Masuk">
+<x-layouts.customer title="Sobat Akar Tani Kimia | Masuk">
     <div class="flex min-h-[60vh] items-center justify-center py-4">
         <div class="relative w-full max-w-[440px] overflow-hidden rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-8 soft-warm-shadow md:p-12">
             <header class="mb-10 flex flex-col items-center text-center">
-                <div class="mb-6 flex h-16 w-16 rotate-3 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary shadow-lg transition-transform duration-500 hover:rotate-0">
-                    <span class="font-headline-md text-2xl font-bold italic tracking-tighter text-on-primary">LS</span>
-                </div>
-                <h1 class="mb-3 font-headline-lg text-headline-lg text-on-surface">Masuk ke Larashop</h1>
+                <img src="{{ asset('images/logo-circle.png') }}" alt="Sobat Akar Tani Kimia" class="mb-6 h-20 w-20 rounded-full object-cover shadow-lg">
+                <h1 class="mb-3 font-headline-lg text-headline-lg text-on-surface">Masuk ke Sobat Akar Tani Kimia</h1>
                 <p class="max-w-[280px] font-body-md text-body-md text-on-surface-variant">Silakan masuk untuk melanjutkan transaksi pertanianmu.</p>
             </header>
 

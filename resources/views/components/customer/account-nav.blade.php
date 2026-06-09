@@ -1,6 +1,6 @@
 @php
     $username = data_get(session('customer.user'), 'username', 'customer');
-    $name = data_get(session('customer.user'), 'name', 'Customer Larashop');
+    $name = data_get(session('customer.user'), 'name', 'Pelanggan');
     $initial = strtoupper(substr($username, 0, 1));
     $isProfile = request()->routeIs('profile');
     $isAddresses = request()->routeIs('addresses');

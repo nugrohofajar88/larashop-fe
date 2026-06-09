@@ -1,4 +1,4 @@
-<x-layouts.admin title="Admin Larashop | Shipments">
+<x-layouts.admin title="Admin Sobat Akar Tani Kimia | Shipments">
     <section class="space-y-6">
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>

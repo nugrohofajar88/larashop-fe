@@ -1,4 +1,4 @@
-<x-layouts.admin title="Admin Larashop | Orders">
+<x-layouts.admin title="Admin Sobat Akar Tani Kimia | Orders">
     <section class="space-y-6">
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
@@ -55,22 +55,23 @@
                 </div>
             </div>
 
-            <div class="mt-5 overflow-hidden rounded-2xl border border-stone-200">
-                <div>
-                <table class="min-w-full text-left text-sm overflow-visible">
+            {{-- Desktop: tabel. Wrapper overflow-visible (bukan overflow-x-auto) supaya dropdown
+                 aksi ⋮ tidak terpotong, terutama di baris paling atas. --}}
+            <div class="mt-5 hidden rounded-2xl border border-stone-200 md:block">
+                <table class="min-w-full text-left text-sm">
                     <thead class="bg-stone-50 text-stone-500">
                         <tr>
-                            <th class="px-4 py-3 font-medium">Order</th>
+                            <th class="rounded-tl-2xl px-4 py-3 font-medium">Order</th>
                             <th class="px-4 py-3 font-medium">Customer</th>
                             <th class="px-4 py-3 font-medium">Nominal</th>
                             <th class="px-4 py-3 font-medium">Status</th>
                             <th class="px-4 py-3 font-medium">Shipment</th>
-                            <th class="px-4 py-3 font-medium">Aksi</th>
+                            <th class="rounded-tr-2xl px-4 py-3 font-medium">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-stone-200 bg-white">
                         @forelse ($orders as $order)
-                            <tr class="overflow-visible">
+                            <tr>
                                 <td class="px-4 py-4 align-top">
                                     <a href="{{ route('admin.orders.show', $order['code']) }}" class="font-semibold text-stone-900">{{ $order['code'] }}</a>
                                     <p class="mt-1 text-xs text-stone-500">{{ $order['date'] }}</p>
@@ -88,62 +89,8 @@
                                     <p>{{ $order['shipping_service'] }}</p>
                                     <p class="mt-1 text-xs text-stone-500">{{ $order['awb'] ?? 'Belum ada AWB' }}</p>
                                 </td>
-                                <td class="overflow-visible px-4 py-4 align-top">
-                                    <details class="relative ml-auto w-fit">
-                                        <summary class="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full border border-stone-200 bg-white text-stone-600 transition hover:border-stone-300 hover:text-stone-900">
-                                            <svg viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5" aria-hidden="true">
-                                                <path d="M10 4.75a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5zm0 6.5a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5zm0 6.5a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z" />
-                                            </svg>
-                                        </summary>
-
-                                        <div class="absolute bottom-full right-0 z-50 mb-2 w-52 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl shadow-stone-900/10">
-                                            <a href="{{ route('admin.orders.show', $order['code']) }}" class="block px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-50">
-                                                Lihat invoice
-                                            </a>
-
-                                            @if ($order['status'] === 'pending_payment')
-                                                <form method="POST" action="{{ route('admin.orders.validate-payment', $order['code']) }}">
-                                                    @csrf
-                                                    <button type="submit" class="block w-full px-4 py-3 text-left text-sm font-medium text-stone-700 transition hover:bg-stone-50">
-                                                        Validasi pembayaran
-                                                    </button>
-                                                </form>
-                                                <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}">
-                                                    @csrf
-                                                    <button type="submit" class="block w-full px-4 py-3 text-left text-sm font-medium text-rose-700 transition hover:bg-rose-50">
-                                                        Batalkan pesanan
-                                                    </button>
-                                                </form>
-                                            @elseif ($order['status'] === 'paid')
-                                                <form method="POST" action="{{ route('admin.orders.process-shipment', $order['code']) }}">
-                                                    @csrf
-                                                    <button type="submit" class="block w-full px-4 py-3 text-left text-sm font-medium text-stone-700 transition hover:bg-stone-50">
-                                                        Proses pesanan
-                                                    </button>
-                                                </form>
-                                                <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}">
-                                                    @csrf
-                                                    <button type="submit" class="block w-full px-4 py-3 text-left text-sm font-medium text-rose-700 transition hover:bg-rose-50">
-                                                        Batalkan pesanan
-                                                    </button>
-                                                </form>
-                                            @elseif ($order['status'] === 'processing')
-                                                <form method="POST" action="{{ route('admin.orders.process-shipment', $order['code']) }}">
-                                                    @csrf
-                                                    <button type="submit" class="block w-full px-4 py-3 text-left text-sm font-medium text-stone-700 transition hover:bg-stone-50">
-                                                        Kirim pesanan
-                                                    </button>
-                                                </form>
-                                            @elseif ($order['status'] === 'shipped')
-                                                <form method="POST" action="{{ route('admin.orders.complete', $order['code']) }}">
-                                                    @csrf
-                                                    <button type="submit" class="block w-full px-4 py-3 text-left text-sm font-medium text-stone-700 transition hover:bg-stone-50">
-                                                        Tandai selesai
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </details>
+                                <td class="px-4 py-4 align-top">
+                                    @include('admin.orders._row-actions')
                                 </td>
                             </tr>
                         @empty
@@ -153,8 +100,66 @@
                         @endforelse
                     </tbody>
                 </table>
-                </div>
+            </div>
+
+            {{-- Mobile: kartu --}}
+            <div class="mt-5 space-y-3 md:hidden">
+                @forelse ($orders as $order)
+                    <article class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <a href="{{ route('admin.orders.show', $order['code']) }}" class="font-semibold text-stone-900">{{ $order['code'] }}</a>
+                                <p class="mt-0.5 text-xs text-stone-500">{{ $order['date'] }}</p>
+                            </div>
+                            @include('admin.orders._row-actions')
+                        </div>
+                        <dl class="mt-3 space-y-2 text-sm">
+                            <div class="flex items-start justify-between gap-3">
+                                <dt class="text-stone-500">Customer</dt>
+                                <dd class="text-right text-stone-800">{{ $order['customer'] }}<span class="block text-xs text-stone-500">{{ $order['phone'] }}</span></dd>
+                            </div>
+                            <div class="flex items-start justify-between gap-3">
+                                <dt class="text-stone-500">Nominal</dt>
+                                <dd class="text-right font-medium text-stone-900">{{ $order['total'] }}</dd>
+                            </div>
+                            <div class="flex items-start justify-between gap-3">
+                                <dt class="text-stone-500">Status</dt>
+                                <dd class="text-right"><span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">{{ $order['status_label'] ?? $order['status'] }}</span><span class="mt-1 block text-xs text-stone-500">{{ $order['payment_status'] }}</span></dd>
+                            </div>
+                            <div class="flex items-start justify-between gap-3">
+                                <dt class="text-stone-500">Shipment</dt>
+                                <dd class="text-right text-stone-700">{{ $order['shipping_service'] }}<span class="block text-xs text-stone-500">{{ $order['awb'] ?? 'Belum ada AWB' }}</span></dd>
+                            </div>
+                        </dl>
+                    </article>
+                @empty
+                    <p class="rounded-2xl border border-stone-200 bg-white px-4 py-8 text-center text-sm text-stone-500">Belum ada order yang cocok dengan filter saat ini.</p>
+                @endforelse
             </div>
         </section>
     </section>
+
+    {{-- Dropdown aksi ⋮: buka satu menutup yang lain, klik di luar / Esc menutup. --}}
+    <script>
+        (function () {
+            const openMenus = () => document.querySelectorAll('details[data-row-menu][open]');
+
+            // Saat satu menu dibuka, tutup yang lain (toggle tidak bubble -> pakai capture).
+            document.addEventListener('toggle', function (e) {
+                const el = e.target;
+                if (!(el instanceof HTMLDetailsElement) || !el.hasAttribute('data-row-menu') || !el.open) return;
+                openMenus().forEach((d) => { if (d !== el) d.removeAttribute('open'); });
+            }, true);
+
+            // Klik di luar menu yang terbuka -> tutup.
+            document.addEventListener('click', function (e) {
+                openMenus().forEach((d) => { if (!d.contains(e.target)) d.removeAttribute('open'); });
+            });
+
+            // Esc -> tutup semua.
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') openMenus().forEach((d) => d.removeAttribute('open'));
+            });
+        })();
+    </script>
 </x-layouts.admin>
