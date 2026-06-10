@@ -8,15 +8,22 @@
         <h2 class="font-headline-md text-headline-md text-on-surface">Alamat pengiriman</h2>
         <button type="button" class="font-label-lg text-label-lg font-bold text-primary hover:underline" data-selector-open>Ubah</button>
     </div>
-    <div class="mt-4 rounded-2xl bg-surface-container-low px-4 py-4 font-body-md text-body-md leading-6 text-on-surface-variant">
-        <div class="flex flex-wrap items-center gap-2">
-            <p class="font-semibold text-on-surface" data-address-label>{{ $address['label'] }}</p>
-            <span class="{{ $address['is_primary'] ? '' : 'hidden' }} rounded-full bg-secondary-container px-3 py-1 text-[11px] font-semibold text-on-secondary-container" data-address-primary-badge>Utama</span>
+    @if ($address)
+        <div class="mt-4 rounded-2xl bg-surface-container-low px-4 py-4 font-body-md text-body-md leading-6 text-on-surface-variant">
+            <div class="flex flex-wrap items-center gap-2">
+                <p class="font-semibold text-on-surface" data-address-label>{{ $address['label'] }}</p>
+                <span class="{{ ($address['is_primary'] ?? false) ? '' : 'hidden' }} rounded-full bg-secondary-container px-3 py-1 text-[11px] font-semibold text-on-secondary-container" data-address-primary-badge>Utama</span>
+            </div>
+            <p class="mt-1 text-outline" data-address-contact>{{ $address['name'] ?? '' }} · {{ $address['phone'] ?? '' }}</p>
+            <p class="mt-2" data-address-detail>{{ $address['detail'] ?? '' }}</p>
+            <p class="mt-2 text-xs text-outline {{ ($address['note'] ?? '') !== '' ? '' : 'hidden' }}" data-address-note>{{ $address['note'] ?? '' }}</p>
         </div>
-        <p class="mt-1 text-outline" data-address-contact>{{ $address['name'] }} · {{ $address['phone'] }}</p>
-        <p class="mt-2" data-address-detail>{{ $address['detail'] }}</p>
-        <p class="mt-2 text-xs text-outline {{ $address['note'] !== '' ? '' : 'hidden' }}" data-address-note>{{ $address['note'] }}</p>
-    </div>
+    @else
+        <div class="mt-4 rounded-2xl border border-dashed border-surface-container-highest bg-surface-container-low px-4 py-5 text-center font-body-md text-body-md text-on-surface-variant">
+            <p>Belum ada alamat pengiriman.</p>
+            <a href="{{ route('addresses') }}" class="mt-2 inline-block font-bold text-primary hover:underline">+ Tambah alamat dulu</a>
+        </div>
+    @endif
 
     <div class="fixed inset-0 z-[60] hidden p-4 backdrop-blur-sm" style="background-color: rgba(12,10,9,0.45);" data-selector-modal aria-hidden="true">
         <div class="mx-auto flex min-h-full max-w-3xl items-center justify-center">

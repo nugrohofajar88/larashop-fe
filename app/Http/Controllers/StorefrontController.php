@@ -360,6 +360,10 @@ class StorefrontController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
+        // Laravel tidak menyertakan password_confirmation di $validated; BE juga
+        // pakai rule `confirmed`, jadi konfirmasinya harus ikut diteruskan.
+        $validated['password_confirmation'] = (string) $request->input('password_confirmation');
+
         try {
             $payload = $this->api->register($validated);
         } catch (LarashopApiException $exception) {
