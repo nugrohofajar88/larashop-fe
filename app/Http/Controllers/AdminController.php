@@ -789,10 +789,14 @@ class AdminController extends Controller
             'store_brand' => ['nullable', 'string', 'max:100'],
             'store_email' => ['nullable', 'email', 'max:100'],
             'unique_code_enabled' => ['nullable', 'boolean'],
+            'payment_transfer_enabled' => ['nullable', 'boolean'],
+            'payment_qris_enabled' => ['nullable', 'boolean'],
         ]);
 
         // Checkbox: selalu kirim true/false eksplisit (kalau tak dicentang, key tak ada).
         $validated['unique_code_enabled'] = $request->boolean('unique_code_enabled');
+        $validated['payment_transfer_enabled'] = $request->boolean('payment_transfer_enabled');
+        $validated['payment_qris_enabled'] = $request->boolean('payment_qris_enabled');
 
         try {
             $this->api->updateAdminSettings($validated);

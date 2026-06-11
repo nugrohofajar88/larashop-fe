@@ -51,6 +51,28 @@
                 </span>
             </label>
 
+            {{-- Metode pembayaran yang ditawarkan ke pelanggan (mempengaruhi info bayar di pesan WA & checkout) --}}
+            <div class="mt-5">
+                <p class="{{ $labelClass }}">Metode Pembayaran</p>
+                <div class="mt-2 grid gap-3 sm:grid-cols-2">
+                    <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+                        <input type="checkbox" name="payment_transfer_enabled" value="1" {{ old('payment_transfer_enabled', ($settings['payment_transfer_enabled'] ?? true)) ? 'checked' : '' }} class="mt-0.5 h-5 w-5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500">
+                        <span>
+                            <span class="text-sm font-medium text-stone-900">Transfer Bank</span>
+                            <span class="block text-xs text-stone-500">Tampilkan rekening untuk transfer manual.</span>
+                        </span>
+                    </label>
+                    <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+                        <input type="checkbox" name="payment_qris_enabled" value="1" {{ old('payment_qris_enabled', ($settings['payment_qris_enabled'] ?? true)) ? 'checked' : '' }} class="mt-0.5 h-5 w-5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500">
+                        <span>
+                            <span class="text-sm font-medium text-stone-900">QRIS</span>
+                            <span class="block text-xs text-stone-500">Kirim QR pembayaran (perlu QRIS aktif di menu QRIS).</span>
+                        </span>
+                    </label>
+                </div>
+                <p class="mt-2 text-xs text-stone-400">Boleh aktif dua-duanya. Kalau keduanya mati, sistem otomatis pakai Transfer Bank.</p>
+            </div>
+
             <button type="submit" class="mt-4 rounded-2xl bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-800">Simpan Pengaturan</button>
             <p class="mt-2 text-xs text-stone-400">WhatsApp boleh 0812.../62812...; email untuk booking ekspedisi (opsional). Koordinat gudang kini diatur di Shipment Settings.</p>
         </form>
