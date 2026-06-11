@@ -36,10 +36,97 @@
                         </div>
 
                         @if (($order['status'] ?? null) === 'pending_payment')
+                            <div class="mt-4 rounded-2xl border border-primary/30 bg-secondary-container/20 p-5"
+                                 data-qris-card
+                                 data-qris-generate="{{ route('customer.orders.qris', $order['code']) }}"
+                                 data-qris-status="{{ route('customer.orders.qris-status', $order['code']) }}"
+                                 data-csrf="{{ csrf_token() }}">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">qr_code_2</span>
+                                    <h2 class="font-headline-md text-lg font-bold text-on-surface">Bayar dengan QRIS</h2>
+                                </div>
+                                <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant">Scan pakai e-wallet / m-banking apa pun (GoPay, OVO, DANA, dll). Pembayaran terkonfirmasi otomatis.</p>
+
+                                <div class="mt-4 flex flex-col items-center gap-2 text-center">
+                                    <div data-qris-loading class="py-8 text-on-surface-variant">
+                                        <span class="material-symbols-outlined animate-spin">progress_activity</span>
+                                        <p class="mt-1 font-body-sm text-sm">Menyiapkan QR…</p>
+                                    </div>
+                                    <img data-qris-img alt="QRIS" class="hidden h-60 w-60 rounded-2xl border border-surface-container-highest bg-white p-2">
+                                    <p data-qris-amount class="hidden font-headline-sm text-xl font-bold text-on-surface"></p>
+                                    <p data-qris-expiry class="hidden font-body-sm text-sm text-on-surface-variant"></p>
+                                    <div data-qris-paid class="hidden w-full rounded-2xl bg-primary px-5 py-3 font-semibold text-on-primary">✅ Pembayaran diterima! Memuat ulang…</div>
+                                    <p data-qris-error class="hidden font-body-sm text-sm text-error"></p>
+                                    <button type="button" data-qris-refresh class="hidden rounded-2xl border border-primary px-4 py-2 text-sm font-semibold text-primary">Buat QR baru</button>
+                                </div>
+                            </div>
+
                             <form action="{{ route('customer.orders.cancel', $order['code']) }}" method="POST" class="mt-4" onsubmit="return confirm('Batalkan pesanan ini?')">
                                 @csrf
                                 <button type="submit" class="inline-flex items-center justify-center rounded-2xl border border-error-container px-4 py-2.5 font-body-sm text-sm font-semibold text-error">Batalkan pesanan</button>
                             </form>
+
+                            <script>
+                            (function () {
+                                const card = document.querySelector('[data-qris-card]');
+                                if (!card) return;
+                                const genUrl = card.dataset.qrisGenerate, statusUrl = card.dataset.qrisStatus, csrf = card.dataset.csrf;
+                                const q = s => card.querySelector(s);
+                                const loading = q('[data-qris-loading]'), img = q('[data-qris-img]'), amount = q('[data-qris-amount]'),
+                                      expiry = q('[data-qris-expiry]'), paid = q('[data-qris-paid]'), err = q('[data-qris-error]'), refresh = q('[data-qris-refresh]');
+                                let pollTimer = null, expiryTimer = null, expiresAt = null;
+                                const rupiah = n => 'Rp ' + (n || 0).toLocaleString('id-ID');
+
+                                function showError(msg) {
+                                    loading.classList.add('hidden');
+                                    err.textContent = msg; err.classList.remove('hidden');
+                                    refresh.classList.remove('hidden');
+                                }
+                                async function generate() {
+                                    loading.classList.remove('hidden');
+                                    [err, refresh, img, amount, expiry].forEach(el => el.classList.add('hidden'));
+                                    try {
+                                        const r = await fetch(genUrl, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
+                                        const j = await r.json();
+                                        if (!r.ok) throw new Error(j.message || 'Gagal membuat QRIS');
+                                        const d = j.data || {};
+                                        if (!d.qris_image) throw new Error('QR tidak tersedia');
+                                        img.src = d.qris_image; img.classList.remove('hidden');
+                                        amount.textContent = rupiah(d.amount); amount.classList.remove('hidden');
+                                        loading.classList.add('hidden');
+                                        if (d.expired_at) { expiresAt = new Date(d.expired_at); startCountdown(); }
+                                        startPolling();
+                                    } catch (e) { showError(e.message); }
+                                }
+                                function startCountdown() {
+                                    expiry.classList.remove('hidden');
+                                    clearInterval(expiryTimer);
+                                    expiryTimer = setInterval(() => {
+                                        const diff = Math.floor((expiresAt - new Date()) / 1000);
+                                        if (diff <= 0) { clearInterval(expiryTimer); clearInterval(pollTimer); expiry.textContent = 'QR kedaluwarsa'; refresh.classList.remove('hidden'); return; }
+                                        const m = String(Math.floor(diff / 60)).padStart(2, '0'), s = String(diff % 60).padStart(2, '0');
+                                        expiry.textContent = 'Berlaku ' + m + ':' + s;
+                                    }, 1000);
+                                }
+                                function startPolling() {
+                                    clearInterval(pollTimer);
+                                    pollTimer = setInterval(async () => {
+                                        try {
+                                            const r = await fetch(statusUrl, { headers: { 'Accept': 'application/json' } });
+                                            const j = await r.json();
+                                            if ((j.data || {}).payment_status === 'paid') { clearInterval(pollTimer); clearInterval(expiryTimer); onPaid(); }
+                                        } catch (e) {}
+                                    }, 6000);
+                                }
+                                function onPaid() {
+                                    [img, amount, expiry, refresh, loading].forEach(el => el.classList.add('hidden'));
+                                    paid.classList.remove('hidden');
+                                    setTimeout(() => location.reload(), 2500);
+                                }
+                                refresh.addEventListener('click', generate);
+                                generate();
+                            })();
+                            </script>
                         @endif
                         @if (($order['status'] ?? null) === 'shipped')
                             <form action="{{ route('customer.orders.complete', $order['code']) }}" method="POST" class="mt-4" onsubmit="return confirm('Tandai pesanan ini sudah diterima?')">

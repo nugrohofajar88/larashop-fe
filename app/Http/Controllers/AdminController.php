@@ -604,6 +604,62 @@ class AdminController extends Controller
         ]);
     }
 
+    public function qris()
+    {
+        try {
+            $res = $this->api->adminQrisList();
+        } catch (\Throwable $e) {
+            return view('admin.qris.index', [
+                'qrisList' => [],
+                'meta' => ['enabled' => false, 'active_qris_id' => ''],
+            ])->with('error', 'Gagal memuat data QRIS: '.$e->getMessage());
+        }
+
+        return view('admin.qris.index', [
+            'qrisList' => $res['data'] ?? [],
+            'meta' => $res['meta'] ?? ['enabled' => false, 'active_qris_id' => ''],
+        ]);
+    }
+
+    public function qrisUpload(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'qris_image' => ['required', 'file', 'mimes:png,jpg,jpeg', 'max:5120'],
+        ]);
+
+        try {
+            $file = $request->file('qris_image');
+            $this->api->adminQrisUpload($file->getRealPath(), $file->getClientOriginalName(), $request->input('name'));
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal upload QRIS: '.$e->getMessage());
+        }
+
+        return redirect()->route('admin.qris.index')->with('success', 'QRIS berhasil di-upload & diaktifkan.');
+    }
+
+    public function qrisActivate(int $id): RedirectResponse
+    {
+        try {
+            $this->api->adminQrisActivate($id);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal mengaktifkan QRIS: '.$e->getMessage());
+        }
+
+        return back()->with('success', 'QRIS diaktifkan.');
+    }
+
+    public function qrisDelete(int $id): RedirectResponse
+    {
+        try {
+            $this->api->adminQrisDelete($id);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal menghapus QRIS: '.$e->getMessage());
+        }
+
+        return back()->with('success', 'QRIS dihapus dari daftar.');
+    }
+
     public function completeOrder(string $code): RedirectResponse
     {
         $order = $this->findOrderByCode($code);

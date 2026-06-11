@@ -837,6 +837,38 @@ class StorefrontController extends Controller
         ]);
     }
 
+    public function orderQris(string $code): JsonResponse
+    {
+        $token = $this->customerToken();
+        if ($token === null) {
+            return response()->json(['message' => 'Sesi habis, silakan login ulang.'], 401);
+        }
+
+        try {
+            $data = $this->api->customerGenerateQris($token, $code);
+        } catch (\Throwable $e) {
+            return response()->json(['message' => 'Gagal membuat QRIS: '.$e->getMessage()], 422);
+        }
+
+        return response()->json(['data' => $data]);
+    }
+
+    public function orderQrisStatus(string $code): JsonResponse
+    {
+        $token = $this->customerToken();
+        if ($token === null) {
+            return response()->json(['message' => 'unauthorized'], 401);
+        }
+
+        try {
+            $data = $this->api->customerQrisStatus($token, $code);
+        } catch (\Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json(['data' => $data]);
+    }
+
     public function cancelOrder(string $code): RedirectResponse
     {
         $token = $this->customerToken();

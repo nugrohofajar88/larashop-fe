@@ -31,6 +31,8 @@ Route::post('/addresses/{id}/primary', [StorefrontController::class, 'makePrimar
 Route::delete('/addresses/{id}', [StorefrontController::class, 'destroyAddress'])->name('addresses.destroy');
 Route::get('/orders', [StorefrontController::class, 'orders'])->name('customer.orders');
 Route::get('/orders/{code}', [StorefrontController::class, 'orderDetail'])->name('customer.orders.show');
+Route::post('/orders/{code}/qris', [StorefrontController::class, 'orderQris'])->name('customer.orders.qris');
+Route::get('/orders/{code}/qris/status', [StorefrontController::class, 'orderQrisStatus'])->name('customer.orders.qris-status');
 Route::post('/orders/{code}/cancel', [StorefrontController::class, 'cancelOrder'])->name('customer.orders.cancel');
 Route::post('/orders/{code}/complete', [StorefrontController::class, 'completeOrder'])->name('customer.orders.complete');
 
@@ -70,6 +72,10 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/orders/{code}/label', [AdminController::class, 'orderLabel'])->name('admin.orders.label');
     Route::get('/orders/{code}/label-diy', [AdminController::class, 'orderLabelDiy'])->name('admin.orders.label-diy');
     Route::post('/orders/{code}/complete', [AdminController::class, 'completeOrder'])->name('admin.orders.complete');
+    Route::get('/qris', [AdminController::class, 'qris'])->name('admin.qris.index');
+    Route::post('/qris/upload', [AdminController::class, 'qrisUpload'])->name('admin.qris.upload');
+    Route::post('/qris/{id}/activate', [AdminController::class, 'qrisActivate'])->name('admin.qris.activate');
+    Route::delete('/qris/{id}', [AdminController::class, 'qrisDelete'])->name('admin.qris.delete');
     Route::get('/shipments', [AdminController::class, 'shipments'])->name('admin.shipments.index');
     Route::get('/shipments/settings', [AdminController::class, 'shipmentSettings'])->name('admin.shipments.settings');
     Route::get('/shipments/settings/destination-search', [AdminController::class, 'searchShipmentDestinations'])->name('admin.shipments.settings.destination-search');

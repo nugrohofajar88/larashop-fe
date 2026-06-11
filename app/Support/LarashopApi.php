@@ -151,6 +151,16 @@ class LarashopApi
         return $this->request('POST', '/customer/orders/'.$code.'/complete', token: $token)['data'] ?? [];
     }
 
+    public function customerGenerateQris(string $token, string $code): array
+    {
+        return $this->request('POST', '/customer/orders/'.$code.'/qris', token: $token)['data'] ?? [];
+    }
+
+    public function customerQrisStatus(string $token, string $code): array
+    {
+        return $this->request('GET', '/customer/orders/'.$code.'/qris/status', token: $token)['data'] ?? [];
+    }
+
     public function checkout(string $token, ?int $addressId = null, bool $useUniqueCodeBalance = false): array
     {
         $query = [];
@@ -409,6 +419,32 @@ class LarashopApi
 
             return $this->request($method, $uri, $options, $this->adminToken());
         }
+    }
+
+    public function adminQrisList(): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/qrisly');
+    }
+
+    public function adminQrisActivate(int $id): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/qrisly/'.$id.'/activate');
+    }
+
+    public function adminQrisDelete(int $id): array
+    {
+        return $this->requestAsAdmin('DELETE', '/admin/qrisly/'.$id);
+    }
+
+    /** Upload QRIS (multipart) ke BE. */
+    public function adminQrisUpload(string $tmpPath, string $originalName, string $name): array
+    {
+        $response = $this->client($this->adminToken())
+            ->asMultipart()
+            ->attach('qris_image', (string) file_get_contents($tmpPath), $originalName)
+            ->post('admin/qrisly/upload', ['name' => $name]);
+
+        return $this->decode($response);
     }
 
     protected function requestRawAsAdmin(string $method, string $uri, array $options = []): Response
