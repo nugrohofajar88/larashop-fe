@@ -36,6 +36,10 @@
                         </div>
 
                         @if (($order['status'] ?? null) === 'pending_payment')
+                            @php($pmQris = $order['payment_methods']['qris'] ?? true)
+                            @php($pmTransfer = $order['payment_methods']['transfer'] ?? false)
+
+                            @if ($pmQris)
                             <div class="mt-4 rounded-2xl border border-primary/30 bg-secondary-container/20 p-5"
                                  data-qris-card
                                  data-qris-generate="{{ route('customer.orders.qris', $order['code']) }}"
@@ -60,6 +64,27 @@
                                     <button type="button" data-qris-refresh class="hidden rounded-2xl border border-primary px-4 py-2 text-sm font-semibold text-primary">Buat QR baru</button>
                                 </div>
                             </div>
+                            @endif
+
+                            @if ($pmTransfer && ! empty($order['payment_accounts']))
+                            <div class="mt-4 rounded-2xl border border-surface-container-highest bg-surface-container-lowest p-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-on-surface-variant">account_balance</span>
+                                    <h2 class="font-headline-md text-lg font-bold text-on-surface">Transfer Bank</h2>
+                                </div>
+                                <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant">Transfer tepat sejumlah <span class="font-bold text-on-surface">{{ $order['total'] ?? $order['payment']['grand_total'] ?? '' }}</span> ke salah satu rekening:</p>
+                                <div class="mt-3 space-y-2">
+                                    @foreach ($order['payment_accounts'] as $acc)
+                                        <div class="rounded-2xl border border-surface-container-highest bg-surface-container-low px-4 py-3">
+                                            <p class="font-body-sm text-sm font-semibold text-on-surface">{{ $acc['bank_name'] }}</p>
+                                            <p class="font-headline-sm text-base font-bold tracking-wide text-on-surface">{{ $acc['account_number'] }}</p>
+                                            <p class="font-body-sm text-xs text-on-surface-variant">a.n. {{ $acc['account_holder'] }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <p class="mt-3 font-body-sm text-xs text-on-surface-variant">Setelah transfer, konfirmasi via WhatsApp@if (! empty($order['store_whatsapp'])) ke <a href="https://wa.me/{{ $order['store_whatsapp'] }}" class="font-semibold text-primary hover:underline">admin</a>@endif dengan menyebut kode pesanan & kirim bukti transfer.</p>
+                            </div>
+                            @endif
 
                             <form action="{{ route('customer.orders.cancel', $order['code']) }}" method="POST" class="mt-4" onsubmit="return confirm('Batalkan pesanan ini?')">
                                 @csrf
