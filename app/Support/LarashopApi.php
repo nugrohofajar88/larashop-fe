@@ -318,6 +318,21 @@ class LarashopApi
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/complete')['data'] ?? [];
     }
 
+    /**
+     * Ambil label/resi (PDF) dari BE. Bukan JSON — kembalikan biner mentah.
+     *
+     * @return array{content:string, content_type:string}
+     */
+    public function adminOrderLabel(int $id): array
+    {
+        $response = $this->requestRawAsAdmin('GET', '/admin/orders/'.$id.'/label');
+
+        return [
+            'content' => $response->body(),
+            'content_type' => $response->header('Content-Type') ?: 'application/pdf',
+        ];
+    }
+
     public function adminShipments(): array
     {
         return $this->requestAsAdmin('GET', '/admin/shipments')['data'] ?? [];
@@ -379,6 +394,28 @@ class LarashopApi
 
             return $this->request($method, $uri, $options, $this->adminToken());
         }
+    }
+
+    protected function requestRawAsAdmin(string $method, string $uri, array $options = []): Response
+    {
+        $response = $this->client($this->adminToken())->send($method, ltrim($uri, '/'), $options);
+
+        if ($response->status() === 401) {
+            Cache::forget($this->adminTokenCacheKey());
+            $response = $this->client($this->adminToken())->send($method, ltrim($uri, '/'), $options);
+        }
+
+        if (! $response->successful()) {
+            $body = $response->json();
+
+            throw new LarashopApiException(
+                $response->status(),
+                data_get($body, 'message', 'Gagal mengambil data dari server.'),
+                (array) data_get($body, 'errors', []),
+            );
+        }
+
+        return $response;
     }
 
     protected function adminToken(): string

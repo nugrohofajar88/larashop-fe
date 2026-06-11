@@ -572,6 +572,22 @@ class AdminController extends Controller
         return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Pickup order {$updated['code']} berhasil dijadwalkan.");
     }
 
+    public function orderLabel(string $code)
+    {
+        $order = $this->findOrderByCode($code);
+
+        try {
+            $label = $this->api->adminOrderLabel($order['id']);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal mengambil label: '.$e->getMessage());
+        }
+
+        return response($label['content'], 200, [
+            'Content-Type' => $label['content_type'] ?: 'application/pdf',
+            'Content-Disposition' => 'inline; filename="label-'.$order['code'].'.pdf"',
+        ]);
+    }
+
     public function completeOrder(string $code): RedirectResponse
     {
         $order = $this->findOrderByCode($code);
