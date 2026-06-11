@@ -572,6 +572,32 @@ class AdminController extends Controller
         return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Pickup order {$updated['code']} berhasil dijadwalkan.");
     }
 
+    public function schedulePickupBulk(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'order_codes' => ['required', 'array', 'min:1'],
+            'order_codes.*' => ['string'],
+            'pickup_date' => ['required', 'date'],
+            'pickup_time' => ['required', 'string'],
+            'pickup_vehicle' => ['required', 'in:Motor,Mobil,Truk'],
+        ]);
+
+        try {
+            $res = $this->api->scheduleAdminPickupBulk($validated);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal menjadwalkan pickup massal: '.$e->getMessage());
+        }
+
+        $summary = $res['summary'] ?? [];
+        $msg = $res['message'] ?? 'Pickup massal diproses.';
+        if (! empty($summary['failed'])) {
+            return redirect()->route('admin.orders.index')
+                ->with('error', $msg.' Gagal: '.implode(', ', $summary['failed']));
+        }
+
+        return redirect()->route('admin.orders.index')->with('success', $msg);
+    }
+
     public function orderLabel(string $code)
     {
         $order = $this->findOrderByCode($code);

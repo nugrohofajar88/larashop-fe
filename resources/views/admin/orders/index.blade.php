@@ -55,13 +55,46 @@
                 </div>
             </div>
 
+            {{-- Bar pickup massal = FORM MANDIRI. Checkbox di tabel pakai atribut
+                 form="bulkPickupForm" supaya tidak bersarang dengan form aksi per-baris
+                 (_row-actions berisi <form> sendiri). Muncul saat ada yang dicentang. --}}
+            <form id="bulkPickupForm" method="POST" action="{{ route('admin.orders.schedule-pickup-bulk') }}"
+                  data-bulk-pickup class="mt-5 hidden rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                @csrf
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div class="flex flex-wrap items-end gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-stone-600">Tanggal pickup</label>
+                            <input type="date" name="pickup_date" value="{{ now()->addDay()->format('Y-m-d') }}" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-stone-600">Jam</label>
+                            <input type="time" name="pickup_time" value="10:00" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-stone-600">Kendaraan</label>
+                            <select name="pickup_vehicle" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
+                                <option value="Motor">Motor</option>
+                                <option value="Mobil">Mobil</option>
+                                <option value="Truk">Truk</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">
+                        Jadwalkan Pickup (<span data-bulk-count>0</span>)
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-stone-500">Centang order berstatus <b>paid</b> (sudah ter-booking) untuk dijemput bersamaan.</p>
+            </form>
+
             {{-- Desktop: tabel. Wrapper overflow-visible (bukan overflow-x-auto) supaya dropdown
                  aksi ⋮ tidak terpotong, terutama di baris paling atas. --}}
             <div class="mt-5 hidden rounded-2xl border border-stone-200 md:block">
                 <table class="min-w-full text-left text-sm">
                     <thead class="bg-stone-50 text-stone-500">
                         <tr>
-                            <th class="rounded-tl-2xl px-4 py-3 font-medium">Order</th>
+                            <th class="rounded-tl-2xl px-3 py-3"><input type="checkbox" data-bulk-all class="h-4 w-4 rounded border-stone-300 text-emerald-600"></th>
+                            <th class="px-4 py-3 font-medium">Order</th>
                             <th class="px-4 py-3 font-medium">Customer</th>
                             <th class="px-4 py-3 font-medium">Nominal</th>
                             <th class="px-4 py-3 font-medium">Status</th>
@@ -72,6 +105,11 @@
                     <tbody class="divide-y divide-stone-200 bg-white">
                         @forelse ($orders as $order)
                             <tr>
+                                <td class="px-3 py-4 align-top">
+                                    @if (($order['status'] ?? '') === 'paid')
+                                        <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item class="h-4 w-4 rounded border-stone-300 text-emerald-600">
+                                    @endif
+                                </td>
                                 <td class="px-4 py-4 align-top">
                                     <a href="{{ route('admin.orders.show', $order['code']) }}" class="font-semibold text-stone-900">{{ $order['code'] }}</a>
                                     <p class="mt-1 text-xs text-stone-500">{{ $order['date'] }}</p>
@@ -95,7 +133,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada order yang cocok dengan filter saat ini.</td>
+                                <td colspan="7" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada order yang cocok dengan filter saat ini.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -107,9 +145,14 @@
                 @forelse ($orders as $order)
                     <article class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
                         <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <a href="{{ route('admin.orders.show', $order['code']) }}" class="font-semibold text-stone-900">{{ $order['code'] }}</a>
-                                <p class="mt-0.5 text-xs text-stone-500">{{ $order['date'] }}</p>
+                            <div class="flex min-w-0 items-start gap-2">
+                                @if (($order['status'] ?? '') === 'paid')
+                                    <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item class="mt-1 h-4 w-4 rounded border-stone-300 text-emerald-600">
+                                @endif
+                                <div class="min-w-0">
+                                    <a href="{{ route('admin.orders.show', $order['code']) }}" class="font-semibold text-stone-900">{{ $order['code'] }}</a>
+                                    <p class="mt-0.5 text-xs text-stone-500">{{ $order['date'] }}</p>
+                                </div>
                             </div>
                             @include('admin.orders._row-actions')
                         </div>
@@ -138,6 +181,31 @@
             </div>
         </section>
     </section>
+
+    {{-- Bulk pickup: hitung pilihan, tampilkan/sembunyikan bar, select-all.
+         Checkbox ada di luar form (pakai atribut form=), jadi query ke document. --}}
+    <script>
+        (function () {
+            const bar = document.querySelector('[data-bulk-pickup]');
+            if (!bar) return;
+            const count = bar.querySelector('[data-bulk-count]');
+            const all = document.querySelector('[data-bulk-all]');
+            const items = () => Array.from(document.querySelectorAll('[data-bulk-item]'));
+            function refresh() {
+                const checked = items().filter(c => c.checked);
+                count.textContent = checked.length;
+                bar.classList.toggle('hidden', checked.length === 0);
+                if (all) all.checked = items().length > 0 && checked.length === items().length;
+            }
+            document.addEventListener('change', function (e) {
+                if (e.target.matches('[data-bulk-all]')) {
+                    items().forEach(c => { c.checked = e.target.checked; });
+                }
+                if (e.target.matches('[data-bulk-item]') || e.target.matches('[data-bulk-all]')) refresh();
+            });
+            refresh();
+        })();
+    </script>
 
     {{-- Dropdown aksi ⋮: buka satu menutup yang lain, klik di luar / Esc menutup. --}}
     <script>

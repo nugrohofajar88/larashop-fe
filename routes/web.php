@@ -64,6 +64,7 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/products/{sku}/edit', [AdminController::class, 'editProduct'])->name('admin.products.edit');
     Route::put('/products/{sku}', [AdminController::class, 'updateProduct'])->name('admin.products.update');
     Route::get('/orders', [AdminController::class, 'orders'])->name('admin.orders.index');
+    Route::post('/orders/schedule-pickup-bulk', [AdminController::class, 'schedulePickupBulk'])->name('admin.orders.schedule-pickup-bulk');
     Route::get('/orders/{code}', [AdminController::class, 'showOrder'])->name('admin.orders.show');
     Route::post('/orders/{code}/validate-payment', [AdminController::class, 'validatePayment'])->name('admin.orders.validate-payment');
     Route::post('/orders/{code}/cancel', [AdminController::class, 'cancelOrder'])->name('admin.orders.cancel');

@@ -323,6 +323,11 @@ class LarashopApi
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/schedule-pickup', ['json' => $payload])['data'] ?? [];
     }
 
+    public function scheduleAdminPickupBulk(array $payload): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/orders/schedule-pickup-bulk', ['json' => $payload]);
+    }
+
     public function completeAdminOrder(int $id): array
     {
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/complete')['data'] ?? [];
