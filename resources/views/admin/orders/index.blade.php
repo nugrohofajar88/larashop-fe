@@ -190,7 +190,9 @@
             if (!bar) return;
             const count = bar.querySelector('[data-bulk-count]');
             const all = document.querySelector('[data-bulk-all]');
-            const items = () => Array.from(document.querySelectorAll('[data-bulk-item]'));
+            // Tiap order punya 2 checkbox (layout desktop + mobile); salah satu disembunyikan
+            // via CSS. Hanya ambil yang TERLIHAT (offsetParent != null) supaya tak dobel.
+            const items = () => Array.from(document.querySelectorAll('[data-bulk-item]')).filter(c => c.offsetParent !== null);
             function refresh() {
                 const checked = items().filter(c => c.checked);
                 count.textContent = checked.length;
