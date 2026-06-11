@@ -65,11 +65,11 @@
                     <div class="flex flex-wrap items-end gap-3">
                         <div>
                             <label class="block text-xs font-medium text-stone-600">Tanggal pickup</label>
-                            <input type="date" name="pickup_date" value="{{ now()->addDay()->format('Y-m-d') }}" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
+                            <input type="date" name="pickup_date" data-pickup-date value="{{ now()->setTimezone('Asia/Jakarta')->addDay()->format('Y-m-d') }}" min="{{ now()->setTimezone('Asia/Jakarta')->format('Y-m-d') }}" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-stone-600">Jam</label>
-                            <input type="time" name="pickup_time" value="10:00" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
+                            <input type="time" name="pickup_time" data-pickup-time value="10:00" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-stone-600">Kendaraan</label>
@@ -206,6 +206,25 @@
                 if (e.target.matches('[data-bulk-item]') || e.target.matches('[data-bulk-all]')) refresh();
             });
             refresh();
+
+            // Cegah pilih jam yang sudah lewat saat tanggal = hari ini.
+            const dateEl = bar.querySelector('[data-pickup-date]');
+            const timeEl = bar.querySelector('[data-pickup-time]');
+            if (dateEl && timeEl) {
+                const enforceTime = () => {
+                    const n = new Date();
+                    const today = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+                    if (dateEl.value === today) {
+                        const m = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+                        timeEl.min = m;
+                        if (timeEl.value && timeEl.value < m) timeEl.value = m;
+                    } else {
+                        timeEl.removeAttribute('min');
+                    }
+                };
+                dateEl.addEventListener('change', enforceTime);
+                enforceTime();
+            }
         })();
     </script>
 
