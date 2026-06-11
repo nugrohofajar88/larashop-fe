@@ -68,6 +68,7 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::post('/orders/{code}/process-shipment', [AdminController::class, 'processShipment'])->name('admin.orders.process-shipment');
     Route::post('/orders/{code}/schedule-pickup', [AdminController::class, 'schedulePickup'])->name('admin.orders.schedule-pickup');
     Route::get('/orders/{code}/label', [AdminController::class, 'orderLabel'])->name('admin.orders.label');
+    Route::get('/orders/{code}/label-diy', [AdminController::class, 'orderLabelDiy'])->name('admin.orders.label-diy');
     Route::post('/orders/{code}/complete', [AdminController::class, 'completeOrder'])->name('admin.orders.complete');
     Route::get('/shipments', [AdminController::class, 'shipments'])->name('admin.shipments.index');
     Route::get('/shipments/settings', [AdminController::class, 'shipmentSettings'])->name('admin.shipments.settings');

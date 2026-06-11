@@ -64,6 +64,10 @@
                        class="inline-flex items-center gap-2 rounded-2xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700">
                         🖨️ Cetak Label
                     </a>
+                    <a href="{{ route('admin.orders.label-diy', $order['code']) }}" target="_blank" rel="noopener"
+                       class="inline-flex items-center gap-2 rounded-2xl border border-sky-600 px-5 py-3 text-sm font-semibold text-sky-700 hover:bg-sky-50">
+                        🧪 Cetak Label (DIY)
+                    </a>
                 @endif
                 @if (in_array($order['status'], ['pending_payment', 'paid', 'processing'], true))
                     <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}">

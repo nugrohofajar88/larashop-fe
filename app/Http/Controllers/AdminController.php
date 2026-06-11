@@ -588,6 +588,22 @@ class AdminController extends Controller
         ]);
     }
 
+    public function orderLabelDiy(string $code)
+    {
+        $order = $this->findOrderByCode($code);
+
+        try {
+            $label = $this->api->adminOrderLabelDiy($order['id']);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membuat label DIY: '.$e->getMessage());
+        }
+
+        return response($label['content'], 200, [
+            'Content-Type' => $label['content_type'] ?: 'application/pdf',
+            'Content-Disposition' => 'inline; filename="label-diy-'.$order['code'].'.pdf"',
+        ]);
+    }
+
     public function completeOrder(string $code): RedirectResponse
     {
         $order = $this->findOrderByCode($code);

@@ -333,6 +333,21 @@ class LarashopApi
         ];
     }
 
+    /**
+     * Label DIY (dibuat sendiri, terpisah dari label resmi Komerce). PDF biner.
+     *
+     * @return array{content:string, content_type:string}
+     */
+    public function adminOrderLabelDiy(int $id): array
+    {
+        $response = $this->requestRawAsAdmin('GET', '/admin/orders/'.$id.'/label-diy');
+
+        return [
+            'content' => $response->body(),
+            'content_type' => $response->header('Content-Type') ?: 'application/pdf',
+        ];
+    }
+
     public function adminShipments(): array
     {
         return $this->requestAsAdmin('GET', '/admin/shipments')['data'] ?? [];
