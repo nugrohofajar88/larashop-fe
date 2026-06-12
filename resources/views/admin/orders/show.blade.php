@@ -191,6 +191,10 @@
                             <p class="mt-1 font-semibold text-stone-900">{{ $order['awb'] ?? 'Belum tersedia' }}</p>
                         </div>
                         <div class="rounded-2xl bg-stone-50 px-4 py-4">
+                            <p class="text-stone-500">Order ID Komerce</p>
+                            <p class="mt-1 font-mono text-sm font-semibold text-stone-900">{{ $order['shipping']['komerce_order_no'] ?? 'Belum di-booking' }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-stone-50 px-4 py-4">
                             <p class="text-stone-500">Alamat kirim</p>
                             <p class="mt-1 leading-6 text-stone-700">{{ $order['address'] }}</p>
                         </div>
