@@ -88,7 +88,8 @@
                         Cetak Label (<span data-count-awb>0</span>)
                     </button>
                 </div>
-                <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; order <b>processing</b> → <b>Tandai Dikirim</b>; order yang sudah punya AWB → <b>Cetak Label</b> (gabung jadi 1 PDF).</p>
+                <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; order <b>processing</b> → <b>Tandai Dikirim</b>; order yang sudah punya AWB → <b>Cetak Label</b> (gabung jadi 1 PDF, <b>maks 5</b> per cetak).</p>
+                <p data-label-warn class="mt-1 hidden text-xs font-semibold text-amber-700">Cetak Label dibatasi maksimal 5 order sekali jalan. Kurangi pilihan order ber-AWB jadi 5 atau kurang.</p>
             </form>
 
             {{-- Desktop: tabel. Wrapper overflow-visible (bukan overflow-x-auto) supaya dropdown
@@ -198,6 +199,7 @@
             const btnPickup = bar.querySelector('[data-bulk-pickup-btn]');
             const btnShip = bar.querySelector('[data-bulk-ship-btn]');
             const btnLabel = bar.querySelector('[data-bulk-label-btn]');
+            const warn = bar.querySelector('[data-label-warn]');
             const all = document.querySelector('[data-bulk-all]');
             // Tiap order punya 2 checkbox (layout desktop + mobile); salah satu disembunyikan
             // via CSS. Hanya ambil yang TERLIHAT (offsetParent != null) supaya tak dobel.
@@ -212,7 +214,11 @@
                 cAwb.textContent = nAwb;
                 btnPickup.disabled = nPaid === 0;
                 btnShip.disabled = nProc === 0;
-                btnLabel.disabled = nAwb === 0;
+                // Label resmi Komerce lambat → maksimal 5 per cetak supaya tidak kena timeout server.
+                const LABEL_MAX = 5;
+                btnLabel.disabled = nAwb === 0 || nAwb > LABEL_MAX;
+                btnLabel.title = nAwb > LABEL_MAX ? ('Maksimal ' + LABEL_MAX + ' label per cetak (kamu pilih ' + nAwb + ')') : '';
+                if (warn) warn.classList.toggle('hidden', nAwb <= LABEL_MAX);
                 bar.classList.toggle('hidden', checked.length === 0);
                 if (all) all.checked = items().length > 0 && checked.length === items().length;
             }
