@@ -110,7 +110,7 @@
                         @forelse ($orders as $order)
                             <tr>
                                 <td class="px-3 py-4 align-top">
-                                    @if (in_array($order['status'] ?? '', ['paid', 'processing'], true))
+                                    @if (in_array($order['status'] ?? '', ['paid', 'processing'], true) || ! empty($order['awb']))
                                         <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item data-status="{{ $order['status'] ?? '' }}" data-awb="{{ ! empty($order['awb']) ? '1' : '0' }}" class="h-4 w-4 rounded border-stone-300 text-emerald-600">
                                     @endif
                                 </td>
@@ -150,7 +150,7 @@
                     <article class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex min-w-0 items-start gap-2">
-                                @if (in_array($order['status'] ?? '', ['paid', 'processing'], true))
+                                @if (in_array($order['status'] ?? '', ['paid', 'processing'], true) || ! empty($order['awb']))
                                     <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item data-status="{{ $order['status'] ?? '' }}" data-awb="{{ ! empty($order['awb']) ? '1' : '0' }}" class="mt-1 h-4 w-4 rounded border-stone-300 text-emerald-600">
                                 @endif
                                 <div class="min-w-0">
