@@ -265,30 +265,38 @@
                             </div>
                         </div>
 
-                        @if (!empty($order['payment_accounts']))
-                            <div class="mt-5 rounded-2xl border border-primary/20 bg-primary/5 p-4">
-                                <p class="font-body-sm text-body-sm font-semibold text-on-surface">💳 Transfer ke salah satu rekening:</p>
-                                <div class="mt-3 space-y-3">
-                                    @foreach ($order['payment_accounts'] as $acc)
-                                        <div class="rounded-xl bg-surface-container-lowest p-3">
-                                            <p class="font-body-md font-semibold text-on-surface">{{ $acc['bank_name'] }}</p>
-                                            <p class="font-headline-md text-lg font-bold tracking-wide text-primary">{{ $acc['account_number'] }}</p>
-                                            <p class="font-body-sm text-body-sm text-on-surface-variant">a.n. {{ $acc['account_holder'] }}</p>
-                                            @if (!empty($acc['note']))
-                                                <p class="mt-1 font-body-sm text-xs text-on-surface-variant">{{ $acc['note'] }}</p>
-                                            @endif
-                                        </div>
-                                    @endforeach
+                        {{-- Perintah bayar (rekening + konfirmasi WA) HANYA saat belum bayar. --}}
+                        @if (($order['status'] ?? '') === 'pending_payment')
+                            @if (!empty($order['payment_accounts']))
+                                <div class="mt-5 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                                    <p class="font-body-sm text-body-sm font-semibold text-on-surface">💳 Transfer ke salah satu rekening:</p>
+                                    <div class="mt-3 space-y-3">
+                                        @foreach ($order['payment_accounts'] as $acc)
+                                            <div class="rounded-xl bg-surface-container-lowest p-3">
+                                                <p class="font-body-md font-semibold text-on-surface">{{ $acc['bank_name'] }}</p>
+                                                <p class="font-headline-md text-lg font-bold tracking-wide text-primary">{{ $acc['account_number'] }}</p>
+                                                <p class="font-body-sm text-body-sm text-on-surface-variant">a.n. {{ $acc['account_holder'] }}</p>
+                                                @if (!empty($acc['note']))
+                                                    <p class="mt-1 font-body-sm text-xs text-on-surface-variant">{{ $acc['note'] }}</p>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <p class="mt-3 font-body-sm text-xs text-on-surface-variant">Transfer tepat sesuai <span class="font-semibold">Total transfer</span> di atas (termasuk kode unik) lalu konfirmasi via WhatsApp.</p>
                                 </div>
-                                <p class="mt-3 font-body-sm text-xs text-on-surface-variant">Transfer tepat sesuai <span class="font-semibold">Total transfer</span> di atas (termasuk kode unik) lalu konfirmasi via WhatsApp.</p>
-                            </div>
-                        @endif
+                            @endif
 
-                        @php($waNumber = $order['store_whatsapp'] ?? '')
-                        @if ($waNumber !== '')
-                            <a href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo, saya mau konfirmasi pembayaran pesanan '.($order['code'] ?? '')) }}" target="_blank" rel="noopener" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-on-background px-5 py-3.5 font-body-md font-semibold text-on-primary transition hover:bg-primary">
-                                <span class="material-symbols-outlined text-[20px]">chat</span> Konfirmasi via WhatsApp
-                            </a>
+                            @php($waNumber = $order['store_whatsapp'] ?? '')
+                            @if ($waNumber !== '')
+                                <a href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo, saya mau konfirmasi pembayaran pesanan '.($order['code'] ?? '')) }}" target="_blank" rel="noopener" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-on-background px-5 py-3.5 font-body-md font-semibold text-on-primary transition hover:bg-primary">
+                                    <span class="material-symbols-outlined text-[20px]">chat</span> Konfirmasi via WhatsApp
+                                </a>
+                            @endif
+                        @else
+                            <div class="mt-5 flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-secondary-container/20 px-4 py-3.5">
+                                <span class="material-symbols-outlined text-primary">task_alt</span>
+                                <span class="font-body-md font-semibold text-primary">Pembayaran lunas</span>
+                            </div>
                         @endif
                     </article>
                 </aside>
