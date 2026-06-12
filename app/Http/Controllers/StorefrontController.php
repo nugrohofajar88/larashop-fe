@@ -824,12 +824,16 @@ class StorefrontController extends Controller
             return $this->handleCustomerAccessException($exception);
         }
 
+        // Pembayaran via QRIS terkonfirmasi otomatis (tanpa validasi manual admin),
+        // jadi label/notes timeline disesuaikan biar tak membingungkan pelanggan.
+        $isQris = ($order['payment']['method'] ?? '') === 'QRIS';
+
         return view('storefront.order-detail', [
             'order' => $order,
             'timeline' => [
                 ['label' => 'Order dibuat', 'note' => 'Pesanan berhasil dibuat di sistem.', 'active' => true],
-                ['label' => 'Menunggu pembayaran', 'note' => 'Customer melakukan transfer manual.', 'active' => in_array($order['status'], ['pending_payment', 'paid', 'processing', 'shipped', 'completed'], true)],
-                ['label' => 'Validasi admin', 'note' => 'Admin akan mengecek mutasi dan nominal unik.', 'active' => in_array($order['status'], ['paid', 'processing', 'shipped', 'completed'], true)],
+                ['label' => 'Menunggu pembayaran', 'note' => $isQris ? 'Bayar dengan scan QRIS.' : 'Customer melakukan transfer manual.', 'active' => in_array($order['status'], ['pending_payment', 'paid', 'processing', 'shipped', 'completed'], true)],
+                ['label' => $isQris ? 'Pembayaran terkonfirmasi' : 'Validasi admin', 'note' => $isQris ? 'Pembayaran QRIS otomatis terkonfirmasi, tanpa cek manual.' : 'Admin akan mengecek mutasi dan nominal unik.', 'active' => in_array($order['status'], ['paid', 'processing', 'shipped', 'completed'], true)],
                 ['label' => 'Proses pengiriman', 'note' => 'Shipment dibuat setelah pembayaran tervalidasi.', 'active' => in_array($order['status'], ['processing', 'shipped', 'completed'], true)],
                 ['label' => 'Pesanan diterima', 'note' => 'Customer sudah menerima barang dan order dinyatakan selesai.', 'active' => ($order['status'] ?? null) === 'completed'],
                 ['label' => 'Pesanan dibatalkan', 'note' => 'Order dihentikan dan tidak akan diproses lebih lanjut.', 'active' => ($order['status'] ?? null) === 'cancelled', 'tone' => 'cancelled'],
