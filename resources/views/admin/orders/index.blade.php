@@ -80,11 +80,16 @@
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">
-                        Jadwalkan Pickup (<span data-bulk-count>0</span>)
-                    </button>
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
+                        <button type="submit" data-bulk-pickup-btn class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">
+                            Jadwalkan Pickup (<span data-count-paid>0</span>)
+                        </button>
+                        <button type="submit" formaction="{{ route('admin.orders.mark-shipped-bulk') }}" data-bulk-ship-btn class="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40">
+                            Tandai Dikirim (<span data-count-processing>0</span>)
+                        </button>
+                    </div>
                 </div>
-                <p class="mt-2 text-xs text-stone-500">Centang order berstatus <b>paid</b> (sudah ter-booking) untuk dijemput bersamaan.</p>
+                <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; atau order <b>processing</b> → <b>Tandai Dikirim</b>.</p>
             </form>
 
             {{-- Desktop: tabel. Wrapper overflow-visible (bukan overflow-x-auto) supaya dropdown
@@ -106,8 +111,8 @@
                         @forelse ($orders as $order)
                             <tr>
                                 <td class="px-3 py-4 align-top">
-                                    @if (($order['status'] ?? '') === 'paid')
-                                        <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item class="h-4 w-4 rounded border-stone-300 text-emerald-600">
+                                    @if (in_array($order['status'] ?? '', ['paid', 'processing'], true))
+                                        <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item data-status="{{ $order['status'] ?? '' }}" class="h-4 w-4 rounded border-stone-300 text-emerald-600">
                                     @endif
                                 </td>
                                 <td class="px-4 py-4 align-top">
@@ -146,8 +151,8 @@
                     <article class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex min-w-0 items-start gap-2">
-                                @if (($order['status'] ?? '') === 'paid')
-                                    <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item class="mt-1 h-4 w-4 rounded border-stone-300 text-emerald-600">
+                                @if (in_array($order['status'] ?? '', ['paid', 'processing'], true))
+                                    <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item data-status="{{ $order['status'] ?? '' }}" class="mt-1 h-4 w-4 rounded border-stone-300 text-emerald-600">
                                 @endif
                                 <div class="min-w-0">
                                     <a href="{{ route('admin.orders.show', $order['code']) }}" class="font-semibold text-stone-900">{{ $order['code'] }}</a>
@@ -188,14 +193,22 @@
         (function () {
             const bar = document.querySelector('[data-bulk-pickup]');
             if (!bar) return;
-            const count = bar.querySelector('[data-bulk-count]');
+            const cPaid = bar.querySelector('[data-count-paid]');
+            const cProc = bar.querySelector('[data-count-processing]');
+            const btnPickup = bar.querySelector('[data-bulk-pickup-btn]');
+            const btnShip = bar.querySelector('[data-bulk-ship-btn]');
             const all = document.querySelector('[data-bulk-all]');
             // Tiap order punya 2 checkbox (layout desktop + mobile); salah satu disembunyikan
             // via CSS. Hanya ambil yang TERLIHAT (offsetParent != null) supaya tak dobel.
             const items = () => Array.from(document.querySelectorAll('[data-bulk-item]')).filter(c => c.offsetParent !== null);
             function refresh() {
                 const checked = items().filter(c => c.checked);
-                count.textContent = checked.length;
+                const nPaid = checked.filter(c => c.dataset.status === 'paid').length;
+                const nProc = checked.filter(c => c.dataset.status === 'processing').length;
+                cPaid.textContent = nPaid;
+                cProc.textContent = nProc;
+                btnPickup.disabled = nPaid === 0;
+                btnShip.disabled = nProc === 0;
                 bar.classList.toggle('hidden', checked.length === 0);
                 if (all) all.checked = items().length > 0 && checked.length === items().length;
             }

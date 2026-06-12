@@ -598,6 +598,22 @@ class AdminController extends Controller
         return redirect()->route('admin.orders.index')->with('success', $msg);
     }
 
+    public function markShippedBulk(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'order_codes' => ['required', 'array', 'min:1'],
+            'order_codes.*' => ['string'],
+        ]);
+
+        try {
+            $res = $this->api->markAdminShippedBulk($validated);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal menandai dikirim: '.$e->getMessage());
+        }
+
+        return redirect()->route('admin.orders.index')->with('success', $res['message'] ?? 'Order ditandai dikirim.');
+    }
+
     public function orderLabel(string $code)
     {
         $order = $this->findOrderByCode($code);
