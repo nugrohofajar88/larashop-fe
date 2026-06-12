@@ -336,7 +336,9 @@ class LarashopApi
     /** Cetak banyak label (PDF gabungan) dari BE. Biner mentah. */
     public function adminLabelsBulk(array $codes): array
     {
-        $response = $this->requestRawAsAdmin('POST', '/admin/orders/print-labels-bulk', ['json' => ['order_codes' => $codes]]);
+        // BE memanggil Komerce printLabel satu-per-satu (beberapa detik/order),
+        // jadi timeout perlu lebih longgar daripada default 15s.
+        $response = $this->requestRawAsAdmin('POST', '/admin/orders/print-labels-bulk', ['json' => ['order_codes' => $codes]], 120);
 
         return [
             'content' => $response->body(),
@@ -468,13 +470,13 @@ class LarashopApi
         return $this->decode($response);
     }
 
-    protected function requestRawAsAdmin(string $method, string $uri, array $options = []): Response
+    protected function requestRawAsAdmin(string $method, string $uri, array $options = [], ?int $timeout = null): Response
     {
-        $response = $this->client($this->adminToken())->send($method, ltrim($uri, '/'), $options);
+        $response = $this->client($this->adminToken(), $timeout)->send($method, ltrim($uri, '/'), $options);
 
         if ($response->status() === 401) {
             Cache::forget($this->adminTokenCacheKey());
-            $response = $this->client($this->adminToken())->send($method, ltrim($uri, '/'), $options);
+            $response = $this->client($this->adminToken(), $timeout)->send($method, ltrim($uri, '/'), $options);
         }
 
         if (! $response->successful()) {
@@ -523,11 +525,11 @@ class LarashopApi
         return $this->decode($response);
     }
 
-    protected function client(?string $token = null): PendingRequest
+    protected function client(?string $token = null, ?int $timeout = null): PendingRequest
     {
         $client = Http::acceptJson()
             ->baseUrl(rtrim((string) config('services.larashop_api.base_url'), '/').'/')
-            ->timeout(15)
+            ->timeout($timeout ?? 15)
             ->asJson();
 
         if ($token !== null && $token !== '') {
