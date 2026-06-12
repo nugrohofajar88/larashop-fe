@@ -530,7 +530,7 @@ class AdminController extends Controller
                 ['label' => 'Order masuk', 'note' => 'Pesanan tercatat di sistem.', 'active' => true],
                 ['label' => 'Validasi pembayaran', 'note' => 'Admin mengecek mutasi dan nominal unik.', 'active' => in_array($order['status'], ['paid', 'processing', 'shipped', 'completed'], true)],
                 ['label' => 'Packing', 'note' => 'Pesanan disiapkan untuk pengiriman.', 'active' => in_array($order['status'], ['processing', 'shipped', 'completed'], true)],
-                ['label' => 'Shipment', 'note' => 'Order pengiriman dibuat dan resi diterbitkan.', 'active' => in_array($order['status'], ['shipped', 'completed'], true)],
+                ['label' => 'Shipment', 'note' => 'Order pengiriman dibuat dan resi diterbitkan.', 'active' => ! empty($order['awb']) || in_array($order['status'], ['shipped', 'completed'], true)],
                 ['label' => 'Order selesai', 'note' => 'Customer sudah menerima pesanan dan order ditutup.', 'active' => ($order['status'] ?? null) === 'completed'],
                 ['label' => 'Order dibatalkan', 'note' => 'Order dihentikan dan tidak dilanjutkan ke proses berikutnya.', 'active' => ($order['status'] ?? null) === 'cancelled', 'tone' => 'cancelled'],
             ],

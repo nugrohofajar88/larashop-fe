@@ -36,8 +36,10 @@
                         </div>
 
                         @if (($order['status'] ?? null) === 'pending_payment')
-                            @php($pmQris = $order['payment_methods']['qris'] ?? true)
-                            @php($pmTransfer = $order['payment_methods']['transfer'] ?? false)
+                            @php
+                                $pmQris = $order['payment_methods']['qris'] ?? true;
+                                $pmTransfer = $order['payment_methods']['transfer'] ?? false;
+                            @endphp
 
                             @if ($pmQris)
                             <div class="mt-4 rounded-2xl border border-primary/30 bg-secondary-container/20 p-5"
@@ -82,7 +84,13 @@
                                         </div>
                                     @endforeach
                                 </div>
-                                <p class="mt-3 font-body-sm text-xs text-on-surface-variant">Setelah transfer, konfirmasi via WhatsApp@if (! empty($order['store_whatsapp'])) ke <a href="https://wa.me/{{ $order['store_whatsapp'] }}" class="font-semibold text-primary hover:underline">admin</a>@endif dengan menyebut kode pesanan & kirim bukti transfer.</p>
+                                <p class="mt-3 font-body-sm text-xs text-on-surface-variant">
+                                    Setelah transfer, konfirmasi via WhatsApp
+                                    @if (! empty($order['store_whatsapp']))
+                                        (<a href="https://wa.me/{{ $order['store_whatsapp'] }}" class="font-semibold text-primary hover:underline">chat admin</a>)
+                                    @endif
+                                    dengan menyebut kode pesanan &amp; kirim bukti transfer.
+                                </p>
                             </div>
                             @endif
 
