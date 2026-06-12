@@ -88,8 +88,8 @@
                         Cetak Label (<span data-count-awb>0</span>)
                     </button>
                 </div>
-                <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; order <b>processing</b> → <b>Tandai Dikirim</b>; order yang sudah punya AWB → <b>Cetak Label</b> (gabung jadi 1 PDF, <b>maks 5</b> per cetak).</p>
-                <p data-label-warn class="mt-1 hidden text-xs font-semibold text-amber-700">Cetak Label dibatasi maksimal 5 order sekali jalan. Kurangi pilihan order ber-AWB jadi 5 atau kurang.</p>
+                <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; order <b>processing</b> → <b>Tandai Dikirim</b>; order yang sudah punya AWB → <b>Cetak Label</b> (gabung jadi 1 PDF, <b>maks 20</b> per cetak).</p>
+                <p data-label-warn class="mt-1 hidden text-xs font-semibold text-amber-700">Cetak Label dibatasi maksimal 20 order sekali jalan. Kurangi pilihan order ber-AWB jadi 20 atau kurang.</p>
             </form>
 
             {{-- Desktop: tabel. Wrapper overflow-visible (bukan overflow-x-auto) supaya dropdown
@@ -214,8 +214,8 @@
                 cAwb.textContent = nAwb;
                 btnPickup.disabled = nPaid === 0;
                 btnShip.disabled = nProc === 0;
-                // Label resmi Komerce lambat → maksimal 5 per cetak supaya tidak kena timeout server.
-                const LABEL_MAX = 5;
+                // Satu call gabungan ke Komerce (order_no dipisah koma) → batas wajar 20 per cetak.
+                const LABEL_MAX = 20;
                 btnLabel.disabled = nAwb === 0 || nAwb > LABEL_MAX;
                 btnLabel.title = nAwb > LABEL_MAX ? ('Maksimal ' + LABEL_MAX + ' label per cetak (kamu pilih ' + nAwb + ')') : '';
                 if (warn) warn.classList.toggle('hidden', nAwb <= LABEL_MAX);
