@@ -20,29 +20,8 @@ class AdminController extends Controller
 
     public function dashboard(): View
     {
-        $orders = collect($this->api->adminOrders())
-            ->take(5)
-            ->map(fn (array $order) => [
-                'code' => $order['code'],
-                'customer' => $order['customer'] ?? '-',
-                'amount' => $order['total'] ?? 'Rp0',
-                'status' => $order['status_label'] ?? ($order['status'] ?? '-'),
-            ])
-            ->values()
-            ->all();
-
         return view('admin.dashboard.index', [
-            'stats' => [
-                ['label' => 'Produk API', 'value' => (string) count($this->api->adminProducts()), 'note' => 'Sinkron dari larashop-be'],
-                ['label' => 'Customer API', 'value' => (string) count($this->api->adminCustomers()), 'note' => 'Akun customer aktif dan pending'],
-                ['label' => 'Auth', 'value' => 'Sanctum', 'note' => 'Token admin dipakai dari frontend server'],
-            ],
-            'orders' => $orders,
-            'tasks' => [
-                'Validasi order yang masih menunggu pembayaran agar cepat masuk proses packing.',
-                'Cek shipment yang siap dibuat resi atau dijadwalkan pickup.',
-                'Tinjau stok produk aktif yang mulai menipis di katalog.',
-            ],
+            'dashboard' => $this->api->adminDashboard(),
         ]);
     }
 

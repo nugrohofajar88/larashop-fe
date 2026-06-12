@@ -298,6 +298,11 @@ class LarashopApi
         return $this->requestAsAdmin('GET', '/admin/orders')['data'] ?? [];
     }
 
+    public function adminDashboard(): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/dashboard')['data'] ?? [];
+    }
+
     public function adminOrder(int $id): array
     {
         return $this->requestAsAdmin('GET', '/admin/orders/'.$id)['data'] ?? [];
