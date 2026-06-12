@@ -61,33 +61,29 @@
             <form id="bulkPickupForm" method="POST" action="{{ route('admin.orders.schedule-pickup-bulk') }}"
                   data-bulk-pickup class="mt-5 hidden rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                 @csrf
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div class="flex flex-wrap items-end gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-stone-600">Tanggal pickup</label>
-                            <input type="date" name="pickup_date" data-pickup-date value="{{ now()->setTimezone('Asia/Jakarta')->addDay()->format('Y-m-d') }}" min="{{ now()->setTimezone('Asia/Jakarta')->format('Y-m-d') }}" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-600">Jam</label>
-                            <input type="time" name="pickup_time" data-pickup-time value="10:00" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-600">Kendaraan</label>
-                            <select name="pickup_vehicle" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
-                                <option value="Motor">Motor</option>
-                                <option value="Mobil">Mobil</option>
-                                <option value="Truk">Truk</option>
-                            </select>
-                        </div>
+                <div class="flex flex-wrap items-end gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-stone-600">Tanggal pickup</label>
+                        <input type="date" name="pickup_date" data-pickup-date value="{{ now()->setTimezone('Asia/Jakarta')->addDay()->format('Y-m-d') }}" min="{{ now()->setTimezone('Asia/Jakarta')->format('Y-m-d') }}" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
                     </div>
-                    <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
-                        <button type="submit" data-bulk-pickup-btn class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">
-                            Jadwalkan Pickup (<span data-count-paid>0</span>)
-                        </button>
-                        <button type="submit" formaction="{{ route('admin.orders.mark-shipped-bulk') }}" data-bulk-ship-btn class="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40">
-                            Tandai Dikirim (<span data-count-processing>0</span>)
-                        </button>
+                    <div>
+                        <label class="block text-xs font-medium text-stone-600">Jam</label>
+                        <input type="time" name="pickup_time" data-pickup-time value="10:00" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
                     </div>
+                    <div>
+                        <label class="block text-xs font-medium text-stone-600">Kendaraan</label>
+                        <select name="pickup_vehicle" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
+                            <option value="Motor">Motor</option>
+                            <option value="Mobil">Mobil</option>
+                            <option value="Truk">Truk</option>
+                        </select>
+                    </div>
+                    <button type="submit" data-bulk-pickup-btn class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">
+                        Jadwalkan Pickup (<span data-count-paid>0</span>)
+                    </button>
+                    <button type="submit" formaction="{{ route('admin.orders.mark-shipped-bulk') }}" data-bulk-ship-btn class="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40">
+                        Tandai Dikirim (<span data-count-processing>0</span>)
+                    </button>
                 </div>
                 <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; atau order <b>processing</b> → <b>Tandai Dikirim</b>.</p>
             </form>
