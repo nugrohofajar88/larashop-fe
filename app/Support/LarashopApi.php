@@ -333,6 +333,17 @@ class LarashopApi
         return $this->requestAsAdmin('POST', '/admin/orders/mark-shipped-bulk', ['json' => $payload]);
     }
 
+    /** Cetak banyak label (PDF gabungan) dari BE. Biner mentah. */
+    public function adminLabelsBulk(array $codes): array
+    {
+        $response = $this->requestRawAsAdmin('POST', '/admin/orders/print-labels-bulk', ['json' => ['order_codes' => $codes]]);
+
+        return [
+            'content' => $response->body(),
+            'content_type' => $response->header('Content-Type') ?: 'application/pdf',
+        ];
+    }
+
     public function completeAdminOrder(int $id): array
     {
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/complete')['data'] ?? [];

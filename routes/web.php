@@ -66,6 +66,7 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/orders', [AdminController::class, 'orders'])->name('admin.orders.index');
     Route::post('/orders/schedule-pickup-bulk', [AdminController::class, 'schedulePickupBulk'])->name('admin.orders.schedule-pickup-bulk');
     Route::post('/orders/mark-shipped-bulk', [AdminController::class, 'markShippedBulk'])->name('admin.orders.mark-shipped-bulk');
+    Route::post('/orders/print-labels-bulk', [AdminController::class, 'printLabelsBulk'])->name('admin.orders.print-labels-bulk');
     Route::get('/orders/{code}', [AdminController::class, 'showOrder'])->name('admin.orders.show');
     Route::post('/orders/{code}/validate-payment', [AdminController::class, 'validatePayment'])->name('admin.orders.validate-payment');
     Route::post('/orders/{code}/cancel', [AdminController::class, 'cancelOrder'])->name('admin.orders.cancel');

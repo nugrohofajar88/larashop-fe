@@ -614,6 +614,25 @@ class AdminController extends Controller
         return redirect()->route('admin.orders.index')->with('success', $res['message'] ?? 'Order ditandai dikirim.');
     }
 
+    public function printLabelsBulk(Request $request)
+    {
+        $validated = $request->validate([
+            'order_codes' => ['required', 'array', 'min:1'],
+            'order_codes.*' => ['string'],
+        ]);
+
+        try {
+            $label = $this->api->adminLabelsBulk($validated['order_codes']);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal cetak label: '.$e->getMessage());
+        }
+
+        return response($label['content'], 200, [
+            'Content-Type' => $label['content_type'] ?: 'application/pdf',
+            'Content-Disposition' => 'inline; filename="labels.pdf"',
+        ]);
+    }
+
     public function orderLabel(string $code)
     {
         $order = $this->findOrderByCode($code);

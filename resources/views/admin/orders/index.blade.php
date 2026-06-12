@@ -84,8 +84,11 @@
                     <button type="submit" formaction="{{ route('admin.orders.mark-shipped-bulk') }}" data-bulk-ship-btn class="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40">
                         Tandai Dikirim (<span data-count-processing>0</span>)
                     </button>
+                    <button type="submit" formaction="{{ route('admin.orders.print-labels-bulk') }}" formtarget="_blank" data-bulk-label-btn class="rounded-xl bg-stone-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-40">
+                        Cetak Label (<span data-count-awb>0</span>)
+                    </button>
                 </div>
-                <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; atau order <b>processing</b> → <b>Tandai Dikirim</b>.</p>
+                <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; order <b>processing</b> → <b>Tandai Dikirim</b>; order yang sudah punya AWB → <b>Cetak Label</b> (gabung jadi 1 PDF).</p>
             </form>
 
             {{-- Desktop: tabel. Wrapper overflow-visible (bukan overflow-x-auto) supaya dropdown
@@ -108,7 +111,7 @@
                             <tr>
                                 <td class="px-3 py-4 align-top">
                                     @if (in_array($order['status'] ?? '', ['paid', 'processing'], true))
-                                        <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item data-status="{{ $order['status'] ?? '' }}" class="h-4 w-4 rounded border-stone-300 text-emerald-600">
+                                        <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item data-status="{{ $order['status'] ?? '' }}" data-awb="{{ ! empty($order['awb']) ? '1' : '0' }}" class="h-4 w-4 rounded border-stone-300 text-emerald-600">
                                     @endif
                                 </td>
                                 <td class="px-4 py-4 align-top">
@@ -148,7 +151,7 @@
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex min-w-0 items-start gap-2">
                                 @if (in_array($order['status'] ?? '', ['paid', 'processing'], true))
-                                    <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item data-status="{{ $order['status'] ?? '' }}" class="mt-1 h-4 w-4 rounded border-stone-300 text-emerald-600">
+                                    <input type="checkbox" name="order_codes[]" value="{{ $order['code'] }}" form="bulkPickupForm" data-bulk-item data-status="{{ $order['status'] ?? '' }}" data-awb="{{ ! empty($order['awb']) ? '1' : '0' }}" class="mt-1 h-4 w-4 rounded border-stone-300 text-emerald-600">
                                 @endif
                                 <div class="min-w-0">
                                     <a href="{{ route('admin.orders.show', $order['code']) }}" class="font-semibold text-stone-900">{{ $order['code'] }}</a>
@@ -191,8 +194,10 @@
             if (!bar) return;
             const cPaid = bar.querySelector('[data-count-paid]');
             const cProc = bar.querySelector('[data-count-processing]');
+            const cAwb = bar.querySelector('[data-count-awb]');
             const btnPickup = bar.querySelector('[data-bulk-pickup-btn]');
             const btnShip = bar.querySelector('[data-bulk-ship-btn]');
+            const btnLabel = bar.querySelector('[data-bulk-label-btn]');
             const all = document.querySelector('[data-bulk-all]');
             // Tiap order punya 2 checkbox (layout desktop + mobile); salah satu disembunyikan
             // via CSS. Hanya ambil yang TERLIHAT (offsetParent != null) supaya tak dobel.
@@ -201,10 +206,13 @@
                 const checked = items().filter(c => c.checked);
                 const nPaid = checked.filter(c => c.dataset.status === 'paid').length;
                 const nProc = checked.filter(c => c.dataset.status === 'processing').length;
+                const nAwb = checked.filter(c => c.dataset.awb === '1').length;
                 cPaid.textContent = nPaid;
                 cProc.textContent = nProc;
+                cAwb.textContent = nAwb;
                 btnPickup.disabled = nPaid === 0;
                 btnShip.disabled = nProc === 0;
+                btnLabel.disabled = nAwb === 0;
                 bar.classList.toggle('hidden', checked.length === 0);
                 if (all) all.checked = items().length > 0 && checked.length === items().length;
             }
