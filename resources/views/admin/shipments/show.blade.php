@@ -28,6 +28,10 @@
                         <p class="mt-1 font-semibold text-stone-900">{{ $shipment['order_code'] }}</p>
                     </div>
                     <div class="rounded-2xl bg-stone-50 px-4 py-4">
+                        <p class="text-sm text-stone-500">Status</p>
+                        <p class="mt-1 font-semibold text-stone-900">{{ $shipment['status'] }}</p>
+                    </div>
+                    <div class="rounded-2xl bg-stone-50 px-4 py-4">
                         <p class="text-sm text-stone-500">Customer</p>
                         <p class="mt-1 font-semibold text-stone-900">{{ $shipment['customer'] }}</p>
                     </div>
@@ -36,10 +40,10 @@
                         <p class="mt-1 font-semibold text-stone-900">{{ $shipment['courier'] }}</p>
                     </div>
                     <div class="rounded-2xl bg-stone-50 px-4 py-4">
-                        <p class="text-sm text-stone-500">Status</p>
-                        <p class="mt-1 font-semibold text-stone-900">{{ $shipment['status'] }}</p>
+                        <p class="text-sm text-stone-500">Order ID Komerce</p>
+                        <p class="mt-1 font-semibold text-stone-900">{{ $shipment['komerce_order_no'] ?? 'Belum di-booking' }}</p>
                     </div>
-                    <div class="rounded-2xl bg-stone-50 px-4 py-4 md:col-span-2">
+                    <div class="rounded-2xl bg-stone-50 px-4 py-4">
                         <p class="text-sm text-stone-500">AWB / Resi</p>
                         <p class="mt-1 font-semibold text-stone-900">{{ $shipment['awb'] ?? 'Belum tersedia' }}</p>
                     </div>

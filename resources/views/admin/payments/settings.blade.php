@@ -70,6 +70,12 @@
                         </span>
                     </label>
                 </div>
+                @if (($settings['payment_qris_enabled'] ?? true) && ! ($qrisReady ?? false))
+                    <div class="mt-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        ⚠️ QRIS dicentang tapi <b>belum ada QRIS toko yang aktif</b>. Pembayaran QRIS tidak akan muncul ke pelanggan (otomatis jatuh ke transfer) sampai kamu
+                        <a href="{{ route('admin.qris.index') }}" class="font-semibold underline">upload &amp; aktifkan QRIS</a>.
+                    </div>
+                @endif
                 <p class="mt-2 text-xs text-stone-400">Boleh aktif dua-duanya. Kalau keduanya mati, sistem otomatis pakai Transfer Bank.</p>
             </div>
 

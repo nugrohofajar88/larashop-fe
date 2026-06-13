@@ -477,8 +477,13 @@ class LarashopApi
     /** Upload QRIS (multipart) ke BE. */
     public function adminQrisUpload(string $tmpPath, string $originalName, string $name): array
     {
-        $response = $this->client($this->adminToken())
-            ->asMultipart()
+        // JANGAN pakai client() yang memaksa ->asJson() (memasang header
+        // Content-Type: application/json) — itu menimpa boundary multipart sehingga
+        // file & field 'name' tidak terbaca BE. Bangun request multipart sendiri.
+        $response = Http::acceptJson()
+            ->baseUrl(rtrim((string) config('services.larashop_api.base_url'), '/').'/')
+            ->withToken($this->adminToken())
+            ->timeout(30)
             ->attach('qris_image', (string) file_get_contents($tmpPath), $originalName)
             ->post('admin/qrisly/upload', ['name' => $name]);
 

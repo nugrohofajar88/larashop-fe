@@ -901,9 +901,20 @@ class AdminController extends Controller
 
     public function paymentSettings(): View
     {
+        // Apakah sudah ada QRIS toko aktif (qris_id). Kalau QRIS dicentang tapi belum
+        // ada QRIS aktif, pembayaran QRIS akan diam-diam jatuh ke transfer — beri peringatan.
+        $qrisReady = false;
+        try {
+            $qris = $this->api->adminQrisList();
+            $qrisReady = trim((string) ($qris['meta']['active_qris_id'] ?? '')) !== '';
+        } catch (\Throwable $e) {
+            // Abaikan; anggap belum siap.
+        }
+
         return view('admin.payments.settings', [
             'accounts' => $this->api->adminPaymentAccounts(),
             'settings' => $this->api->adminSettings(),
+            'qrisReady' => $qrisReady,
         ]);
     }
 
