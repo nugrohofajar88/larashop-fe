@@ -126,6 +126,9 @@
                                 <td class="px-4 py-4 align-top text-stone-700">{{ $order['total'] }}</td>
                                 <td class="px-4 py-4 align-top">
                                     <span class="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">{{ $order['status_label'] ?? $order['status'] }}</span>
+                                    @if (! empty($order['cancel_requested']))
+                                        <span class="ml-1 inline-block rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">Minta batal</span>
+                                    @endif
                                     <p class="mt-2 text-xs text-stone-500">{{ $order['payment_status'] }}</p>
                                 </td>
                                 <td class="px-4 py-4 align-top text-stone-600">
@@ -172,7 +175,7 @@
                             </div>
                             <div class="flex items-start justify-between gap-3">
                                 <dt class="text-stone-500">Status</dt>
-                                <dd class="text-right"><span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">{{ $order['status_label'] ?? $order['status'] }}</span><span class="mt-1 block text-xs text-stone-500">{{ $order['payment_status'] }}</span></dd>
+                                <dd class="text-right"><span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">{{ $order['status_label'] ?? $order['status'] }}</span>@if (! empty($order['cancel_requested']))<span class="ml-1 inline-block rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">Minta batal</span>@endif<span class="mt-1 block text-xs text-stone-500">{{ $order['payment_status'] }}</span></dd>
                             </div>
                             <div class="flex items-start justify-between gap-3">
                                 <dt class="text-stone-500">Shipment</dt>

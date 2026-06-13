@@ -94,11 +94,6 @@
                             </div>
                             @endif
 
-                            <form action="{{ route('customer.orders.cancel', $order['code']) }}" method="POST" class="mt-4" onsubmit="return confirm('Batalkan pesanan ini?')">
-                                @csrf
-                                <button type="submit" class="inline-flex items-center justify-center rounded-2xl border border-error-container px-4 py-2.5 font-body-sm text-sm font-semibold text-error">Batalkan pesanan</button>
-                            </form>
-
                             <script>
                             (function () {
                                 const card = document.querySelector('[data-qris-card]');
@@ -162,9 +157,31 @@
                             </script>
                         @endif
                         @if (($order['status'] ?? null) === 'shipped')
-                            <form action="{{ route('customer.orders.complete', $order['code']) }}" method="POST" class="mt-4" onsubmit="return confirm('Tandai pesanan ini sudah diterima?')">
+                            <form action="{{ route('customer.orders.complete', $order['code']) }}" method="POST" class="mt-4" data-confirm="Tandai pesanan ini sudah diterima?" data-confirm-title="Konfirmasi penerimaan" data-confirm-ok="Ya, sudah diterima">
                                 @csrf
                                 <button type="submit" class="inline-flex items-center justify-center rounded-2xl border border-secondary-container px-4 py-2.5 font-body-sm text-sm font-semibold text-primary">Pesanan diterima</button>
+                            </form>
+                        @endif
+
+                        {{-- Pembatalan: pending_payment batal langsung; paid/processing (resi belum
+                             terbit) ajukan pembatalan & tunggu konfirmasi admin. --}}
+                        @if (! empty($order['cancel_requested']))
+                            <div class="mt-4 rounded-2xl border border-surface-container-highest bg-surface-container-low px-4 py-3 font-body-sm text-sm text-on-surface-variant">
+                                ⏳ Permintaan pembatalan kamu sedang <span class="font-semibold text-on-surface">menunggu konfirmasi admin</span>.
+                            </div>
+                        @elseif (! empty($order['can_cancel']))
+                            @php $isPending = ($order['status'] ?? '') === 'pending_payment'; @endphp
+                            <form action="{{ route('customer.orders.cancel', $order['code']) }}" method="POST" class="mt-4"
+                                  data-confirm="{{ $isPending ? 'Yakin batalkan pesanan ini? Tindakan ini tidak bisa dibatalkan.' : 'Ajukan pembatalan pesanan ini? Pesanan sudah dibayar sehingga perlu ditinjau admin dulu.' }}"
+                                  data-confirm-title="{{ $isPending ? 'Batalkan pesanan' : 'Ajukan pembatalan' }}"
+                                  data-confirm-ok="{{ $isPending ? 'Ya, batalkan' : 'Ya, ajukan' }}">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center justify-center rounded-2xl border border-error-container px-4 py-2.5 font-body-sm text-sm font-semibold text-error">
+                                    {{ $isPending ? 'Batalkan pesanan' : 'Ajukan pembatalan' }}
+                                </button>
+                                @unless ($isPending)
+                                    <p class="mt-1.5 font-body-sm text-xs text-on-surface-variant">Pesanan sudah dibayar — pembatalan akan ditinjau admin dulu.</p>
+                                @endunless
                             </form>
                         @endif
 
@@ -292,6 +309,11 @@
                                     <span class="material-symbols-outlined text-[20px]">chat</span> Konfirmasi via WhatsApp
                                 </a>
                             @endif
+                        @elseif (($order['status'] ?? '') === 'cancelled')
+                            <div class="mt-5 flex items-center justify-center gap-2 rounded-2xl border border-error-container bg-error-container/20 px-4 py-3.5">
+                                <span class="material-symbols-outlined text-error">cancel</span>
+                                <span class="font-body-md font-semibold text-error">Pesanan dibatalkan</span>
+                            </div>
                         @else
                             <div class="mt-5 flex items-center justify-center gap-2 rounded-2xl border border-primary/30 bg-secondary-container/20 px-4 py-3.5">
                                 <span class="material-symbols-outlined text-primary">task_alt</span>

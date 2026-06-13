@@ -88,7 +88,7 @@
                                     @if ($isSuper)
                                         <div class="flex flex-wrap gap-2">
                                             <a href="{{ route('admin.accounts.edit', $account['id']) }}" class="rounded-full bg-stone-900 px-3 py-2 text-xs font-medium text-white">Edit</a>
-                                            <form method="POST" action="{{ route('admin.accounts.destroy', $account['id']) }}" onsubmit="return confirm('Hapus account {{ $account['name'] }}?')">
+                                            <form method="POST" action="{{ route('admin.accounts.destroy', $account['id']) }}" data-confirm="Hapus account {{ $account['name'] }}? Tindakan ini permanen." data-confirm-ok="Ya, hapus">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="rounded-full border border-rose-200 px-3 py-2 text-xs font-medium text-rose-600">
@@ -136,7 +136,7 @@
                         </dl>
                         <div class="mt-3 flex gap-2 @if (! $isSuper) hidden @endif">
                             <a href="{{ route('admin.accounts.edit', $account['id']) }}" class="flex-1 rounded-full bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white">Edit</a>
-                            <form method="POST" action="{{ route('admin.accounts.destroy', $account['id']) }}" onsubmit="return confirm('Hapus account {{ $account['name'] }}?')" class="flex-1">
+                            <form method="POST" action="{{ route('admin.accounts.destroy', $account['id']) }}" data-confirm="Hapus account {{ $account['name'] }}? Tindakan ini permanen." data-confirm-ok="Ya, hapus" class="flex-1">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="w-full rounded-full border border-rose-200 px-3 py-2 text-xs font-medium text-rose-600">Hapus</button>

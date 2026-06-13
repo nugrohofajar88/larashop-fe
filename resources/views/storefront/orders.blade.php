@@ -53,14 +53,20 @@
                                     <p class="mt-1 font-headline-md text-lg font-bold {{ $status === 'cancelled' ? 'text-error' : 'text-primary' }}">{{ $order['total'] }}</p>
                                 </div>
                                 <div class="flex flex-wrap items-center justify-end gap-2">
-                                    @if (($order['status'] ?? null) === 'pending_payment')
-                                        <form action="{{ route('customer.orders.cancel', $order['code']) }}" method="POST" onsubmit="return confirm('Batalkan pesanan ini?')">
+                                    @if (! empty($order['cancel_requested']))
+                                        <span class="inline-flex items-center rounded-full bg-surface-container-low px-4 py-2 font-body-sm text-sm font-medium text-on-surface-variant">⏳ Menunggu konfirmasi batal</span>
+                                    @elseif (! empty($order['can_cancel']))
+                                        @php $isPending = ($order['status'] ?? '') === 'pending_payment'; @endphp
+                                        <form action="{{ route('customer.orders.cancel', $order['code']) }}" method="POST"
+                                              data-confirm="{{ $isPending ? 'Yakin batalkan pesanan ini?' : 'Ajukan pembatalan pesanan ini? Pesanan sudah dibayar sehingga perlu ditinjau admin dulu.' }}"
+                                              data-confirm-title="{{ $isPending ? 'Batalkan pesanan' : 'Ajukan pembatalan' }}"
+                                              data-confirm-ok="{{ $isPending ? 'Ya, batalkan' : 'Ya, ajukan' }}">
                                             @csrf
-                                            <button type="submit" class="rounded-full border border-error-container px-4 py-2 font-body-sm text-sm font-semibold text-error">Batalkan</button>
+                                            <button type="submit" class="rounded-full border border-error-container px-4 py-2 font-body-sm text-sm font-semibold text-error">{{ $isPending ? 'Batalkan' : 'Ajukan batal' }}</button>
                                         </form>
                                     @endif
                                     @if (($order['status'] ?? null) === 'shipped')
-                                        <form action="{{ route('customer.orders.complete', $order['code']) }}" method="POST" onsubmit="return confirm('Tandai pesanan ini sudah diterima?')">
+                                        <form action="{{ route('customer.orders.complete', $order['code']) }}" method="POST" data-confirm="Tandai pesanan ini sudah diterima?" data-confirm-title="Konfirmasi penerimaan" data-confirm-ok="Ya, sudah diterima">
                                             @csrf
                                             <button type="submit" class="rounded-full border border-secondary-container px-4 py-2 font-body-sm text-sm font-semibold text-primary">Pesanan diterima</button>
                                         </form>

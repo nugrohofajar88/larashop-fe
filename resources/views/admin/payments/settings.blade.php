@@ -63,7 +63,7 @@
                         </span>
                     </label>
                     <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
-                        <input type="checkbox" name="payment_qris_enabled" value="1" {{ old('payment_qris_enabled', ($settings['payment_qris_enabled'] ?? true)) ? 'checked' : '' }} class="mt-0.5 h-5 w-5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500">
+                        <input type="checkbox" name="payment_qris_enabled" value="1" {{ old('payment_qris_enabled', ($settings['payment_qris_enabled'] ?? false)) ? 'checked' : '' }} class="mt-0.5 h-5 w-5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500">
                         <span>
                             <span class="text-sm font-medium text-stone-900">QRIS</span>
                             <span class="block text-xs text-stone-500">Kirim QR pembayaran (perlu QRIS aktif di menu QRIS).</span>
@@ -135,7 +135,7 @@
                         <button type="button"
                             onclick="this.closest('[data-account-card]').querySelector('[data-edit-form]').classList.toggle('hidden')"
                             class="inline-flex items-center gap-1 rounded-2xl border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50">Edit</button>
-                        <form method="POST" action="{{ route('admin.payments.accounts.destroy', $account['id']) }}" onsubmit="return confirm('Hapus rekening {{ $account['bank_name'] }} ini?')">
+                        <form method="POST" action="{{ route('admin.payments.accounts.destroy', $account['id']) }}" data-confirm="Hapus rekening {{ $account['bank_name'] }} ini?" data-confirm-ok="Ya, hapus">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="rounded-2xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50">Hapus</button>

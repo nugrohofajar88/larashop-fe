@@ -19,7 +19,7 @@
                 </p>
             </div>
 
-            <div class="flex flex-wrap gap-3">
+            <div class="flex flex-wrap items-start gap-3">
                 <a href="{{ route('admin.orders.index') }}" class="rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-medium text-stone-700">
                     Kembali ke orders
                 </a>
@@ -29,27 +29,6 @@
                         <button type="submit" class="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white">
                             Validasi pembayaran
                         </button>
-                    </form>
-                @elseif ($order['status'] === 'paid')
-                    <form method="POST" action="{{ route('admin.orders.schedule-pickup', $order['code']) }}" class="flex flex-wrap items-end gap-2 rounded-2xl border border-stone-200 bg-stone-50 p-3">
-                        @csrf
-                        <div>
-                            <label class="block text-xs font-medium text-stone-500">Tanggal pickup</label>
-                            <input type="date" name="pickup_date" data-pickup-date value="{{ now()->setTimezone('Asia/Jakarta')->addDay()->format('Y-m-d') }}" min="{{ now()->setTimezone('Asia/Jakarta')->format('Y-m-d') }}" required class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-500">Jam</label>
-                            <input type="time" name="pickup_time" data-pickup-time value="10:00" required class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-stone-500">Kendaraan</label>
-                            <select name="pickup_vehicle" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800">
-                                <option value="Motor">Motor</option>
-                                <option value="Mobil">Mobil</option>
-                                <option value="Truk">Truk</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white">Jadwalkan Pickup</button>
                     </form>
                 @elseif ($order['status'] === 'processing')
                     <form method="POST" action="{{ route('admin.orders.process-shipment', $order['code']) }}">
@@ -72,8 +51,10 @@
                     </a>
                     --}}
                 @endif
-                @if (in_array($order['status'], ['pending_payment', 'paid', 'processing'], true))
-                    <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}">
+                {{-- Saat ada pengajuan pembatalan, tombol Setujui/Tolak pindah ke banner di bawah
+                     supaya deretan aksi atas tidak berantakan. --}}
+                @if (in_array($order['status'], ['pending_payment', 'paid', 'processing'], true) && empty($order['cancel_requested']))
+                    <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}" data-confirm="Batalkan order ini?" data-confirm-title="Batalkan order" data-confirm-ok="Ya, batalkan">
                         @csrf
                         <button type="submit" class="rounded-2xl bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-700">
                             Batalkan order
@@ -82,6 +63,29 @@
                 @endif
             </div>
         </div>
+
+        @if (! empty($order['cancel_requested']))
+            <div class="rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4">
+                <p class="text-sm text-amber-900">
+                    ⚠️ <b>Customer mengajukan pembatalan</b>@if (! empty($order['cancel_requested_at'])) pada {{ $order['cancel_requested_at'] }}@endif.
+                    Setujui untuk membatalkan order (stok dikembalikan), atau tolak agar order tetap berjalan.
+                </p>
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}" data-confirm="Setujui pembatalan order ini? Order akan dibatalkan & stok dikembalikan." data-confirm-title="Setujui pembatalan" data-confirm-ok="Ya, setujui">
+                        @csrf
+                        <button type="submit" class="rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-700">
+                            Setujui pembatalan
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ route('admin.orders.reject-cancellation', $order['code']) }}" data-confirm="Tolak permintaan pembatalan? Order tetap berjalan." data-confirm-title="Tolak pembatalan" data-confirm-ok="Ya, tolak">
+                        @csrf
+                        <button type="submit" class="rounded-2xl border border-amber-300 bg-white px-5 py-2.5 text-sm font-semibold text-amber-900 hover:bg-amber-100">
+                            Tolak pembatalan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @endif
 
         <div class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
             <div class="space-y-6">
@@ -202,6 +206,32 @@
                             <p class="mt-1 leading-6 text-stone-700">{{ $order['address'] }}</p>
                         </div>
                     </div>
+
+                    @if ($order['status'] === 'paid')
+                        <form method="POST" action="{{ route('admin.orders.schedule-pickup', $order['code']) }}" class="mt-5 border-t border-stone-200 pt-5">
+                            @csrf
+                            <p class="text-sm font-semibold text-stone-900">Jadwalkan pickup</p>
+                            <div class="mt-3 flex flex-wrap items-end gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-stone-500">Tanggal pickup</label>
+                                    <input type="date" name="pickup_date" data-pickup-date value="{{ now()->setTimezone('Asia/Jakarta')->addDay()->format('Y-m-d') }}" min="{{ now()->setTimezone('Asia/Jakarta')->format('Y-m-d') }}" required class="mt-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-stone-500">Jam</label>
+                                    <input type="time" name="pickup_time" data-pickup-time value="10:00" required class="mt-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-stone-500">Kendaraan</label>
+                                    <select name="pickup_vehicle" class="mt-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800">
+                                        <option value="Motor">Motor</option>
+                                        <option value="Mobil">Mobil</option>
+                                        <option value="Truk">Truk</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white">Jadwalkan Pickup</button>
+                            </div>
+                        </form>
+                    @endif
                 </section>
 
                 <section class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">

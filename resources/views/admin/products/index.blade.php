@@ -24,7 +24,7 @@
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                         <h2 class="text-xl font-semibold text-stone-950">Daftar produk</h2>
-                        <p class="mt-1 text-sm text-stone-500">Dummy list untuk modul katalog admin.</p>
+                        <p class="mt-1 text-sm text-stone-500">Daftar produk katalog beserta stok dan statusnya.</p>
                     </div>
 
                     <form method="GET" action="{{ route('admin.products.index') }}" class="flex flex-wrap gap-3">

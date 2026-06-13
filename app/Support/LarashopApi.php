@@ -19,6 +19,12 @@ class LarashopApi
         return $this->request('GET', '/products/'.$slug)['data'] ?? [];
     }
 
+    /** Info publik toko (brand, nomor WhatsApp) untuk storefront. */
+    public function storeInfo(): array
+    {
+        return $this->request('GET', '/store-info')['data'] ?? [];
+    }
+
     public function login(string $login, string $password, string $deviceName = 'larashop-fe'): array
     {
         return $this->request('POST', '/auth/login', [
@@ -326,6 +332,11 @@ class LarashopApi
     public function cancelAdminOrder(int $id): array
     {
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/cancel')['data'] ?? [];
+    }
+
+    public function rejectAdminOrderCancellation(int $id): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/reject-cancellation')['data'] ?? [];
     }
 
     public function processAdminOrderShipment(int $id): array

@@ -12,7 +12,7 @@
                 <a href="{{ route('admin.customers.edit', $customer['code']) }}" class="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white">
                     Edit customer
                 </a>
-                <form method="POST" action="{{ route('admin.customers.destroy', $customer['code']) }}" onsubmit="return confirm('Hapus customer {{ $customer['name'] }}? Tindakan ini permanen.')">
+                <form method="POST" action="{{ route('admin.customers.destroy', $customer['code']) }}" data-confirm="Hapus customer {{ $customer['name'] }}? Tindakan ini permanen." data-confirm-ok="Ya, hapus">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="rounded-2xl bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-100">

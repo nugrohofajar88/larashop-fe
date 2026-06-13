@@ -92,7 +92,7 @@
                                                     @csrf
                                                     <button type="submit" class="rounded-xl border border-emerald-300 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50">Aktifkan</button>
                                                 </form>
-                                                <form method="POST" action="{{ route('admin.qris.delete', $q['id']) }}" onsubmit="return confirm('Hapus QRIS ini dari daftar?')">
+                                                <form method="POST" action="{{ route('admin.qris.delete', $q['id']) }}" data-confirm="Hapus QRIS ini dari daftar?" data-confirm-ok="Ya, hapus">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="rounded-xl border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50">Hapus</button>

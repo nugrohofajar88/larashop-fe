@@ -67,7 +67,7 @@
 
                     <div class="mt-4 flex gap-2">
                         <button type="button" onclick="this.closest('[data-category-card]').querySelector('[data-edit-form]').classList.toggle('hidden')" class="flex-1 rounded-full bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white">Edit</button>
-                        <form method="POST" action="{{ route('admin.categories.destroy', $cat['id']) }}" onsubmit="return confirm('Hapus kategori {{ $cat['name'] }}?')" class="flex-1">
+                        <form method="POST" action="{{ route('admin.categories.destroy', $cat['id']) }}" data-confirm="Hapus kategori {{ $cat['name'] }}?" data-confirm-ok="Ya, hapus" class="flex-1">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="w-full rounded-full border border-rose-200 px-3 py-2 text-xs font-medium text-rose-600">Hapus</button>

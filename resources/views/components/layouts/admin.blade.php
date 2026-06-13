@@ -101,5 +101,44 @@
 
             {{ $slot }}
         </main>
+
+        {{-- Modal konfirmasi global (pengganti confirm() bawaan). Dipicu form[data-confirm]. --}}
+        <div data-confirm-modal class="fixed inset-0 z-[60] hidden items-center justify-center bg-stone-950/40 p-4">
+            <div class="w-full max-w-sm rounded-3xl border border-stone-200 bg-white p-6 shadow-2xl">
+                <h3 data-confirm-title class="text-lg font-semibold text-stone-950">Konfirmasi</h3>
+                <p data-confirm-message class="mt-2 text-sm text-stone-600"></p>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" data-confirm-cancel class="rounded-2xl border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-50">Batal</button>
+                    <button type="button" data-confirm-ok class="rounded-2xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700">Ya, lanjut</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function () {
+                const modal = document.querySelector('[data-confirm-modal]');
+                if (!modal) return;
+                const titleEl = modal.querySelector('[data-confirm-title]');
+                const msgEl = modal.querySelector('[data-confirm-message]');
+                const okBtn = modal.querySelector('[data-confirm-ok]');
+                const cancelBtn = modal.querySelector('[data-confirm-cancel]');
+                let pendingForm = null;
+                const open = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.classList.add('overflow-hidden'); };
+                const close = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('overflow-hidden'); pendingForm = null; };
+                document.addEventListener('submit', (e) => {
+                    const form = e.target;
+                    if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-confirm')) return;
+                    e.preventDefault();
+                    pendingForm = form;
+                    titleEl.textContent = form.dataset.confirmTitle || 'Konfirmasi';
+                    msgEl.textContent = form.dataset.confirm || 'Lanjutkan tindakan ini?';
+                    okBtn.textContent = form.dataset.confirmOk || 'Ya, lanjut';
+                    open();
+                });
+                okBtn.addEventListener('click', () => { if (pendingForm) pendingForm.submit(); });
+                cancelBtn.addEventListener('click', close);
+                modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            })();
+        </script>
     </body>
 </html>

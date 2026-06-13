@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Support\LarashopApi;
 use App\Support\LarashopApiException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -39,6 +40,18 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $view->with('cartCount', $count);
+
+            // Nomor WhatsApp toko untuk tombol melayang. Di-cache 30 menit supaya tak
+            // memanggil API tiap render; gagal API = tombol tak muncul (bukan error).
+            $storeWhatsapp = Cache::remember('storefront.store_whatsapp', now()->addMinutes(30), function (): string {
+                try {
+                    return (string) (app(LarashopApi::class)->storeInfo()['whatsapp'] ?? '');
+                } catch (\Throwable) {
+                    return '';
+                }
+            });
+
+            $view->with('storeWhatsapp', $storeWhatsapp);
         });
     }
 }

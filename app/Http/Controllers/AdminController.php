@@ -7,6 +7,7 @@ use App\Support\LarashopApiException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -801,6 +802,19 @@ class AdminController extends Controller
         return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Order {$updated['code']} berhasil dibatalkan.");
     }
 
+    public function rejectOrderCancellation(string $code): RedirectResponse
+    {
+        $order = $this->findOrderByCode($code);
+
+        try {
+            $this->api->rejectAdminOrderCancellation($order['id']);
+        } catch (LarashopApiException $exception) {
+            return redirect()->route('admin.orders.show', $code)->with('error', $exception->getMessage());
+        }
+
+        return redirect()->route('admin.orders.show', $code)->with('success', 'Permintaan pembatalan ditolak. Order tetap berjalan.');
+    }
+
     public function shipments(Request $request): View
     {
         $shipments = collect($this->api->adminShipments());
@@ -939,6 +953,9 @@ class AdminController extends Controller
         } catch (LarashopApiException $exception) {
             return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['store_whatsapp' => $exception->getMessage()]);
         }
+
+        // Segarkan cache nomor WA toko supaya tombol WhatsApp melayang langsung ikut berubah.
+        Cache::forget('storefront.store_whatsapp');
 
         return redirect()->route('admin.payments.settings')->with('success', 'Nomor WhatsApp toko berhasil disimpan.');
     }

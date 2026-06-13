@@ -20,7 +20,7 @@
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h2 class="text-xl font-semibold text-stone-950">Daftar customer</h2>
-                    <p class="mt-1 text-sm text-stone-500">Dummy list customer dengan ringkasan akun dan alamat aktif.</p>
+                    <p class="mt-1 text-sm text-stone-500">Ringkasan akun customer beserta alamat pengiriman.</p>
                 </div>
 
                 <form method="GET" action="{{ route('admin.customers.index') }}" class="flex flex-wrap gap-3">
@@ -51,7 +51,7 @@
             {{-- Bulk hapus: checkbox pakai form="bulkDeleteForm" (di luar form) supaya tak bersarang. --}}
             <form id="bulkDeleteForm" method="POST" action="{{ route('admin.customers.bulk-delete') }}"
                   data-bulk-bar class="mt-4 hidden rounded-2xl border border-rose-200 bg-rose-50 p-4"
-                  onsubmit="return confirm('Proses ' + (this.querySelector('[data-bulk-count]')?.textContent || '') + ' customer terpilih?\nYang punya pesanan akan DINONAKTIFKAN, sisanya DIHAPUS permanen.')">
+                  data-confirm="Proses customer terpilih? Yang punya pesanan akan DINONAKTIFKAN, sisanya DIHAPUS permanen." data-confirm-ok="Ya, proses">
                 @csrf
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <p class="text-sm text-rose-800"><b data-bulk-count>0</b> customer dipilih</p>

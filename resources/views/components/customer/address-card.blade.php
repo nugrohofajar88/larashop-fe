@@ -50,7 +50,7 @@
                 </form>
             @endif
 
-            <form method="POST" action="{{ route('addresses.destroy', $address['id']) }}" onsubmit="return confirm('Hapus alamat ini?')">
+            <form method="POST" action="{{ route('addresses.destroy', $address['id']) }}" data-confirm="Hapus alamat ini?" data-confirm-ok="Ya, hapus">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="rounded-full bg-error-container/50 px-4 py-2 font-body-sm text-sm font-medium text-error transition hover:bg-error-container">Hapus</button>
