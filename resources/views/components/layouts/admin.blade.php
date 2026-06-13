@@ -39,7 +39,7 @@
                     Dashboard
                 </a>
                 <a href="{{ route('admin.accounts.index') }}" class="block rounded-2xl px-4 py-3 {{ request()->routeIs('admin.accounts.*') ? 'bg-white/10 text-white' : 'text-stone-300 hover:bg-white/5 hover:text-white' }}">
-                    Account
+                    {{ (session('admin.user.is_super_admin') ?? (session('admin.user.admin_role') === 'super_admin')) ? 'Account' : 'Profil Saya' }}
                 </a>
                 <a href="{{ route('admin.customers.index') }}" class="block rounded-2xl px-4 py-3 {{ request()->routeIs('admin.customers.*') ? 'bg-white/10 text-white' : 'text-stone-300 hover:bg-white/5 hover:text-white' }}">
                     Customer

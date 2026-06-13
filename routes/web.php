@@ -52,11 +52,13 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::put('/accounts/{id}', [AdminController::class, 'updateAccount'])->name('admin.accounts.update');
     Route::delete('/accounts/{id}', [AdminController::class, 'destroyAccount'])->name('admin.accounts.destroy');
     Route::get('/customers', [AdminController::class, 'customers'])->name('admin.customers.index');
+    Route::post('/customers/bulk-delete', [AdminController::class, 'bulkDestroyCustomers'])->name('admin.customers.bulk-delete');
     Route::get('/customers/create', [AdminController::class, 'createCustomer'])->name('admin.customers.create');
     Route::post('/customers', [AdminController::class, 'storeCustomer'])->name('admin.customers.store');
     Route::get('/customers/{code}', [AdminController::class, 'showCustomer'])->name('admin.customers.show');
     Route::get('/customers/{code}/edit', [AdminController::class, 'editCustomer'])->name('admin.customers.edit');
     Route::put('/customers/{code}', [AdminController::class, 'updateCustomer'])->name('admin.customers.update');
+    Route::delete('/customers/{code}', [AdminController::class, 'destroyCustomer'])->name('admin.customers.destroy');
     Route::get('/products', [AdminController::class, 'products'])->name('admin.products.index');
     Route::get('/products/create', [AdminController::class, 'createProduct'])->name('admin.products.create');
     Route::post('/products', [AdminController::class, 'storeProduct'])->name('admin.products.store');

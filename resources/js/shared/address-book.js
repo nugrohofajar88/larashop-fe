@@ -85,8 +85,26 @@ export const initAddressBook = () => {
                   addressLine: form.querySelector('[name="address_line"]'),
                   addressNote: form.querySelector('[name="address_note"]'),
                   isPrimary: form.querySelector('[name="is_primary"]'),
+                  destinationId: form.querySelector('[name="destination_id"]'),
+                  search: form.querySelector('[data-address-search]'),
+                  searchResults: form.querySelector('[data-address-search-results]'),
               }
             : null;
+
+        // Chip "Tandai sebagai" (Rumah/Kantor/Gudang/Toko).
+        const labelButtons = form ? Array.from(form.querySelectorAll('[data-address-label-option]')) : [];
+        const setActiveLabel = (value) => {
+            const chosen = value || 'Rumah';
+            if (fields?.label) {
+                fields.label.value = chosen;
+            }
+            labelButtons.forEach((btn) => {
+                btn.setAttribute('data-active', btn.getAttribute('data-address-label-option') === chosen ? 'true' : 'false');
+            });
+        };
+        labelButtons.forEach((btn) => {
+            btn.addEventListener('click', () => setActiveLabel(btn.getAttribute('data-address-label-option')));
+        });
 
         const syncInput = () => {
             if (input) {
@@ -122,8 +140,91 @@ export const initAddressBook = () => {
             fields.addressLine.value = address?.address_line ?? '';
             fields.addressNote.value = address?.address_note ?? '';
             fields.isPrimary.checked = Boolean(address?.is_primary ?? addresses.length === 0);
-            fields.label.value = address?.label ?? 'Alamat';
+            setActiveLabel(address?.label || 'Rumah');
+
+            if (fields.destinationId) {
+                fields.destinationId.value = address?.destination_id ?? '';
+            }
+            if (fields.search) {
+                // Tampilkan wilayah saat ini sebagai konteks ketika edit.
+                fields.search.value = address
+                    ? [address.subdistrict, address.district, address.city].filter(Boolean).join(', ')
+                    : '';
+            }
+            if (fields.searchResults) {
+                fields.searchResults.innerHTML = '';
+                fields.searchResults.classList.add('hidden');
+            }
         };
+
+        // Pencarian wilayah Komerce: isi otomatis province/city/district/subdistrict/
+        // postal_code + destination_id. Sumber kebenaran ongkir/booking = destination_id.
+        const setupDestinationSearch = () => {
+            if (!fields || !fields.search || !fields.searchResults) {
+                return;
+            }
+
+            const url = fields.search.getAttribute('data-search-url');
+            const box = fields.searchResults;
+            let timer = null;
+
+            const pick = (item) => {
+                fields.province.value = item.province_name ?? '';
+                fields.city.value = item.city_name ?? '';
+                fields.district.value = item.district_name ?? '';
+                fields.subdistrict.value = item.subdistrict_name ?? '';
+                fields.postalCode.value = item.zip_code ?? '';
+                fields.destinationId.value = item.id ?? '';
+                fields.search.value = item.label || [item.subdistrict_name, item.district_name, item.city_name].filter(Boolean).join(', ');
+                box.innerHTML = '';
+                box.classList.add('hidden');
+            };
+
+            const run = async (keyword) => {
+                if (!url || keyword.trim().length < 3) {
+                    box.classList.add('hidden');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`${url}?search=${encodeURIComponent(keyword.trim())}`, {
+                        headers: { Accept: 'application/json' },
+                    });
+                    const json = await res.json();
+                    const items = json.data ?? [];
+
+                    if (!items.length) {
+                        box.innerHTML = '<p class="px-4 py-3 text-sm text-stone-500">Wilayah tidak ditemukan.</p>';
+                        box.classList.remove('hidden');
+                        return;
+                    }
+
+                    box.innerHTML = '';
+                    items.forEach((item) => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'block w-full px-4 py-3 text-left text-sm hover:bg-emerald-50';
+                        btn.textContent = item.label || [item.subdistrict_name, item.district_name, item.city_name, item.province_name].filter(Boolean).join(', ');
+                        btn.addEventListener('click', () => pick(item));
+                        box.appendChild(btn);
+                    });
+                    box.classList.remove('hidden');
+                } catch (e) {
+                    box.innerHTML = '<p class="px-4 py-3 text-sm text-rose-600">Gagal mencari wilayah.</p>';
+                    box.classList.remove('hidden');
+                }
+            };
+
+            fields.search.addEventListener('input', (event) => {
+                // Mengetik manual = batalkan pilihan sebelumnya (wajib pilih dari hasil).
+                fields.destinationId.value = '';
+                clearTimeout(timer);
+                const value = event.target.value;
+                timer = setTimeout(() => run(value), 300);
+            });
+        };
+
+        setupDestinationSearch();
 
         const showDetail = (address) => {
             currentMode = 'detail';
@@ -235,6 +336,7 @@ export const initAddressBook = () => {
                 label: fields.label.value.trim() || 'Rumah',
                 recipient_name: fields.recipientName.value.trim(),
                 recipient_phone: fields.recipientPhone.value.trim(),
+                destination_id: fields.destinationId?.value ? Number(fields.destinationId.value) : null,
                 province: fields.province.value.trim(),
                 city: fields.city.value.trim(),
                 district: fields.district.value.trim(),
@@ -255,6 +357,16 @@ export const initAddressBook = () => {
                 !nextAddress.postal_code ||
                 !nextAddress.address_line
             ) {
+                return;
+            }
+
+            // Wajib pilih wilayah dari pencarian (punya destination_id) agar ongkir jalan.
+            if (!nextAddress.destination_id) {
+                if (fields.search) {
+                    fields.search.focus();
+                    fields.search.classList.add('border-rose-400');
+                }
+                window.alert('Pilih wilayah dari hasil pencarian terlebih dahulu agar ongkir & booking ekspedisi bisa berjalan.');
                 return;
             }
 

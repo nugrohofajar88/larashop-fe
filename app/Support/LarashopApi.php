@@ -293,6 +293,16 @@ class LarashopApi
         return $this->requestAsAdmin('PUT', '/admin/customers/'.$id, ['json' => $payload])['data'] ?? [];
     }
 
+    public function deleteAdminCustomer(int $id): void
+    {
+        $this->requestAsAdmin('DELETE', '/admin/customers/'.$id);
+    }
+
+    public function bulkDeleteAdminCustomers(array $codes): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/customers/bulk-delete', ['json' => ['customer_codes' => $codes]])['data'] ?? [];
+    }
+
     public function adminOrders(): array
     {
         return $this->requestAsAdmin('GET', '/admin/orders')['data'] ?? [];

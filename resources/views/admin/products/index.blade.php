@@ -19,16 +19,6 @@
             </div>
         </div>
 
-        <div class="grid gap-4 xl:grid-cols-4">
-            @foreach ($stats as $stat)
-                <article class="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
-                    <p class="text-sm text-stone-500">{{ $stat['label'] }}</p>
-                    <p class="mt-3 text-3xl font-semibold tracking-tight text-stone-950">{{ $stat['value'] }}</p>
-                    <p class="mt-2 text-sm text-stone-600">{{ $stat['note'] }}</p>
-                </article>
-            @endforeach
-        </div>
-
         <div>
             <section class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

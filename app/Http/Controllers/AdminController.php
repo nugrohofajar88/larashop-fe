@@ -79,8 +79,13 @@ class AdminController extends Controller
         return redirect()->route('admin.login')->with('success', 'Session admin frontend berhasil dikeluarkan.');
     }
 
-    public function accounts(Request $request): View
+    public function accounts(Request $request): View|RedirectResponse
     {
+        // Non-super tidak punya daftar akun — diarahkan ke profilnya sendiri.
+        if (! $this->isSuperAdmin()) {
+            return redirect()->route('admin.accounts.edit', session('admin.user.code'));
+        }
+
         $accounts = collect($this->api->adminAccounts(['search' => $request->string('search')->toString()]));
         $search = trim($request->string('search')->toString());
         $role = $request->string('role')->toString();
@@ -109,12 +114,18 @@ class AdminController extends Controller
         ]);
     }
 
-    public function createAccount(): View
+    public function createAccount(): View|RedirectResponse
     {
+        if ($redirect = $this->denyIfNotSuperAdmin()) {
+            return $redirect;
+        }
+
         return view('admin.accounts.create', [
             'account' => [],
             'roles' => $this->adminAccountRoles(),
             'statuses' => $this->adminAccountStatuses(),
+            'isSuper' => true,
+            'isSelf' => false,
         ]);
     }
 
@@ -123,19 +134,31 @@ class AdminController extends Controller
         return redirect()->route('admin.accounts.edit', $id);
     }
 
-    public function editAccount(string $id): View
+    public function editAccount(string $id): View|RedirectResponse
     {
+        // Non-super hanya boleh membuka profilnya sendiri.
+        if (! $this->isSuperAdmin() && $id !== session('admin.user.code')) {
+            return redirect()->route('admin.accounts.edit', session('admin.user.code'))
+                ->with('error', 'Kamu hanya bisa mengubah profil sendiri.');
+        }
+
         $account = $this->findAccountByCode($id);
 
         return view('admin.accounts.edit', [
             'account' => $account,
             'roles' => $this->adminAccountRoles(),
             'statuses' => $this->adminAccountStatuses(),
+            'isSuper' => $this->isSuperAdmin(),
+            'isSelf' => $id === session('admin.user.code'),
         ]);
     }
 
     public function storeAccount(Request $request): RedirectResponse
     {
+        if ($redirect = $this->denyIfNotSuperAdmin()) {
+            return $redirect;
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255'],
@@ -166,28 +189,44 @@ class AdminController extends Controller
 
     public function updateAccount(Request $request, string $id): RedirectResponse
     {
+        $isSuper = $this->isSuperAdmin();
+
+        // Non-super hanya boleh mengubah profilnya sendiri.
+        if (! $isSuper && $id !== session('admin.user.code')) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'Kamu hanya bisa mengubah profil sendiri.');
+        }
+
         $existingAccount = $this->findAccountByCode($id);
-        $validated = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email'],
             'phone' => ['required', 'string', 'max:30'],
-            'role' => ['required', 'string'],
-            'status' => ['required', 'string'],
             'password' => ['nullable', 'string', 'min:8'],
-        ]);
+        ];
+        if ($isSuper) {
+            $rules['role'] = ['required', 'string'];
+            $rules['status'] = ['required', 'string'];
+        }
+        $validated = $request->validate($rules);
+
+        // Role & status hanya dikirim oleh super admin; non-super pakai nilai lama.
+        $payload = [
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'password' => $validated['password'] ?: null,
+            'password_confirmation' => $validated['password'] ?: null,
+        ];
+        if ($isSuper) {
+            $payload['admin_role'] = $this->adminRoleKey($validated['role']);
+            $payload['status'] = $this->adminStatusKey($validated['status']);
+        }
 
         try {
-            $this->api->updateAdminAccount($existingAccount['user_id'], [
-                'name' => $validated['name'],
-                'username' => $validated['username'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'admin_role' => $this->adminRoleKey($validated['role']),
-                'status' => $this->adminStatusKey($validated['status']),
-                'password' => $validated['password'] ?: null,
-                'password_confirmation' => $validated['password'] ?: null,
-            ]);
+            $this->api->updateAdminAccount($existingAccount['user_id'], $payload);
         } catch (LarashopApiException $exception) {
             return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['name' => $exception->getMessage()]);
         }
@@ -197,6 +236,10 @@ class AdminController extends Controller
 
     public function destroyAccount(string $id): RedirectResponse
     {
+        if ($redirect = $this->denyIfNotSuperAdmin()) {
+            return $redirect;
+        }
+
         $existingAccount = $this->findAccountByCode($id);
 
         try {
@@ -208,6 +251,24 @@ class AdminController extends Controller
         }
 
         return redirect()->route('admin.accounts.index')->with('success', "Account {$existingAccount['name']} berhasil dihapus.");
+    }
+
+    /** Admin yang sedang login adalah super admin? (dari payload login di session) */
+    private function isSuperAdmin(): bool
+    {
+        return (bool) (session('admin.user.is_super_admin')
+            ?? (session('admin.user.admin_role') === 'super_admin'));
+    }
+
+    /** Tolak akses kelola akun untuk non-super-admin. Null = boleh lanjut. */
+    private function denyIfNotSuperAdmin(): ?RedirectResponse
+    {
+        if ($this->isSuperAdmin()) {
+            return null;
+        }
+
+        return redirect()->route('admin.dashboard')
+            ->with('error', 'Hanya super admin yang dapat mengakses & mengelola akun admin.');
     }
 
     public function customers(Request $request): View
@@ -229,12 +290,6 @@ class AdminController extends Controller
             'search' => $search,
             'activeStatus' => $status === '' ? 'all' : $status,
             'statuses' => $this->customerStatuses(),
-            'stats' => [
-                ['label' => 'Total customer', 'value' => (string) count($items), 'note' => 'Sinkron dari backend API'],
-                ['label' => 'Username aktif', 'value' => (string) collect($items)->pluck('username')->filter()->count(), 'note' => 'Siap dipakai untuk login customer.'],
-                ['label' => 'Alamat tersimpan', 'value' => (string) collect($items)->sum('address_count'), 'note' => 'Total alamat pengiriman customer.'],
-                ['label' => 'Menunggu verifikasi', 'value' => (string) collect($items)->where('status', 'Menunggu verifikasi')->count(), 'note' => 'Perlu follow up aktivasi akun.'],
-            ],
         ]);
     }
 
@@ -348,6 +403,42 @@ class AdminController extends Controller
         return redirect()->route('admin.customers.show', $code)->with('success', "Perubahan customer {$validated['name']} berhasil disimpan.");
     }
 
+    public function destroyCustomer(string $code): RedirectResponse
+    {
+        $customer = $this->findCustomerByCode($code);
+
+        try {
+            $this->api->deleteAdminCustomer($customer['id']);
+        } catch (LarashopApiException $exception) {
+            return redirect()->route('admin.customers.show', $code)
+                ->with('error', $exception->errors['customer'][0] ?? $exception->getMessage());
+        }
+
+        return redirect()->route('admin.customers.index')
+            ->with('success', 'Customer '.($customer['name'] ?? '').' berhasil dihapus.');
+    }
+
+    public function bulkDestroyCustomers(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'customer_codes' => ['required', 'array', 'min:1'],
+            'customer_codes.*' => ['string'],
+        ]);
+
+        try {
+            $result = $this->api->bulkDeleteAdminCustomers($validated['customer_codes']);
+        } catch (LarashopApiException $exception) {
+            return redirect()->route('admin.customers.index')
+                ->with('error', $exception->getMessage());
+        }
+
+        $deleted = count($result['deleted'] ?? []);
+        $deactivated = count($result['deactivated'] ?? []);
+
+        return redirect()->route('admin.customers.index')
+            ->with('success', "{$deleted} customer dihapus, {$deactivated} dinonaktifkan (punya pesanan).");
+    }
+
     public function products(Request $request): View
     {
         $products = collect($this->api->adminProducts(['search' => $request->string('search')->toString()]))
@@ -378,12 +469,6 @@ class AdminController extends Controller
         $items = $products->values()->all();
 
         return view('admin.products.index', [
-            'stats' => [
-                ['label' => 'Produk Aktif', 'value' => (string) collect($items)->where('status', 'Aktif')->count(), 'note' => 'Sedang tampil di katalog customer'],
-                ['label' => 'Draft Produk', 'value' => (string) collect($items)->where('status', 'Draft')->count(), 'note' => 'Belum dipublikasikan'],
-                ['label' => 'Stok Menipis', 'value' => (string) collect($items)->where('stock', '<=', 12)->count(), 'note' => 'Perlu restock atau penyesuaian'],
-                ['label' => 'Kategori', 'value' => (string) count($this->productCategories()), 'note' => 'Kategori produk aktif'],
-            ],
             'products' => $items,
             'lowStockProducts' => array_values(array_filter($items, fn (array $product) => $product['stock'] <= 12)),
             'search' => $search,
@@ -1235,6 +1320,7 @@ class AdminController extends Controller
                 'label' => $address['label'],
                 'recipient_name' => $address['name'],
                 'recipient_phone' => $address['phone'],
+                'destination_id' => $address['destination_id'] ?? null,
                 'province' => $address['province'],
                 'city' => $address['city'],
                 'district' => $address['district'],
@@ -1264,6 +1350,7 @@ class AdminController extends Controller
                 'district' => $address['district'] ?? '',
                 'subdistrict' => $address['subdistrict'] ?? '',
                 'postal_code' => $address['postal_code'] ?? '',
+                'destination_id' => isset($address['destination_id']) && $address['destination_id'] !== '' ? (int) $address['destination_id'] : null,
                 'address_line' => $address['address_line'] ?? '',
                 'note' => $address['address_note'] ?? '',
                 'is_primary' => (bool) ($address['is_primary'] ?? false),

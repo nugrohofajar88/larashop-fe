@@ -10,18 +10,17 @@
 ])
 
 <x-admin.form-section data-address-book data-address-book-mode="{{ $mode }}" :title="$title" :description="$description">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div></div>
-        @if (isset($actions))
-            <div class="flex flex-wrap gap-3">
+    @if (isset($actions) || $mode === 'editable')
+        <div class="mb-4 flex flex-wrap justify-end gap-3">
+            @if (isset($actions))
                 {{ $actions }}
-            </div>
-        @elseif ($mode === 'editable')
-            <button type="button" class="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white" data-address-add>
-                {{ $actionLabel }}
-            </button>
-        @endif
-    </div>
+            @else
+                <button type="button" class="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white" data-address-add>
+                    {{ $actionLabel }}
+                </button>
+            @endif
+        </div>
+    @endif
 
     <script type="application/json" data-address-book-state>@json($addresses)</script>
 
@@ -41,8 +40,8 @@
         @enderror
     @endif
 
-    <div class="fixed inset-0 z-50 hidden bg-stone-950/45 p-4 backdrop-blur-sm" data-address-modal aria-hidden="true">
-        <div class="mx-auto flex min-h-full max-w-3xl items-center justify-center">
+    <div class="fixed inset-0 z-50 hidden overflow-y-auto bg-stone-950/45 p-4 backdrop-blur-sm" data-address-modal aria-hidden="true">
+        <div class="mx-auto flex min-h-full max-w-3xl items-center justify-center py-4">
             <div class="w-full rounded-[2rem] bg-white p-5 shadow-2xl sm:p-6">
                 <div class="flex items-start justify-between gap-4">
                     <div>
@@ -57,8 +56,13 @@
                 <div class="mt-5 {{ $mode === 'readonly' ? '' : 'hidden' }}" data-address-detail-panel></div>
 
                 @if ($mode === 'editable')
-                    <form class="mt-5 space-y-4" data-address-form>
+                    {{-- Sengaja <div>, bukan <form>: komponen ini sering dipakai DI DALAM
+                         form halaman (mis. customer create/edit). Form bersarang dilarang
+                         HTML → tag <form> dalam akan dibuang browser dan field jadi tak ter-wire.
+                         Data alamat disubmit via JS (input hidden shipping_addresses). --}}
+                    <div class="mt-5 space-y-4" data-address-form>
                         <input type="hidden" name="address_id">
+                        <input type="hidden" name="destination_id">
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="mb-2 block text-sm font-medium text-stone-700">Nama penerima</label>
@@ -74,37 +78,46 @@
                             <label class="mb-2 block text-sm font-medium text-stone-700">Tandai sebagai</label>
                             <div class="flex flex-wrap gap-2" data-address-labels>
                                 @foreach (['Rumah', 'Kantor', 'Gudang', 'Toko'] as $label)
-                                    <button type="button" disabled aria-disabled="true" class="cursor-not-allowed rounded-2xl border border-stone-200 bg-stone-100 px-4 py-2 text-sm font-medium text-stone-400 transition" data-address-label-option="{{ $label }}">
+                                    <button type="button" class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-emerald-400 data-[active=true]:border-emerald-500 data-[active=true]:bg-emerald-50 data-[active=true]:text-emerald-700" data-address-label-option="{{ $label }}">
                                         {{ $label }}
                                     </button>
                                 @endforeach
                             </div>
-                            <input type="hidden" name="label" value="Alamat">
-                            <p class="mt-2 text-xs text-stone-500">Tandai sebagai belum aktif dulu, jadi sementara belum bisa dipilih.</p>
+                            <input type="hidden" name="label" value="Rumah">
+                        </div>
+
+                        <div class="relative">
+                            <label class="mb-2 block text-sm font-medium text-stone-700">Cari wilayah (kecamatan / kelurahan)</label>
+                            <input type="text" data-address-search autocomplete="off"
+                                   data-search-url="{{ route('admin.shipments.settings.destination-search') }}"
+                                   class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                                   placeholder="Ketik min. 3 huruf, mis. 'Cibinong' atau 'Sukajadi'">
+                            <p class="mt-2 text-xs text-stone-500">Pilih wilayah dari hasil pencarian agar ongkir &amp; booking ekspedisi (Komerce) bisa jalan.</p>
+                            <div data-address-search-results class="absolute z-10 mt-1 hidden max-h-64 w-full overflow-auto rounded-2xl border border-stone-200 bg-white shadow-lg"></div>
                         </div>
 
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="mb-2 block text-sm font-medium text-stone-700">Provinsi</label>
-                                <input type="text" name="province" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Provinsi">
+                                <input type="text" name="province" readonly class="w-full rounded-2xl border border-stone-200 bg-stone-100 px-4 py-3 text-sm text-stone-700 outline-none" placeholder="Otomatis dari pencarian">
                             </div>
                             <div>
                                 <label class="mb-2 block text-sm font-medium text-stone-700">Kota / Kabupaten</label>
-                                <input type="text" name="city" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Kota atau kabupaten">
+                                <input type="text" name="city" readonly class="w-full rounded-2xl border border-stone-200 bg-stone-100 px-4 py-3 text-sm text-stone-700 outline-none" placeholder="Otomatis dari pencarian">
                             </div>
                             <div>
                                 <label class="mb-2 block text-sm font-medium text-stone-700">Kecamatan</label>
-                                <input type="text" name="district" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Kecamatan">
+                                <input type="text" name="district" readonly class="w-full rounded-2xl border border-stone-200 bg-stone-100 px-4 py-3 text-sm text-stone-700 outline-none" placeholder="Otomatis dari pencarian">
                             </div>
                             <div>
                                 <label class="mb-2 block text-sm font-medium text-stone-700">Kode pos</label>
-                                <input type="text" name="postal_code" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Kode pos">
+                                <input type="text" name="postal_code" readonly class="w-full rounded-2xl border border-stone-200 bg-stone-100 px-4 py-3 text-sm text-stone-700 outline-none" placeholder="Otomatis dari pencarian">
                             </div>
                         </div>
 
                         <div>
                             <label class="mb-2 block text-sm font-medium text-stone-700">Kelurahan / Desa</label>
-                            <input type="text" name="subdistrict" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Kelurahan atau desa">
+                            <input type="text" name="subdistrict" readonly class="w-full rounded-2xl border border-stone-200 bg-stone-100 px-4 py-3 text-sm text-stone-700 outline-none" placeholder="Otomatis dari pencarian">
                         </div>
 
                         <div>
@@ -121,7 +134,7 @@
                             <input type="checkbox" name="is_primary" class="h-4 w-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500">
                             Jadikan alamat utama
                         </label>
-                    </form>
+                    </div>
                 @endif
 
                 <div class="mt-6 flex items-center justify-end gap-3">

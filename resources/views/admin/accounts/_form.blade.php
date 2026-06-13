@@ -30,28 +30,36 @@
                         <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
                     @enderror
                 </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-stone-700">Role</label>
-                    <select name="role" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white">
-                        @foreach ($roles as $role)
-                            <option value="{{ $role }}" {{ old('role', $account['role'] ?? '') === $role ? 'selected' : '' }}>{{ $role }}</option>
-                        @endforeach
-                    </select>
-                    @error('role')
-                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-stone-700">Status</label>
-                    <select name="status" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white">
-                        @foreach ($statuses as $status)
-                            <option value="{{ $status }}" {{ old('status', $account['status'] ?? 'Aktif') === $status ? 'selected' : '' }}>{{ $status }}</option>
-                        @endforeach
-                    </select>
-                    @error('status')
-                        <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
-                    @enderror
-                </div>
+                @if ($isSuper ?? true)
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-stone-700">Role</label>
+                        <select name="role" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white">
+                            @foreach ($roles as $role)
+                                <option value="{{ $role }}" {{ old('role', $account['role'] ?? '') === $role ? 'selected' : '' }}>{{ $role }}</option>
+                            @endforeach
+                        </select>
+                        @error('role')
+                            <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-stone-700">Status</label>
+                        <select name="status" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white">
+                            @foreach ($statuses as $status)
+                                <option value="{{ $status }}" {{ old('status', $account['status'] ?? 'Aktif') === $status ? 'selected' : '' }}>{{ $status }}</option>
+                            @endforeach
+                        </select>
+                        @error('status')
+                            <p class="mt-2 text-sm text-rose-700">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @else
+                    <div class="sm:col-span-2 rounded-2xl bg-stone-50 px-4 py-3 text-sm text-stone-600">
+                        Role: <span class="font-semibold text-stone-900">{{ $account['role'] ?? '-' }}</span>
+                        · Status: <span class="font-semibold text-stone-900">{{ $account['status'] ?? '-' }}</span>
+                        <span class="mt-1 block text-xs text-stone-500">Role &amp; status hanya bisa diubah oleh super admin.</span>
+                    </div>
+                @endif
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Password sementara</label>
                     <input type="password" name="password" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="Minimal 8 karakter">

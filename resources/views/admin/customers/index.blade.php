@@ -16,16 +16,6 @@
             </div>
         </div>
 
-        <div class="grid gap-4 xl:grid-cols-4">
-            @foreach ($stats as $stat)
-                <article class="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
-                    <p class="text-sm text-stone-500">{{ $stat['label'] }}</p>
-                    <p class="mt-3 text-3xl font-semibold tracking-tight text-stone-950">{{ $stat['value'] }}</p>
-                    <p class="mt-2 text-sm text-stone-600">{{ $stat['note'] }}</p>
-                </article>
-            @endforeach
-        </div>
-
         <section class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -58,11 +48,26 @@
                 @endif
             </div>
 
+            {{-- Bulk hapus: checkbox pakai form="bulkDeleteForm" (di luar form) supaya tak bersarang. --}}
+            <form id="bulkDeleteForm" method="POST" action="{{ route('admin.customers.bulk-delete') }}"
+                  data-bulk-bar class="mt-4 hidden rounded-2xl border border-rose-200 bg-rose-50 p-4"
+                  onsubmit="return confirm('Proses ' + (this.querySelector('[data-bulk-count]')?.textContent || '') + ' customer terpilih?\nYang punya pesanan akan DINONAKTIFKAN, sisanya DIHAPUS permanen.')">
+                @csrf
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-sm text-rose-800"><b data-bulk-count>0</b> customer dipilih</p>
+                    <button type="submit" data-bulk-btn class="rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40">
+                        Hapus / Nonaktifkan Terpilih
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-rose-700">Customer <b>tanpa pesanan</b> dihapus permanen; yang <b>punya pesanan</b> otomatis dinonaktifkan (riwayat dijaga).</p>
+            </form>
+
             {{-- Desktop: tabel --}}
             <div class="mt-5 hidden overflow-x-auto rounded-2xl border border-stone-200 md:block">
                 <table class="min-w-full text-left text-sm">
                     <thead class="bg-stone-50 text-stone-500">
                         <tr>
+                            <th class="px-3 py-3"><input type="checkbox" data-bulk-all class="h-4 w-4 rounded border-stone-300 text-rose-600"></th>
                             <th class="px-4 py-3 font-medium">Customer</th>
                             <th class="px-4 py-3 font-medium">Kontak</th>
                             <th class="px-4 py-3 font-medium">Alamat</th>
@@ -75,6 +80,9 @@
                     <tbody class="divide-y divide-stone-200 bg-white">
                         @forelse ($customers as $customer)
                             <tr>
+                                <td class="px-3 py-4 align-top">
+                                    <input type="checkbox" name="customer_codes[]" value="{{ $customer['code'] }}" form="bulkDeleteForm" data-bulk-item class="h-4 w-4 rounded border-stone-300 text-rose-600">
+                                </td>
                                 <td class="px-4 py-4 align-top">
                                     <p class="font-semibold text-stone-900">{{ $customer['name'] }}</p>
                                     <p class="mt-1 text-xs uppercase tracking-[0.18em] text-stone-500">{{ $customer['code'] }}</p>
@@ -110,7 +118,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada customer yang cocok dengan filter saat ini.</td>
+                                <td colspan="8" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada customer yang cocok dengan filter saat ini.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -123,10 +131,13 @@
                     @php($primaryAddress = collect($customer['addresses'])->firstWhere('is_primary', true) ?? $customer['addresses'][0] ?? null)
                     <article class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
                         <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
+                            <div class="flex min-w-0 items-start gap-2">
+                                <input type="checkbox" name="customer_codes[]" value="{{ $customer['code'] }}" form="bulkDeleteForm" data-bulk-item class="mt-1 h-4 w-4 rounded border-stone-300 text-rose-600">
+                                <div class="min-w-0">
                                 <p class="font-semibold text-stone-900">{{ $customer['name'] }}</p>
                                 <p class="mt-0.5 text-xs uppercase tracking-[0.18em] text-stone-500">{{ $customer['code'] }}</p>
                                 <p class="mt-1 text-sm text-stone-600">{{ '@' . $customer['username'] }}</p>
+                                </div>
                             </div>
                             <span class="shrink-0 rounded-full {{ $customer['status'] === 'Aktif' ? 'bg-emerald-100 text-emerald-700' : ($customer['status'] === 'Menunggu verifikasi' ? 'bg-amber-100 text-amber-800' : 'bg-stone-100 text-stone-700') }} px-2.5 py-1 text-xs font-semibold">
                                 {{ $customer['status'] }}
@@ -157,4 +168,32 @@
             </div>
         </section>
     </section>
+
+    {{-- Bulk hapus: hitung pilihan, tampilkan bar, select-all. Checkbox di luar form
+         (pakai atribut form=), jadi query ke document. Tiap customer punya 2 checkbox
+         (desktop+mobile) — hanya ambil yang terlihat supaya tak dobel. --}}
+    <script>
+        (function () {
+            const bar = document.querySelector('[data-bulk-bar]');
+            if (!bar) return;
+            const count = bar.querySelector('[data-bulk-count]');
+            const btn = bar.querySelector('[data-bulk-btn]');
+            const all = document.querySelector('[data-bulk-all]');
+            const items = () => Array.from(document.querySelectorAll('[data-bulk-item]')).filter(c => c.offsetParent !== null);
+            function refresh() {
+                const checked = items().filter(c => c.checked);
+                count.textContent = checked.length;
+                btn.disabled = checked.length === 0;
+                bar.classList.toggle('hidden', checked.length === 0);
+                if (all) all.checked = items().length > 0 && checked.length === items().length;
+            }
+            document.addEventListener('change', function (e) {
+                if (e.target.matches('[data-bulk-all]')) {
+                    items().forEach(c => { c.checked = e.target.checked; });
+                }
+                if (e.target.matches('[data-bulk-item]') || e.target.matches('[data-bulk-all]')) refresh();
+            });
+            refresh();
+        })();
+    </script>
 </x-layouts.admin>
