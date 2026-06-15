@@ -873,6 +873,32 @@ class StorefrontController extends Controller
         return response()->json(['data' => $data]);
     }
 
+    /**
+     * Proxy gambar QR dari backend (masking domain). Token = 24 hex dari nama file
+     * qris-{token}.png di backend. Publik karena pelanggan WA belum login.
+     */
+    public function qrImage(string $token): \Illuminate\Http\Response
+    {
+        abort_unless(preg_match('/^[a-f0-9]{24}$/', $token) === 1, 404);
+
+        $base = rtrim((string) config('services.larashop_api.base_url'), '/');
+        $root = preg_replace('#/api(/v\d+)?$#', '', $base);
+        $url = $root.'/qris/qris-'.$token.'.png';
+
+        try {
+            $res = \Illuminate\Support\Facades\Http::timeout(10)->get($url);
+        } catch (\Throwable $e) {
+            abort(404);
+        }
+
+        abort_unless($res->successful(), 404);
+
+        return response($res->body(), 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
     public function cancelOrder(string $code): RedirectResponse
     {
         $token = $this->customerToken();
