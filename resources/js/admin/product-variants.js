@@ -20,6 +20,20 @@ function numberValue(value) {
     return String(value);
 }
 
+// Format ribuan gaya Indonesia: 80000 -> "80.000". Kosong jika tak ada digit.
+function formatThousand(value) {
+    const digits = String(value ?? '').replace(/\D/g, '');
+
+    return digits === '' ? '' : digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+// Balik ke angka murni: "80.000" -> 80000. '' jika kosong.
+function parseThousand(value) {
+    const digits = String(value ?? '').replace(/\D/g, '');
+
+    return digits === '' ? '' : Number(digits);
+}
+
 function buildVariantCard(variant, index) {
     const isDefault = variant.is_default ? 'checked' : '';
     const isActive = variant.is_active !== false ? 'checked' : '';
@@ -48,11 +62,11 @@ function buildVariantCard(variant, index) {
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Harga jual</label>
-                    <input type="number" min="0" value="${numberValue(variant.price_value ?? variant.price)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="25000" data-variant-field="price">
+                    <input type="text" inputmode="numeric" value="${formatThousand(variant.price_value ?? variant.price)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="25.000" data-variant-field="price">
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Harga coret</label>
-                    <input type="number" min="0" value="${numberValue(variant.compare_at_price)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="30000" data-variant-field="compare_at_price">
+                    <input type="text" inputmode="numeric" value="${formatThousand(variant.compare_at_price)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="30.000" data-variant-field="compare_at_price">
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Stok</label>
@@ -110,10 +124,10 @@ function collectVariants(list) {
     return Array.from(list.querySelectorAll('[data-variant-item]')).map((item) => ({
         label: item.querySelector('[data-variant-field="label"]')?.value.trim() ?? '',
         sku: item.querySelector('[data-variant-field="sku"]')?.value.trim().toUpperCase() ?? '',
-        price: Number(item.querySelector('[data-variant-field="price"]')?.value || 0),
-        compare_at_price: item.querySelector('[data-variant-field="compare_at_price"]')?.value === ''
+        price: parseThousand(item.querySelector('[data-variant-field="price"]')?.value) || 0,
+        compare_at_price: (item.querySelector('[data-variant-field="compare_at_price"]')?.value ?? '').trim() === ''
             ? null
-            : Number(item.querySelector('[data-variant-field="compare_at_price"]')?.value || 0),
+            : parseThousand(item.querySelector('[data-variant-field="compare_at_price"]')?.value) || 0,
         stock: Number(item.querySelector('[data-variant-field="stock"]')?.value || 0),
         weight_grams: item.querySelector('[data-variant-field="weight_grams"]')?.value === ''
             ? null
@@ -232,7 +246,15 @@ export function initAdminProductVariants() {
         sync();
     });
 
-    list.addEventListener('input', sync);
+    list.addEventListener('input', (event) => {
+        const field = event.target?.dataset?.variantField;
+
+        if (field === 'price' || field === 'compare_at_price') {
+            event.target.value = formatThousand(event.target.value);
+        }
+
+        sync();
+    });
     baseSkuInput?.addEventListener('input', sync);
     render();
 }
