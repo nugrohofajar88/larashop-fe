@@ -514,6 +514,12 @@ class AdminController extends Controller
 
     public function storeProduct(Request $request): RedirectResponse
     {
+        \Log::info('PRODUCT UPLOAD DEBUG (store)', [
+            'has_file' => $request->hasFile('product_images'),
+            'file_count' => count($request->file('product_images', [])),
+            'all_files' => array_keys($request->allFiles()),
+            'content_type' => $request->header('Content-Type'),
+        ]);
         $validated = $this->validateProductForm($request);
 
         try {
@@ -527,6 +533,12 @@ class AdminController extends Controller
 
     public function updateProduct(Request $request, string $sku): RedirectResponse
     {
+        \Log::info('PRODUCT UPLOAD DEBUG (update)', [
+            'has_file' => $request->hasFile('product_images'),
+            'file_count' => count($request->file('product_images', [])),
+            'all_files' => array_keys($request->allFiles()),
+            'content_type' => $request->header('Content-Type'),
+        ]);
         $existingProduct = $this->findProductBySku($sku);
         $validated = $this->validateProductForm($request);
 
