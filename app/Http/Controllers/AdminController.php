@@ -514,12 +514,6 @@ class AdminController extends Controller
 
     public function storeProduct(Request $request): RedirectResponse
     {
-        \Log::info('PRODUCT UPLOAD DEBUG (store)', [
-            'has_file' => $request->hasFile('product_images'),
-            'file_count' => count($request->file('product_images', [])),
-            'all_files' => array_keys($request->allFiles()),
-            'content_type' => $request->header('Content-Type'),
-        ]);
         $validated = $this->validateProductForm($request);
 
         try {
@@ -533,12 +527,6 @@ class AdminController extends Controller
 
     public function updateProduct(Request $request, string $sku): RedirectResponse
     {
-        \Log::info('PRODUCT UPLOAD DEBUG (update)', [
-            'has_file' => $request->hasFile('product_images'),
-            'file_count' => count($request->file('product_images', [])),
-            'all_files' => array_keys($request->allFiles()),
-            'content_type' => $request->header('Content-Type'),
-        ]);
         $existingProduct = $this->findProductBySku($sku);
         $validated = $this->validateProductForm($request);
 
@@ -1424,18 +1412,6 @@ class AdminController extends Controller
         $clean = preg_replace('/\sstyle\s*=\s*("[^"]*"|\'[^\']*\')/i', '', (string) $clean);
 
         return trim((string) $clean);
-    }
-
-    private function placeholderGalleryPath(int $index): string
-    {
-        $paths = [
-            '/images/products/gallery-detail.svg',
-            '/images/products/gallery-usage.svg',
-            '/images/products/gallery-seed.svg',
-            '/images/products/gallery-field.svg',
-        ];
-
-        return $paths[$index % count($paths)];
     }
 
     private function productCategories(): array
