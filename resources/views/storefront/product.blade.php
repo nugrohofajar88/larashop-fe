@@ -79,7 +79,7 @@
                         <span class="material-symbols-outlined mr-1 text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
                         {{ $product['badge'] ?? 'Tersedia' }}
                     </span>
-                    <span class="ml-1 mt-1 font-body-sm text-xs text-on-surface-variant">Stok: {{ $product['stock'] }}</span>
+                    <span class="ml-1 mt-1 font-body-sm text-xs text-on-surface-variant">Stok: <span data-variant-main-stock>{{ $activeVariant['stock'] ?? $product['stock'] }}</span></span>
                 </div>
             </div>
 
@@ -225,6 +225,7 @@
             setText('[data-variant-weight]', d.weight);
             setText('[data-variant-dimension]', d.dimension);
             setText('[data-variant-main-price]', d.price);
+            setText('[data-variant-main-stock]', d.stock);
             const orig = document.querySelector('[data-variant-main-original]');
             if (orig) {
                 if (d.original && d.original.trim() !== '') { orig.textContent = d.original; orig.classList.remove('hidden'); }
