@@ -1117,7 +1117,7 @@ class AdminController extends Controller
 
         $newImages = collect($request->file('product_images', []))
             ->filter()
-            ->map(fn ($file) => '/storage/'.$file->store('products', 'public'))
+            ->map(fn ($file) => '/uploads/'.$file->store('products', 'media'))
             ->values()
             ->all();
 

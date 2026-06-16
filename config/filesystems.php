@@ -47,6 +47,17 @@ return [
             'report' => false,
         ],
 
+        // Upload publik (gambar produk) — ditulis langsung ke dalam web root (public/uploads)
+        // supaya TIDAK butuh `storage:link`. Andal di shared hosting/cPanel yang mematikan symlink.
+        'media' => [
+            'driver' => 'local',
+            'root' => public_path('uploads'),
+            'url' => '/uploads',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

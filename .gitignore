@@ -16,6 +16,7 @@
 # /public/build sengaja TIDAK di-ignore: hosting tanpa Node, build di-commit agar ikut git deploy
 /public/hot
 /public/storage
+/public/uploads
 /storage/*.key
 /storage/pail
 /vendor
