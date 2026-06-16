@@ -83,7 +83,7 @@
                 </div>
             </div>
 
-            <p class="mb-6 font-body-md text-body-md leading-relaxed text-on-surface-variant">{{ $product['description'] }}</p>
+            <div class="mb-6 space-y-2 font-body-md text-body-md leading-relaxed text-on-surface-variant [&_blockquote]:border-l-2 [&_blockquote]:border-outline [&_blockquote]:pl-3 [&_h1]:text-base [&_h1]:font-bold [&_h2]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">{!! $product['description'] !!}</div>
 
             @if (! empty($product['variants']))
                 <form method="POST" action="{{ route('cart.items.store') }}" class="space-y-6">

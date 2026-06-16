@@ -48,7 +48,7 @@ function buildVariantCard(variant, index) {
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Harga jual</label>
-                    <input type="number" min="0" value="${numberValue(variant.price ?? variant.price_value)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="25000" data-variant-field="price">
+                    <input type="number" min="0" value="${numberValue(variant.price_value ?? variant.price)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="25000" data-variant-field="price">
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Harga coret</label>

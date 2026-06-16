@@ -35,7 +35,7 @@
                         </div>
                     </div>
 
-                    <div class="prose prose-stone mt-6 max-w-none">
+                    <div class="mt-6 max-w-none space-y-2 text-sm text-stone-700 [&_blockquote]:border-l-2 [&_blockquote]:border-stone-300 [&_blockquote]:pl-3 [&_h1]:text-base [&_h1]:font-bold [&_h2]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
                         {!! $product['description'] !!}
                     </div>
                 </section>

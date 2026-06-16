@@ -1116,8 +1116,9 @@ class AdminController extends Controller
             ->all();
 
         $newImages = collect($request->file('product_images', []))
+            ->filter()
+            ->map(fn ($file) => '/storage/'.$file->store('products', 'public'))
             ->values()
-            ->map(fn ($file, int $index) => $this->placeholderGalleryPath($index))
             ->all();
 
         $imagePaths = array_values(array_filter([...$remainingImages, ...$newImages]));
@@ -1163,7 +1164,7 @@ class AdminController extends Controller
             'name' => $validated['name'],
             'category_slug' => $validated['category'],
             'short_description' => Str::limit(trim(strip_tags($validated['description'])), 180, ''),
-            'description' => trim(strip_tags($validated['description'])),
+            'description' => $this->sanitizeRichText($validated['description']),
             'variants' => $variants,
             'price' => $defaultVariant['price'],
             'compare_at_price' => $defaultVariant['compare_at_price'],
@@ -1225,7 +1226,7 @@ class AdminController extends Controller
             'status_key' => $product['public_status'],
             'badge_label' => $product['badge_label'] ?? null,
             'highlight' => ($product['badge_label'] ?? null) ?: ($product['stock'] <= 12 ? 'Stok menipis' : 'Siap tampil'),
-            'description' => '<div>'.e($product['description']).'</div>',
+            'description' => $product['description'] ?? '',
             'images' => [],
         ];
     }
@@ -1233,7 +1234,7 @@ class AdminController extends Controller
     private function mapProductDetail(array $product): array
     {
         $summary = $this->mapProductSummary($product);
-        $summary['description'] = '<div>'.e($product['description']).'</div>';
+        $summary['description'] = $product['description'] ?? '';
         $summary['images'] = collect($product['images'] ?? [])
             ->map(fn (array $image, int $index) => [
                 'id' => $image['id'],
@@ -1397,6 +1398,20 @@ class AdminController extends Controller
             $address['province'] ?? null,
             $address['postal_code'] ?? null,
         ])->filter()->implode(', ');
+    }
+
+    /**
+     * Bersihkan HTML rich text dari Trix: hanya izinkan tag format aman,
+     * buang atribut event handler / skema berbahaya (deskripsi tampil ke publik).
+     */
+    private function sanitizeRichText(string $html): string
+    {
+        $allowed = '<p><br><strong><b><em><i><u><h1><h2><h3><ul><ol><li><blockquote><pre><div><span>';
+        $clean = strip_tags($html, $allowed);
+        $clean = preg_replace('/\son\w+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', (string) $clean);
+        $clean = preg_replace('/\sstyle\s*=\s*("[^"]*"|\'[^\']*\')/i', '', (string) $clean);
+
+        return trim((string) $clean);
     }
 
     private function placeholderGalleryPath(int $index): string
