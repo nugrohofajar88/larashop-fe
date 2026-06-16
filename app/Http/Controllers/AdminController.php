@@ -1147,15 +1147,18 @@ class AdminController extends Controller
             ->filter(fn (array $variant) => $variant['is_active'])
             ->sum('stock');
 
-        if (Str::startsWith((string) ($validated['primary_image'] ?? ''), 'new-') && count($newImages) > 0) {
-            $primaryPath = $newImages[0];
+        // Tentukan foto utama: gambar baru via "new:{index}", gambar lama via "existing:{path}".
+        $primarySelector = (string) ($validated['primary_image'] ?? '');
+        $primaryPath = null;
+
+        if (Str::startsWith($primarySelector, 'new:')) {
+            $primaryPath = $newImages[(int) Str::after($primarySelector, 'new:')] ?? null;
+        } elseif (Str::startsWith($primarySelector, 'existing:')) {
+            $primaryPath = Str::after($primarySelector, 'existing:') ?: null;
+        }
+
+        if ($primaryPath !== null && in_array($primaryPath, $imagePaths, true)) {
             $imagePaths = collect($imagePaths)->reject(fn (string $path) => $path === $primaryPath)->prepend($primaryPath)->values()->all();
-        } elseif (Str::startsWith((string) ($validated['primary_image'] ?? ''), 'existing-')) {
-            $primaryIndex = (int) Str::after((string) $validated['primary_image'], 'existing-');
-            $primaryPath = $existingImages[$primaryIndex]['path'] ?? null;
-            if ($primaryPath !== null) {
-                $imagePaths = collect($imagePaths)->reject(fn (string $path) => $path === $primaryPath)->prepend($primaryPath)->values()->all();
-            }
         }
 
         return [

@@ -59,6 +59,7 @@ export const initAdminProductGallery = () => {
             label: image.label,
             isPrimary: Boolean(image.is_primary),
             preview: image.preview ?? image.path ?? null,
+            path: image.path ?? null,
             source: 'existing',
         }));
 
@@ -67,7 +68,18 @@ export const initAdminProductGallery = () => {
 
         const syncFields = () => {
             const primaryImage = images.find((image) => image.isPrimary);
-            primaryField.value = primaryImage ? primaryImage.id : '';
+
+            if (!primaryImage) {
+                primaryField.value = '';
+            } else if (primaryImage.source === 'new') {
+                // urutan gambar baru di antara sesama gambar baru = posisi di dt.files
+                const newIndex = images.filter((item) => item.source === 'new').indexOf(primaryImage);
+                primaryField.value = `new:${newIndex}`;
+            } else {
+                // gambar lama dikenali via path uniknya
+                primaryField.value = `existing:${primaryImage.path ?? ''}`;
+            }
+
             removedField.value = JSON.stringify(removedExistingIds);
             input.files = dt.files;
         };
