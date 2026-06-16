@@ -58,7 +58,7 @@ export const initAdminProductGallery = () => {
             name: image.name,
             label: image.label,
             isPrimary: Boolean(image.is_primary),
-            preview: image.preview ?? null,
+            preview: image.preview ?? image.path ?? null,
             source: 'existing',
         }));
 
