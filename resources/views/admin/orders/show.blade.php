@@ -94,7 +94,19 @@
                         <div>
                             <p class="text-sm text-stone-500">Customer</p>
                             <p class="mt-1 text-xl font-semibold text-stone-950">{{ $order['customer'] }}</p>
-                            <p class="mt-1 text-sm text-stone-500">{{ $order['phone'] }}</p>
+                            @php
+                                $pemesanPhone = ($order['customer_phone'] ?? '') ?: ($order['phone'] ?? '');
+                                $waDigits = preg_replace('/\D/', '', $pemesanPhone);
+                                $waDigits = \Illuminate\Support\Str::startsWith($waDigits, '0') ? '62'.substr($waDigits, 1) : $waDigits;
+                            @endphp
+                            <p class="mt-1 text-sm text-stone-500">
+                                No. HP:
+                                @if ($pemesanPhone !== '')
+                                    <a href="https://wa.me/{{ $waDigits }}" target="_blank" rel="noopener" class="font-medium text-emerald-700 hover:underline">{{ $pemesanPhone }}</a>
+                                @else
+                                    <span>-</span>
+                                @endif
+                            </p>
                         </div>
                         <div class="flex flex-col gap-2">
                             <span class="w-fit rounded-full px-3 py-1 text-xs font-semibold {{ $statusBadgeClasses }}">{{ $order['status_label'] ?? $order['status'] }}</span>
