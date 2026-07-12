@@ -60,7 +60,7 @@
                 </div>
 
                 <div class="mt-4 flex items-center justify-between gap-4 text-sm text-stone-500">
-                    <p>Menampilkan {{ count($products) }} produk{{ $search !== '' || $activeCategory !== 'all' || $activeStatus !== 'all' || $activeSort !== 'default' ? ' sesuai filter' : '' }}.</p>
+                    <p>Menampilkan {{ $products->total() }} produk{{ $search !== '' || $activeCategory !== 'all' || $activeStatus !== 'all' || $activeSort !== 'default' ? ' sesuai filter' : '' }}.</p>
                     @if ($search !== '' || $activeCategory !== 'all' || $activeStatus !== 'all' || $activeSort !== 'default')
                         <a href="{{ route('admin.products.index') }}" class="font-semibold text-emerald-700">Reset filter</a>
                     @endif
@@ -142,6 +142,14 @@
                                             <a href="{{ route('admin.products.edit', $product['sku']) }}" class="rounded-full bg-stone-900 px-3 py-2 text-xs font-medium text-white">
                                                 Edit
                                             </a>
+                                            <form method="POST" action="{{ route('admin.products.destroy', $product['sku']) }}"
+                                                  data-confirm="Hapus produk {{ $product['name'] }}? Produk yang pernah diorder akan diarsipkan, sisanya dihapus permanen."
+                                                  data-confirm-title="Hapus produk"
+                                                  data-confirm-ok="Ya, hapus">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-100">Hapus</button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -183,12 +191,38 @@
                             <div class="mt-3 flex gap-2">
                                 <a href="{{ route('admin.products.show', $product['sku']) }}" class="flex-1 rounded-full border border-stone-300 px-3 py-2 text-center text-xs font-medium text-stone-700">Detail</a>
                                 <a href="{{ route('admin.products.edit', $product['sku']) }}" class="flex-1 rounded-full bg-stone-900 px-3 py-2 text-center text-xs font-medium text-white">Edit</a>
+                                <form method="POST" action="{{ route('admin.products.destroy', $product['sku']) }}" class="flex-1"
+                                      data-confirm="Hapus produk {{ $product['name'] }}? Produk yang pernah diorder akan diarsipkan, sisanya dihapus permanen."
+                                      data-confirm-title="Hapus produk"
+                                      data-confirm-ok="Ya, hapus">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="w-full rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-center text-xs font-medium text-rose-600 hover:bg-rose-100">Hapus</button>
+                                </form>
                             </div>
                         </article>
                     @empty
                         <p class="rounded-2xl border border-stone-200 bg-white px-4 py-8 text-center text-sm text-stone-500">Belum ada produk yang cocok dengan filter saat ini.</p>
                     @endforelse
                 </div>
+
+                @if ($products->hasPages())
+                    <div class="mt-5 flex items-center justify-between gap-3 text-sm">
+                        <span class="text-stone-500">Halaman {{ $products->currentPage() }} dari {{ $products->lastPage() }}</span>
+                        <div class="flex gap-2">
+                            @if ($products->onFirstPage())
+                                <span class="cursor-not-allowed rounded-xl border border-stone-200 px-4 py-2 text-stone-300">Sebelumnya</span>
+                            @else
+                                <a href="{{ $products->previousPageUrl() }}" class="rounded-xl border border-stone-300 px-4 py-2 font-medium text-stone-700 hover:bg-stone-50">Sebelumnya</a>
+                            @endif
+                            @if ($products->hasMorePages())
+                                <a href="{{ $products->nextPageUrl() }}" class="rounded-xl border border-stone-300 px-4 py-2 font-medium text-stone-700 hover:bg-stone-50">Berikutnya</a>
+                            @else
+                                <span class="cursor-not-allowed rounded-xl border border-stone-200 px-4 py-2 text-stone-300">Berikutnya</span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </section>
         </div>
     </section>

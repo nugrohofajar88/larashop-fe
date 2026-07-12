@@ -51,7 +51,7 @@ class AdminController extends Controller
         }
 
         if (data_get($payload, 'user.role') !== 'admin') {
-            if (! empty($payload['token'])) {
+            if (!empty($payload['token'])) {
                 try {
                     $this->api->logout($payload['token']);
                 } catch (LarashopApiException) {
@@ -83,7 +83,7 @@ class AdminController extends Controller
     public function accounts(Request $request): View|RedirectResponse
     {
         // Non-super tidak punya daftar akun — diarahkan ke profilnya sendiri.
-        if (! $this->isSuperAdmin()) {
+        if (!$this->isSuperAdmin()) {
             return redirect()->route('admin.accounts.edit', session('admin.user.code'));
         }
 
@@ -102,7 +102,7 @@ class AdminController extends Controller
 
         if ($search !== '') {
             $needle = mb_strtolower($search);
-            $accounts = $accounts->filter(fn (array $account) => str_contains(mb_strtolower($account['name']), $needle) || str_contains(mb_strtolower($account['email']), $needle));
+            $accounts = $accounts->filter(fn(array $account) => str_contains(mb_strtolower($account['name']), $needle) || str_contains(mb_strtolower($account['email']), $needle));
         }
 
         return view('admin.accounts.index', [
@@ -138,7 +138,7 @@ class AdminController extends Controller
     public function editAccount(string $id): View|RedirectResponse
     {
         // Non-super hanya boleh membuka profilnya sendiri.
-        if (! $this->isSuperAdmin() && $id !== session('admin.user.code')) {
+        if (!$this->isSuperAdmin() && $id !== session('admin.user.code')) {
             return redirect()->route('admin.accounts.edit', session('admin.user.code'))
                 ->with('error', 'Kamu hanya bisa mengubah profil sendiri.');
         }
@@ -193,7 +193,7 @@ class AdminController extends Controller
         $isSuper = $this->isSuperAdmin();
 
         // Non-super hanya boleh mengubah profilnya sendiri.
-        if (! $isSuper && $id !== session('admin.user.code')) {
+        if (!$isSuper && $id !== session('admin.user.code')) {
             return redirect()->route('admin.dashboard')
                 ->with('error', 'Kamu hanya bisa mengubah profil sendiri.');
         }
@@ -275,7 +275,7 @@ class AdminController extends Controller
     public function customers(Request $request): View
     {
         $customers = collect($this->api->adminCustomers(['search' => $request->string('search')->toString()]))
-            ->map(fn (array $customer) => $this->mapCustomerSummary($customer));
+            ->map(fn(array $customer) => $this->mapCustomerSummary($customer));
 
         $search = trim($request->string('search')->toString());
         $status = $request->string('status')->toString();
@@ -379,10 +379,10 @@ class AdminController extends Controller
             ]);
 
             $existingAddresses = collect($existingCustomer['addresses'])->keyBy('id');
-            $submittedAddressIds = collect($submittedAddresses)->pluck('id')->filter(fn ($id) => is_numeric($id));
+            $submittedAddressIds = collect($submittedAddresses)->pluck('id')->filter(fn($id) => is_numeric($id));
 
             foreach ($existingAddresses as $addressId => $address) {
-                if (! $submittedAddressIds->contains((string) $addressId) && ! $submittedAddressIds->contains((int) $addressId)) {
+                if (!$submittedAddressIds->contains((string) $addressId) && !$submittedAddressIds->contains((int) $addressId)) {
                     $this->api->deleteAdminCustomerAddress($existingCustomer['id'], (int) $addressId);
                 }
             }
@@ -416,7 +416,7 @@ class AdminController extends Controller
         }
 
         return redirect()->route('admin.customers.index')
-            ->with('success', 'Customer '.($customer['name'] ?? '').' berhasil dihapus.');
+            ->with('success', 'Customer ' . ($customer['name'] ?? '') . ' berhasil dihapus.');
     }
 
     public function bulkDestroyCustomers(Request $request): RedirectResponse
@@ -443,7 +443,7 @@ class AdminController extends Controller
     public function products(Request $request): View
     {
         $products = collect($this->api->adminProducts(['search' => $request->string('search')->toString()]))
-            ->map(fn (array $product) => $this->mapProductSummary($product));
+            ->map(fn(array $product) => $this->mapProductSummary($product));
 
         $search = trim($request->string('search')->toString());
         $category = $request->string('category')->toString();
@@ -463,15 +463,28 @@ class AdminController extends Controller
             'price_asc' => $products->sortBy('price_value'),
             'stock_asc' => $products->sortBy('stock'),
             'stock_desc' => $products->sortByDesc('stock'),
-            'name_asc' => $products->sortBy(fn (array $product) => mb_strtolower($product['name'])),
+            'name_asc' => $products->sortBy(fn(array $product) => mb_strtolower($product['name'])),
             default => $products,
         };
 
-        $items = $products->values()->all();
+        $all = $products->values();
+        $items = $all->all();
+
+        // Paginate hasil (sudah terfilter & terurut) di sisi FE. Query string (search/
+        // filter/sort) ikut dibawa ke link halaman supaya pindah halaman tak reset filter.
+        $perPage = 20;
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $all->forPage($page, $perPage)->values(),
+            $all->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('admin.products.index', [
-            'products' => $items,
-            'lowStockProducts' => array_values(array_filter($items, fn (array $product) => $product['stock'] <= 12)),
+            'products' => $paginated,
+            'lowStockProducts' => array_values(array_filter($items, fn(array $product) => $product['stock'] <= 12)),
             'search' => $search,
             'activeCategory' => $category === '' ? 'all' : $category,
             'activeStatus' => $status === '' ? 'all' : $status,
@@ -539,6 +552,23 @@ class AdminController extends Controller
         return redirect()->route('admin.products.show', $product['sku'])->with('success', "Perubahan produk {$product['name']} berhasil disimpan.");
     }
 
+    public function destroyProduct(string $sku): RedirectResponse
+    {
+        $product = $this->findProductBySku($sku);
+
+        try {
+            $result = $this->api->deleteAdminProduct($product['id']);
+        } catch (LarashopApiException $exception) {
+            return redirect()->route('admin.products.show', $sku)
+                ->with('error', $exception->errors['product'][0] ?? $exception->getMessage());
+        }
+
+        $name = $product['name'] ?? '';
+        $message = $result['message'] ?? 'Produk ' . $name . ' berhasil dihapus.';
+
+        return redirect()->route('admin.products.index')->with('success', 'Produk ' . $name . ': ' . $message);
+    }
+
     public function orders(Request $request): View
     {
         $orders = collect($this->api->adminOrders());
@@ -595,7 +625,7 @@ class AdminController extends Controller
                 ['label' => 'Order masuk', 'note' => 'Pesanan tercatat di sistem.', 'active' => true],
                 ['label' => 'Validasi pembayaran', 'note' => 'Admin mengecek mutasi dan nominal unik.', 'active' => in_array($order['status'], ['paid', 'processing', 'shipped', 'completed'], true)],
                 ['label' => 'Packing', 'note' => 'Pesanan disiapkan untuk pengiriman.', 'active' => in_array($order['status'], ['processing', 'shipped', 'completed'], true)],
-                ['label' => 'Shipment', 'note' => 'Order pengiriman dibuat dan resi diterbitkan.', 'active' => ! empty($order['awb']) || in_array($order['status'], ['shipped', 'completed'], true)],
+                ['label' => 'Shipment', 'note' => 'Order pengiriman dibuat dan resi diterbitkan.', 'active' => !empty($order['awb']) || in_array($order['status'], ['shipped', 'completed'], true)],
                 ['label' => 'Order selesai', 'note' => 'Customer sudah menerima pesanan dan order ditutup.', 'active' => ($order['status'] ?? null) === 'completed'],
                 ['label' => 'Order dibatalkan', 'note' => 'Order dihentikan dan tidak dilanjutkan ke proses berikutnya.', 'active' => ($order['status'] ?? null) === 'cancelled', 'tone' => 'cancelled'],
             ],
@@ -631,7 +661,7 @@ class AdminController extends Controller
         try {
             $updated = $this->api->scheduleAdminPickup($order['id'], $validated);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menjadwalkan pickup: '.$e->getMessage());
+            return back()->with('error', 'Gagal menjadwalkan pickup: ' . $e->getMessage());
         }
 
         return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Pickup order {$updated['code']} berhasil dijadwalkan.");
@@ -650,14 +680,14 @@ class AdminController extends Controller
         try {
             $res = $this->api->scheduleAdminPickupBulk($validated);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menjadwalkan pickup massal: '.$e->getMessage());
+            return back()->with('error', 'Gagal menjadwalkan pickup massal: ' . $e->getMessage());
         }
 
         $summary = $res['summary'] ?? [];
         $msg = $res['message'] ?? 'Pickup massal diproses.';
-        if (! empty($summary['failed'])) {
+        if (!empty($summary['failed'])) {
             return redirect()->route('admin.orders.index')
-                ->with('error', $msg.' Gagal: '.implode(', ', $summary['failed']));
+                ->with('error', $msg . ' Gagal: ' . implode(', ', $summary['failed']));
         }
 
         return redirect()->route('admin.orders.index')->with('success', $msg);
@@ -673,7 +703,7 @@ class AdminController extends Controller
         try {
             $res = $this->api->markAdminShippedBulk($validated);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menandai dikirim: '.$e->getMessage());
+            return back()->with('error', 'Gagal menandai dikirim: ' . $e->getMessage());
         }
 
         return redirect()->route('admin.orders.index')->with('success', $res['message'] ?? 'Order ditandai dikirim.');
@@ -689,7 +719,7 @@ class AdminController extends Controller
         try {
             $label = $this->api->adminLabelsBulk($validated['order_codes']);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal cetak label: '.$e->getMessage());
+            return back()->with('error', 'Gagal cetak label: ' . $e->getMessage());
         }
 
         return response($label['content'], 200, [
@@ -705,12 +735,12 @@ class AdminController extends Controller
         try {
             $label = $this->api->adminOrderLabel($order['id']);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal mengambil label: '.$e->getMessage());
+            return back()->with('error', 'Gagal mengambil label: ' . $e->getMessage());
         }
 
         return response($label['content'], 200, [
             'Content-Type' => $label['content_type'] ?: 'application/pdf',
-            'Content-Disposition' => 'inline; filename="label-'.$order['code'].'.pdf"',
+            'Content-Disposition' => 'inline; filename="label-' . $order['code'] . '.pdf"',
         ]);
     }
 
@@ -721,12 +751,12 @@ class AdminController extends Controller
         try {
             $label = $this->api->adminOrderLabelDiy($order['id']);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal membuat label DIY: '.$e->getMessage());
+            return back()->with('error', 'Gagal membuat label DIY: ' . $e->getMessage());
         }
 
         return response($label['content'], 200, [
             'Content-Type' => $label['content_type'] ?: 'application/pdf',
-            'Content-Disposition' => 'inline; filename="label-diy-'.$order['code'].'.pdf"',
+            'Content-Disposition' => 'inline; filename="label-diy-' . $order['code'] . '.pdf"',
         ]);
     }
 
@@ -738,7 +768,7 @@ class AdminController extends Controller
             return view('admin.qris.index', [
                 'qrisList' => [],
                 'meta' => ['enabled' => false, 'active_qris_id' => ''],
-            ])->with('error', 'Gagal memuat data QRIS: '.$e->getMessage());
+            ])->with('error', 'Gagal memuat data QRIS: ' . $e->getMessage());
         }
 
         return view('admin.qris.index', [
@@ -758,7 +788,7 @@ class AdminController extends Controller
             $file = $request->file('qris_image');
             $this->api->adminQrisUpload($file->getRealPath(), $file->getClientOriginalName(), $request->input('name'));
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal upload QRIS: '.$e->getMessage());
+            return back()->with('error', 'Gagal upload QRIS: ' . $e->getMessage());
         }
 
         return redirect()->route('admin.qris.index')->with('success', 'QRIS berhasil di-upload & diaktifkan.');
@@ -769,7 +799,7 @@ class AdminController extends Controller
         try {
             $this->api->adminQrisActivate($id);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal mengaktifkan QRIS: '.$e->getMessage());
+            return back()->with('error', 'Gagal mengaktifkan QRIS: ' . $e->getMessage());
         }
 
         return back()->with('success', 'QRIS diaktifkan.');
@@ -780,7 +810,7 @@ class AdminController extends Controller
         try {
             $this->api->adminQrisDelete($id);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menghapus QRIS: '.$e->getMessage());
+            return back()->with('error', 'Gagal menghapus QRIS: ' . $e->getMessage());
         }
 
         return back()->with('success', 'QRIS dihapus dari daftar.');
@@ -849,7 +879,7 @@ class AdminController extends Controller
             $settings['postal_code'] ?? null,
         ])->filter()->implode(', ');
         $settings['selected_couriers'] = collect(explode(':', (string) ($settings['selected_courier'] ?? '')))
-            ->map(fn (string $courier) => trim($courier))
+            ->map(fn(string $courier) => trim($courier))
             ->filter()
             ->values()
             ->all();
@@ -898,7 +928,7 @@ class AdminController extends Controller
         ]);
 
         $validated['selected_courier'] = collect($validated['selected_couriers'])
-            ->map(fn (string $courier) => trim($courier))
+            ->map(fn(string $courier) => trim($courier))
             ->filter()
             ->unique()
             ->implode(':');
@@ -1110,14 +1140,14 @@ class AdminController extends Controller
         $existingImages = collect($existingProduct['images'] ?? []);
         $removedIds = collect(json_decode((string) ($validated['removed_images'] ?? '[]'), true) ?: []);
         $remainingImages = $existingImages
-            ->reject(fn (array $image) => $removedIds->contains($image['id']))
+            ->reject(fn(array $image) => $removedIds->contains($image['id']))
             ->pluck('path')
             ->values()
             ->all();
 
         $newImages = collect($request->file('product_images', []))
             ->filter()
-            ->map(fn ($file) => '/uploads/'.$file->store('products', 'media'))
+            ->map(fn($file) => '/uploads/' . $file->store('products', 'media'))
             ->values()
             ->all();
 
@@ -1129,22 +1159,24 @@ class AdminController extends Controller
 
         $variants = filled($validated['variants_json'] ?? null)
             ? $this->normalizeProductVariants($validated['variants_json'])
-            : [[
-                'sku' => strtoupper($validated['sku']).'-1',
-                'label' => $validated['unit'] ?? 'Default',
-                'price' => (int) ($validated['price'] ?? 0),
-                'compare_at_price' => null,
-                'stock' => (int) ($validated['stock'] ?? 0),
-                'weight_grams' => isset($validated['weight']) ? (int) round(((float) $validated['weight']) * 1000) : null,
-                'length_cm' => filled($validated['length'] ?? null) ? (float) $validated['length'] : null,
-                'width_cm' => filled($validated['width'] ?? null) ? (float) $validated['width'] : null,
-                'height_cm' => filled($validated['height'] ?? null) ? (float) $validated['height'] : null,
-                'is_default' => true,
-                'is_active' => true,
-            ]];
+            : [
+                [
+                    'sku' => strtoupper($validated['sku']) . '-1',
+                    'label' => $validated['unit'] ?? 'Default',
+                    'price' => (int) ($validated['price'] ?? 0),
+                    'compare_at_price' => null,
+                    'stock' => (int) ($validated['stock'] ?? 0),
+                    'weight_grams' => isset($validated['weight']) ? (int) round(((float) $validated['weight']) * 1000) : null,
+                    'length_cm' => filled($validated['length'] ?? null) ? (float) $validated['length'] : null,
+                    'width_cm' => filled($validated['width'] ?? null) ? (float) $validated['width'] : null,
+                    'height_cm' => filled($validated['height'] ?? null) ? (float) $validated['height'] : null,
+                    'is_default' => true,
+                    'is_active' => true,
+                ]
+            ];
         $defaultVariant = collect($variants)->firstWhere('is_default', true) ?? $variants[0];
         $totalStock = collect($variants)
-            ->filter(fn (array $variant) => $variant['is_active'])
+            ->filter(fn(array $variant) => $variant['is_active'])
             ->sum('stock');
 
         // Tentukan foto utama: gambar baru via "new:{index}", gambar lama via "existing:{path}".
@@ -1158,7 +1190,7 @@ class AdminController extends Controller
         }
 
         if ($primaryPath !== null && in_array($primaryPath, $imagePaths, true)) {
-            $imagePaths = collect($imagePaths)->reject(fn (string $path) => $path === $primaryPath)->prepend($primaryPath)->values()->all();
+            $imagePaths = collect($imagePaths)->reject(fn(string $path) => $path === $primaryPath)->prepend($primaryPath)->values()->all();
         }
 
         return [
@@ -1224,7 +1256,7 @@ class AdminController extends Controller
             'unit' => $product['default_variant']['label'] ?? ($product['weight_label'] ?? '-'),
             'default_variant' => $product['default_variant'] ?? null,
             'variant_count' => (int) ($product['variant_count'] ?? 0),
-            'variants' => collect($product['variants'] ?? [])->map(fn (array $variant) => $this->mapProductVariant($variant))->values()->all(),
+            'variants' => collect($product['variants'] ?? [])->map(fn(array $variant) => $this->mapProductVariant($variant))->values()->all(),
             'status' => $product['status'],
             'status_key' => $product['public_status'],
             'badge_label' => $product['badge_label'] ?? null,
@@ -1239,10 +1271,10 @@ class AdminController extends Controller
         $summary = $this->mapProductSummary($product);
         $summary['description'] = $product['description'] ?? '';
         $summary['images'] = collect($product['images'] ?? [])
-            ->map(fn (array $image, int $index) => [
+            ->map(fn(array $image, int $index) => [
                 'id' => $image['id'],
                 'path' => $image['path'],
-                'label' => $image['alt'] ?: 'Foto '.($index + 1),
+                'label' => $image['alt'] ?: 'Foto ' . ($index + 1),
                 'name' => $image['alt'] ?: $product['name'],
                 'is_primary' => $image['is_primary'] ?? false,
             ])
@@ -1255,6 +1287,7 @@ class AdminController extends Controller
     private function mapProductVariant(array $variant): array
     {
         return [
+            'id' => $variant['id'] ?? null,
             'sku' => $variant['sku'],
             'label' => $variant['label'],
             'price_value' => (int) ($variant['price_value'] ?? 0),
@@ -1277,6 +1310,7 @@ class AdminController extends Controller
             ->values()
             ->map(function (array $variant, int $index): array {
                 return [
+                    'id' => filled($variant['id'] ?? null) ? (int) $variant['id'] : null,
                     'sku' => strtoupper(trim((string) ($variant['sku'] ?? ''))),
                     'label' => trim((string) ($variant['label'] ?? '')),
                     'price' => (int) ($variant['price'] ?? 0),
@@ -1290,30 +1324,32 @@ class AdminController extends Controller
                     'is_active' => array_key_exists('is_active', $variant) ? (bool) $variant['is_active'] : true,
                 ];
             })
-            ->filter(fn (array $variant) => $variant['sku'] !== '' && $variant['label'] !== '')
+            ->filter(fn(array $variant) => $variant['sku'] !== '' && $variant['label'] !== '')
             ->values();
 
         if ($variants->isEmpty()) {
-            return [[
-                'sku' => strtoupper(Str::slug((string) now()->timestamp)),
-                'label' => 'Default',
-                'price' => 0,
-                'compare_at_price' => null,
-                'stock' => 0,
-                'weight_grams' => null,
-                'length_cm' => null,
-                'width_cm' => null,
-                'height_cm' => null,
-                'is_default' => true,
-                'is_active' => true,
-            ]];
+            return [
+                [
+                    'sku' => strtoupper(Str::slug((string) now()->timestamp)),
+                    'label' => 'Default',
+                    'price' => 0,
+                    'compare_at_price' => null,
+                    'stock' => 0,
+                    'weight_grams' => null,
+                    'length_cm' => null,
+                    'width_cm' => null,
+                    'height_cm' => null,
+                    'is_default' => true,
+                    'is_active' => true,
+                ]
+            ];
         }
 
-        if (! $variants->contains(fn (array $variant) => $variant['is_default'])) {
+        if (!$variants->contains(fn(array $variant) => $variant['is_default'])) {
             $variants[0]['is_default'] = true;
         }
 
-        $defaultIndex = $variants->search(fn (array $variant) => $variant['is_default']);
+        $defaultIndex = $variants->search(fn(array $variant) => $variant['is_default']);
 
         return $variants
             ->map(function (array $variant, int $index) use ($defaultIndex): array {
@@ -1347,7 +1383,7 @@ class AdminController extends Controller
     {
         $summary = $this->mapCustomerSummary($customer);
         $summary['addresses'] = collect($customer['addresses'] ?? [])
-            ->map(fn (array $address) => [
+            ->map(fn(array $address) => [
                 'id' => $address['id'],
                 'label' => $address['label'],
                 'recipient_name' => $address['name'],
@@ -1372,7 +1408,7 @@ class AdminController extends Controller
     private function normalizeCustomerAddresses(string $json): array
     {
         return collect(json_decode($json, true) ?: [])
-            ->map(fn (array $address) => [
+            ->map(fn(array $address) => [
                 'id' => $address['id'] ?? null,
                 'label' => $address['label'] ?? 'Alamat',
                 'recipient_name' => $address['recipient_name'] ?? '',
@@ -1396,7 +1432,7 @@ class AdminController extends Controller
         return collect([
             $address['address_line'] ?? null,
             $address['subdistrict'] ?? null,
-            isset($address['district']) ? 'Kec. '.$address['district'] : null,
+            isset($address['district']) ? 'Kec. ' . $address['district'] : null,
             $address['city'] ?? null,
             $address['province'] ?? null,
             $address['postal_code'] ?? null,
@@ -1423,8 +1459,8 @@ class AdminController extends Controller
         // Supaya dropdown form produk & filter selalu sinkron dengan CRUD kategori.
         try {
             $map = collect($this->api->adminCategories())
-                ->filter(fn (array $c) => $c['is_active'] ?? true)
-                ->mapWithKeys(fn (array $c) => [$c['slug'] => $c['name']])
+                ->filter(fn(array $c) => $c['is_active'] ?? true)
+                ->mapWithKeys(fn(array $c) => [$c['slug'] => $c['name']])
                 ->all();
 
             if ($map !== []) {

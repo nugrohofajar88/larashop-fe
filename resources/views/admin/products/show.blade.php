@@ -16,6 +16,16 @@
                 <a href="{{ route('admin.products.edit', $product['sku']) }}" class="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white">
                     Edit produk
                 </a>
+                <form method="POST" action="{{ route('admin.products.destroy', $product['sku']) }}"
+                      data-confirm="Hapus produk {{ $product['name'] }}? Produk yang pernah diorder akan diarsipkan, sisanya dihapus permanen."
+                      data-confirm-title="Hapus produk"
+                      data-confirm-ok="Ya, hapus">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-700 hover:bg-rose-100">
+                        Hapus produk
+                    </button>
+                </form>
             </div>
         </div>
 

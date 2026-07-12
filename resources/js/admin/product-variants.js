@@ -40,7 +40,7 @@ function buildVariantCard(variant, index) {
     const activeLabel = variant.is_active !== false ? 'Aktif' : 'Nonaktif';
 
     return `
-        <article class="rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm" data-variant-item data-index="${index}">
+        <article class="rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm" data-variant-item data-index="${index}" data-id="${variant.id ?? ''}">
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <p class="text-sm font-semibold text-stone-900">Varian ${index + 1}</p>
@@ -106,6 +106,7 @@ function buildVariantCard(variant, index) {
 
 function emptyVariant(baseSku = '') {
     return {
+        id: null,
         label: '',
         sku: baseSku !== '' ? `${baseSku}-${Date.now().toString().slice(-4)}` : '',
         price: '',
@@ -122,6 +123,7 @@ function emptyVariant(baseSku = '') {
 
 function collectVariants(list) {
     return Array.from(list.querySelectorAll('[data-variant-item]')).map((item) => ({
+        id: item.dataset.id ? Number(item.dataset.id) : null,
         label: item.querySelector('[data-variant-field="label"]')?.value.trim() ?? '',
         sku: item.querySelector('[data-variant-field="sku"]')?.value.trim().toUpperCase() ?? '',
         price: parseThousand(item.querySelector('[data-variant-field="price"]')?.value) || 0,

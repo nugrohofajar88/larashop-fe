@@ -67,6 +67,7 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/products/{sku}', [AdminController::class, 'showProduct'])->name('admin.products.show');
     Route::get('/products/{sku}/edit', [AdminController::class, 'editProduct'])->name('admin.products.edit');
     Route::put('/products/{sku}', [AdminController::class, 'updateProduct'])->name('admin.products.update');
+    Route::delete('/products/{sku}', [AdminController::class, 'destroyProduct'])->name('admin.products.destroy');
     Route::get('/orders', [AdminController::class, 'orders'])->name('admin.orders.index');
     Route::post('/orders/schedule-pickup-bulk', [AdminController::class, 'schedulePickupBulk'])->name('admin.orders.schedule-pickup-bulk');
     Route::post('/orders/mark-shipped-bulk', [AdminController::class, 'markShippedBulk'])->name('admin.orders.mark-shipped-bulk');

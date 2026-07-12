@@ -21,10 +21,20 @@ class StorefrontController extends Controller
     public function catalog(Request $request): View
     {
         $query = $this->catalogQuery($request);
-        $response = $this->api->publicProducts($query);
+        $page = max(1, (int) $request->integer('page', 1));
+        $response = $this->api->publicProducts($query + ['page' => $page]);
+
+        $items = data_get($response, 'data', []);
+        $products = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            (int) data_get($response, 'meta.total', count($items)),
+            (int) (data_get($response, 'meta.per_page', 12) ?: 12),
+            (int) (data_get($response, 'meta.current_page', $page) ?: $page),
+            ['path' => $request->url(), 'query' => $request->except('page')]
+        );
 
         return view('storefront.catalog', [
-            'products' => data_get($response, 'data', []),
+            'products' => $products,
             'catalogQuery' => $query,
             'search' => $request->string('search')->toString(),
             'activeCategory' => $request->string('category')->toString() ?: 'all',

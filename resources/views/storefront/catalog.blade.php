@@ -119,4 +119,20 @@
             </div>
         @endforelse
     </div>
+
+    @if ($products->hasPages())
+        <div class="mt-8 flex items-center justify-center gap-3">
+            @if ($products->onFirstPage())
+                <span class="cursor-not-allowed rounded-full border border-outline-variant/40 px-5 py-2 font-body-sm text-outline">Sebelumnya</span>
+            @else
+                <a href="{{ $products->previousPageUrl() }}" class="rounded-full border border-outline-variant/60 px-5 py-2 font-body-sm text-on-surface transition-colors hover:bg-surface-container">Sebelumnya</a>
+            @endif
+            <span class="font-body-sm text-on-surface-variant">Halaman {{ $products->currentPage() }} / {{ $products->lastPage() }}</span>
+            @if ($products->hasMorePages())
+                <a href="{{ $products->nextPageUrl() }}" class="rounded-full border border-outline-variant/60 px-5 py-2 font-body-sm text-on-surface transition-colors hover:bg-surface-container">Berikutnya</a>
+            @else
+                <span class="cursor-not-allowed rounded-full border border-outline-variant/40 px-5 py-2 font-body-sm text-outline">Berikutnya</span>
+            @endif
+        </div>
+    @endif
 </x-layouts.customer>
