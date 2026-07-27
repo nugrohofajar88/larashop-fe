@@ -22,14 +22,14 @@ Dokumen ini menjelaskan gambaran umum aplikasi, fitur utama untuk customer dan a
 
 ## 1. Overview Aplikasi
 
-Aplikasi ini merupakan sistem penjualan kebutuhan pertanian berbasis mobile/web yang memungkinkan customer melakukan pemesanan produk secara online dengan proses pengiriman menggunakan jasa ekspedisi JNT.
+Aplikasi ini merupakan sistem penjualan kebutuhan pertanian/agrokimia berbasis mobile/web yang memungkinkan customer memesan produk online, dengan pengiriman **multi-kurir** (JNE, JNT, SiCepat, Ninja, IDE, SAP, Lion, Tiki, AnterAja) melalui **Komerce Collaborator**.
 
-Sistem dirancang sederhana untuk tahap awal:
+Sistem saat ini mendukung:
 
-- pembayaran dilakukan melalui transfer manual
-- konfirmasi pembayaran melalui WhatsApp admin
-- admin memproses pengiriman setelah pembayaran tervalidasi
-- integrasi API ekspedisi digunakan saat proses pengiriman untuk membuat order shipment dan mendapatkan nomor resi/AWB
+- pembayaran **transfer manual** atau **QRIS dinamis** (QRISLY, auto-validasi saat dibayar)
+- konfirmasi/notifikasi pembayaran via WhatsApp (termasuk **bot WhatsApp**: katalog, cek ongkir, pesan, lacak resi)
+- admin memproses pengiriman setelah pembayaran tervalidasi (booking kurir + AWB + cetak label)
+- integrasi API ekspedisi untuk cek ongkir, buat shipment, terbitkan resi/AWB, dan **lacak pengiriman**
 
 Fokus utama aplikasi:
 
@@ -135,13 +135,10 @@ Fokus utama aplikasi:
 
 ### Product Management
 
-- Tambah produk
-- Edit produk
-- Hapus produk
-- Upload gambar produk
-- Atur stok produk
-- Atur berat produk
-- Atur dimensi produk
+- Tambah / edit produk (dengan **paginasi** & filter di daftar)
+- **Varian produk** sebagai sumber harga/stok/berat/dimensi (multi-varian per produk)
+- Upload gambar produk + deskripsi rich-text
+- Hapus produk **cerdas**: produk yang pernah diorder → **diarsipkan** (data laporan aman); yang belum pernah → dihapus permanen
 
 ### Shipping Origin
 
@@ -336,31 +333,29 @@ Order dibatalkan.
 
 ## 10. Integrasi Ekspedisi
 
-Untuk tahap awal:
-
-- menggunakan satu ekspedisi yaitu JNT
-- menggunakan API shipping aggregator atau API JNT langsung
+Menggunakan **Komerce Collaborator** (agregator) — **multi-kurir**: JNE, JNT, SiCepat, Ninja, IDE, SAP, Lion, Tiki, AnterAja. Tracking resi memakai **RajaOngkir** (`track/waybill`).
 
 Fitur integrasi:
 
-- cek ongkir
-- create shipment
-- generate AWB/resi
-- tracking pengiriman
+- cek ongkir (multi-kurir, per varian/berat)
+- create shipment (booking) + request pickup
+- generate AWB/resi + cetak label (bisa bulk)
+- lacak pengiriman (resi) + update timeline via webhook Komerce
+- pembatalan order ikut membatalkan booking di Komerce
 
 ---
 
 ## 11. Pembayaran
 
-Untuk tahap awal:
+Dua metode:
 
-- pembayaran dilakukan manual transfer bank
-- belum menggunakan payment gateway
+- **Transfer manual** ke rekening toko + konfirmasi via WhatsApp (dengan kode unik pembayaran)
+- **QRIS dinamis** via **QRISLY** — QR per-order, order otomatis jadi `paid` saat pembayaran diterima (webhook)
 
-Keuntungan:
+Catatan:
 
-- tidak ada biaya fee payment gateway
-- implementasi lebih sederhana
+- kode unik pembayaran memudahkan pencocokan mutasi (transfer manual)
+- order `pending_payment` **kedaluwarsa otomatis** setelah 24 jam (stok dikembalikan)
 
 ---
 
@@ -393,9 +388,11 @@ Keuntungan:
 
 - Laravel Sanctum
 
-### Shipping API
+### Integrasi
 
-- JNT API / Shipping Aggregator API
+- **Pengiriman**: Komerce Collaborator (multi-kurir) + RajaOngkir (tracking)
+- **Pembayaran QRIS**: QRISLY
+- **WhatsApp**: Wablas / Fonnte (gateway dapat diganti)
 
 ---
 
@@ -454,12 +451,7 @@ Keuntungan pendekatan ini:
 
 ### Future Features
 
-- notifikasi WhatsApp otomatis
-- upload bukti transfer langsung di aplikasi
-- multi ekspedisi
-- payment gateway
-- laporan penjualan lengkap
-- dashboard analitik
-- promo dan voucher
-- multi gudang
-- tracking realtime
+- upload bukti transfer langsung di aplikasi (bukti transfer saat ini dikirim manual ke WhatsApp admin)
+- promo dan voucher (diskon berkode)
+- ulasan & rating produk oleh customer
+- multi gudang (multi-warehouse origin)

@@ -32,10 +32,10 @@ E-commerce produk pertanian. Terdiri dari **Storefront (customer)** dan **Panel 
 
 ### Checkout & Pembayaran
 - [x] Pilih alamat pengiriman
-- [x] Pilih layanan kurir + **ongkir otomatis**
+- [x] Pilih layanan kurir (multi-kurir) + **ongkir otomatis**
 - [x] Gunakan saldo **kode unik** (store credit) sebagai potongan
 - [x] Ringkasan pembayaran (produk + ongkir + total transfer)
-- [x] Buat pesanan (pembayaran transfer manual)
+- [x] Buat pesanan (pembayaran transfer manual / QRIS dinamis via QRISLY)
 - [x] Beli langsung dari halaman produk
 
 ### Akun & Profil
@@ -61,11 +61,11 @@ E-commerce produk pertanian. Terdiri dari **Storefront (customer)** dan **Panel 
 
 ### Autentikasi & Dashboard
 - [x] Login admin (panel terpisah)
-- [x] Dashboard ringkasan
+- [x] Dashboard ringkasan (omzet & penjualan dari transaksi nyata)
 - [x] Logout
 
 ### Manajemen Produk
-- [x] Daftar produk
+- [x] Daftar produk (dengan paginasi & filter)
 - [x] Tambah produk
 - [x] Lihat detail produk
 - [x] Edit produk (termasuk varian & foto)
@@ -75,8 +75,14 @@ E-commerce produk pertanian. Terdiri dari **Storefront (customer)** dan **Panel 
 - [x] Lihat detail pesanan
 - [x] Validasi pembayaran
 - [x] Proses pengiriman (buat shipment)
+- [x] Cetak label pengiriman (single / bulk)
+- [x] Request/schedule pickup kurir (single / bulk)
 - [x] Tandai pesanan selesai
-- [x] Batalkan pesanan
+- [x] Batalkan pesanan (ikut membatalkan booking di Komerce)
+- [x] Setujui/tolak pengajuan pembatalan
+
+### Manajemen QRIS
+- [x] Upload / aktifkan / hapus QRIS toko
 
 ### Manajemen Pengiriman
 - [x] Daftar shipment
@@ -103,6 +109,8 @@ E-commerce produk pertanian. Terdiri dari **Storefront (customer)** dan **Panel 
 - [x] **Mobile-first** + tampilan desktop
 - [x] Navigasi bawah berikon (mobile) & top-nav (desktop) + badge keranjang
 - [x] Identitas premium: tipografi serif elegan + sans modern, palet hangat (cream + hijau), sudut membulat, shadow lembut
+- [x] Tombol WhatsApp melayang di storefront
+- [x] Modal konfirmasi global yang konsisten (bukan `confirm()` bawaan)
 - [x] Notifikasi sukses/error yang konsisten
 - [x] Antarmuka berbahasa Indonesia
 
@@ -111,17 +119,15 @@ E-commerce produk pertanian. Terdiri dari **Storefront (customer)** dan **Panel 
 ## 🚀 Rencana Pengembangan (Roadmap)
 
 ### Integrasi Logistik Penuh (End-to-End)
-Saat ini sistem sudah terhubung untuk **cek ongkir otomatis**. Tahap berikutnya: integrasi penuh dengan penyedia logistik sehingga seluruh alur pengiriman berjalan otomatis tanpa input manual.
-
-- [ ] **Buat order pengiriman otomatis** ke kurir/logistik langsung dari sistem (booking, bukan hanya cek tarif)
-- [ ] **Generate resi & label pengiriman otomatis** (AWB langsung dari penyedia logistik)
-- [ ] **Penjadwalan pickup** — kurir dijadwalkan menjemput barang dari gudang
-- [ ] **Pelacakan pengiriman real-time** (tracking) hingga barang diterima
-- [ ] **Update status otomatis** ke pesanan & notifikasi ke customer di setiap tahap
-- [ ] Dukungan **multi-kurir / multi-ekspedisi** dalam satu alur
+- [x] **Buat order pengiriman otomatis** ke kurir/logistik langsung dari sistem (booking via Komerce Collaborator)
+- [x] **Generate resi & label pengiriman otomatis** (AWB langsung dari penyedia logistik)
+- [x] **Penjadwalan pickup** — kurir dijadwalkan menjemput barang dari gudang (single / bulk)
+- [x] **Pelacakan pengiriman real-time** (tracking via RajaOngkir)
+- [x] **Update status otomatis** ke pesanan & notifikasi ke customer di setiap tahap
+- [x] Dukungan **multi-kurir / multi-ekspedisi** dalam satu alur
 
 ### Potensi Pengembangan Lain
-- [ ] Pembayaran online otomatis (payment gateway) — selain transfer manual
-- [ ] Notifikasi otomatis via WhatsApp/email (konfirmasi, status pesanan)
-- [ ] Laporan & analitik penjualan untuk admin
+- [x] Pembayaran online otomatis (payment gateway) — QRIS dinamis via QRISLY
+- [x] Notifikasi otomatis via WhatsApp/email (konfirmasi, status pesanan)
+- [x] Laporan & analitik penjualan untuk admin
 - [ ] Ulasan & rating produk oleh customer

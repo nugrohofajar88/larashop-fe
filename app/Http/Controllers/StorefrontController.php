@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\GuestCart;
 use App\Support\LarashopApi;
 use App\Support\LarashopApiException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -22,7 +24,14 @@ class StorefrontController extends Controller
     {
         $query = $this->catalogQuery($request);
         $page = max(1, (int) $request->integer('page', 1));
-        $response = $this->api->publicProducts($query + ['page' => $page]);
+        $extra = ['page' => $page];
+
+        if (config('storefront.checkout_mode') === 'whatsapp') {
+            // Guest checkout tidak butuh navigasi halaman -> tampilkan semua produk sekaligus.
+            $extra = ['page' => 1, 'per_page' => 200];
+        }
+
+        $response = $this->api->publicProducts($query + $extra);
 
         $items = data_get($response, 'data', []);
         $products = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -74,6 +83,15 @@ class StorefrontController extends Controller
 
     public function cart(): View
     {
+        if (config('storefront.checkout_mode') === 'whatsapp') {
+            $guestCart = app(GuestCart::class);
+
+            return view('storefront.whatsapp.cart', [
+                'items' => $guestCart->hydrated(),
+                'summary' => $guestCart->summary(),
+            ]);
+        }
+
         $token = $this->customerToken();
 
         if ($token === null) {
@@ -110,8 +128,37 @@ class StorefrontController extends Controller
         ]);
     }
 
-    public function addToCart(Request $request): RedirectResponse
+    public function addToCart(Request $request): JsonResponse|RedirectResponse
     {
+        if (config('storefront.checkout_mode') === 'whatsapp') {
+            $validated = $request->validate([
+                'product_id' => ['required', 'integer'],
+                'product_slug' => ['required', 'string'],
+                'product_variant_id' => ['required', 'integer'],
+                'quantity' => ['nullable', 'integer', 'min:1'],
+                'redirect_to' => ['nullable', 'string'],
+            ]);
+
+            $guestCart = app(GuestCart::class);
+
+            $guestCart->add(
+                (int) $validated['product_id'],
+                $validated['product_slug'],
+                (int) $validated['product_variant_id'],
+                (int) ($validated['quantity'] ?? 1)
+            );
+
+            if ($request->expectsJson()) {
+                return response()->json(['data' => ['summary' => $guestCart->summary()]]);
+            }
+
+            if (($validated['redirect_to'] ?? '') === 'checkout') {
+                return redirect()->route('checkout')->with('success', 'Produk siap diproses ke checkout.');
+            }
+
+            return redirect()->route('cart')->with('success', 'Produk berhasil masuk ke keranjang.');
+        }
+
         $token = $this->customerToken();
 
         if ($token === null) {
@@ -151,6 +198,30 @@ class StorefrontController extends Controller
 
     public function updateCartItem(Request $request, int $id): JsonResponse|RedirectResponse
     {
+        if (config('storefront.checkout_mode') === 'whatsapp') {
+            $validated = $request->validate([
+                'quantity' => ['required', 'integer', 'min:1'],
+            ]);
+
+            $guestCart = app(GuestCart::class);
+
+            if (! $guestCart->update($id, (int) $validated['quantity'])) {
+                return response()->json(['message' => 'Item keranjang tidak ditemukan.'], 404);
+            }
+
+            $item = collect($guestCart->hydrated())->firstWhere('id', $id);
+
+            return response()->json([
+                'data' => [
+                    'item' => [
+                        'qty' => $item['qty'] ?? $validated['quantity'],
+                        'subtotal' => $item['subtotal'] ?? 'Rp0',
+                    ],
+                    'summary' => $guestCart->summary(),
+                ],
+            ]);
+        }
+
         $token = $this->customerToken();
 
         if ($token === null) {
@@ -186,6 +257,17 @@ class StorefrontController extends Controller
 
     public function destroyCartItem(int $id): JsonResponse|RedirectResponse
     {
+        if (config('storefront.checkout_mode') === 'whatsapp') {
+            $guestCart = app(GuestCart::class);
+            $guestCart->remove($id);
+
+            return response()->json([
+                'data' => [
+                    'summary' => $guestCart->summary(),
+                ],
+            ]);
+        }
+
         $token = $this->customerToken();
 
         if ($token === null) {
@@ -223,6 +305,19 @@ class StorefrontController extends Controller
 
     public function checkout(Request $request): View|RedirectResponse
     {
+        if (config('storefront.checkout_mode') === 'whatsapp') {
+            $guestCart = app(GuestCart::class);
+
+            if ($guestCart->isEmpty()) {
+                return redirect()->route('cart')->with('error', 'Keranjang masih kosong.');
+            }
+
+            return view('storefront.whatsapp.checkout', [
+                'items' => $guestCart->hydrated(),
+                'summary' => $guestCart->summary(),
+            ]);
+        }
+
         $token = $this->customerToken();
 
         if ($token === null) {
@@ -247,6 +342,10 @@ class StorefrontController extends Controller
 
     public function checkoutData(Request $request): JsonResponse|RedirectResponse
     {
+        if (config('storefront.checkout_mode') === 'whatsapp') {
+            abort(404);
+        }
+
         $token = $this->customerToken();
 
         if ($token === null) {
@@ -282,6 +381,31 @@ class StorefrontController extends Controller
 
     public function placeOrder(Request $request): RedirectResponse
     {
+        if (config('storefront.checkout_mode') === 'whatsapp') {
+            $guestCart = app(GuestCart::class);
+
+            if ($guestCart->isEmpty()) {
+                return redirect()->route('cart')->with('error', 'Keranjang masih kosong.');
+            }
+
+            $storeWhatsapp = Cache::remember('storefront.store_whatsapp', now()->addMinutes(30), function (): string {
+                try {
+                    return (string) ($this->api->storeInfo()['whatsapp'] ?? '');
+                } catch (\Throwable) {
+                    return '';
+                }
+            });
+
+            if ($storeWhatsapp === '') {
+                return redirect()->route('checkout')->with('error', 'Nomor WhatsApp toko belum diatur. Silakan hubungi admin.');
+            }
+
+            $message = $guestCart->toWhatsappMessage();
+            $guestCart->clear();
+
+            return redirect()->away('https://wa.me/'.$storeWhatsapp.'?text='.urlencode($message));
+        }
+
         $token = $this->customerToken();
 
         if ($token === null) {

@@ -80,9 +80,19 @@
 
     {{-- Product grid --}}
     <div class="grid grid-cols-2 gap-gutter md:grid-cols-4">
+        @php $quickAddEnabled = config('storefront.checkout_mode') === 'whatsapp'; @endphp
         @forelse ($products as $product)
-            <a href="{{ route('products.show', array_merge(['slug' => $product['slug']], $catalogQuery)) }}" class="group block">
-                <article class="h-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 soft-warm-shadow hover-lift">
+            @php
+                $quickAddPayload = $quickAddEnabled ? [
+                    'id' => $product['id'],
+                    'slug' => $product['slug'],
+                    'name' => $product['name'],
+                    'image' => $product['image'] ?? null,
+                    'variants' => array_map(fn ($v) => ['id' => $v['id'], 'label' => $v['label'], 'price' => $v['price'], 'stock' => $v['stock']], $product['variants'] ?? []),
+                ] : null;
+            @endphp
+            <article class="group h-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 soft-warm-shadow hover-lift">
+                <a href="{{ route('products.show', array_merge(['slug' => $product['slug']], $catalogQuery)) }}" class="block">
                     <div class="relative mb-4 aspect-square overflow-hidden rounded-lg bg-gradient-to-br from-surface-container to-white">
                         @if (!empty($product['discount_badge']))
                             <span class="absolute left-2 top-2 z-10 rounded-full bg-error px-2 py-1 font-label-eyebrow text-label-eyebrow text-on-error">{{ $product['discount_badge'] }}</span>
@@ -104,15 +114,23 @@
                                 <span class="text-body-sm text-outline line-through">{{ $product['original_price'] }}</span>
                             @endif
                         </div>
-                        <div class="flex items-center justify-between border-t border-outline-variant/20 pt-3">
-                            <span class="text-body-sm text-on-surface-variant">{{ $product['sold_label'] }}</span>
-                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-container/50 text-on-secondary-container transition-colors group-hover:bg-primary group-hover:text-on-primary">
-                                <span class="material-symbols-outlined text-xl">shopping_cart</span>
-                            </span>
-                        </div>
                     </div>
-                </article>
-            </a>
+                </a>
+                <div class="flex items-center justify-between border-t border-outline-variant/20 px-1 pt-3">
+                    <span class="text-body-sm text-on-surface-variant">{{ $product['sold_label'] }}</span>
+                    @if ($quickAddPayload)
+                        <button type="button" data-quick-add-trigger data-product="{{ json_encode($quickAddPayload) }}"
+                            aria-label="Tambah {{ $product['name'] }} ke keranjang"
+                            class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-container/50 text-on-secondary-container transition-colors hover:bg-primary hover:text-on-primary group-hover:bg-primary group-hover:text-on-primary">
+                            <span class="material-symbols-outlined text-xl">shopping_cart</span>
+                        </button>
+                    @else
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-container/50 text-on-secondary-container transition-colors group-hover:bg-primary group-hover:text-on-primary">
+                            <span class="material-symbols-outlined text-xl">shopping_cart</span>
+                        </span>
+                    @endif
+                </div>
+            </article>
         @empty
             <div class="col-span-full rounded-xl border border-dashed border-outline-variant/50 bg-surface-container-low px-6 py-12 text-center text-body-md text-on-surface-variant">
                 Produk tidak ditemukan untuk kata kunci atau kategori yang dipilih.
@@ -120,7 +138,7 @@
         @endforelse
     </div>
 
-    @if ($products->hasPages())
+    @if (! $quickAddEnabled && $products->hasPages())
         <div class="mt-8 flex items-center justify-center gap-3">
             @if ($products->onFirstPage())
                 <span class="cursor-not-allowed rounded-full border border-outline-variant/40 px-5 py-2 font-body-sm text-outline">Sebelumnya</span>

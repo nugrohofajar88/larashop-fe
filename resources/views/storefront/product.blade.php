@@ -85,10 +85,12 @@
 
             <div class="mb-6 space-y-2 font-body-md text-body-md leading-relaxed text-on-surface-variant [&_blockquote]:border-l-2 [&_blockquote]:border-outline [&_blockquote]:pl-3 [&_h1]:text-base [&_h1]:font-bold [&_h2]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">{!! $product['description'] !!}</div>
 
+            @if (config('storefront.checkout_mode') !== 'whatsapp')
             @if (! empty($product['variants']))
                 <form method="POST" action="{{ route('cart.items.store') }}" class="space-y-6">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product['id'] }}">
+                    <input type="hidden" name="product_slug" value="{{ $product['slug'] }}">
 
                     <div>
                         <label class="mb-3 block font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Pilih varian</label>
@@ -163,6 +165,24 @@
                     </div>
                 </form>
             @endif
+            @else
+                @if (! empty($product['variants']))
+                    @php
+                        $quickAddPayload = [
+                            'id' => $product['id'],
+                            'slug' => $product['slug'],
+                            'name' => $product['name'],
+                            'image' => $product['image'] ?? null,
+                            'variants' => array_map(fn ($v) => ['id' => $v['id'], 'label' => $v['label'], 'price' => $v['price'], 'stock' => $v['stock']], $product['variants']),
+                        ];
+                        $stockOut = (int) ($activeVariant['stock'] ?? $product['stock'] ?? 0) <= 0;
+                    @endphp
+                    <button type="button" data-quick-add-trigger data-product="{{ json_encode($quickAddPayload) }}" @disabled($stockOut)
+                        class="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-body-md text-lg font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:bg-secondary active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">
+                        <span class="material-symbols-outlined">shopping_cart</span> Tambah ke Keranjang
+                    </button>
+                @endif
+            @endif
 
             {{-- Highlights --}}
             @if (!empty($product['highlights']))
@@ -211,6 +231,7 @@
         </section>
     @endif
 
+    @if (config('storefront.checkout_mode') !== 'whatsapp')
     <script>
     (function () {
         const radios = document.querySelectorAll('input[data-variant]');
@@ -237,4 +258,5 @@
         if (checked) { checked.checked = true; apply(checked); }
     })();
     </script>
+    @endif
 </x-layouts.customer>

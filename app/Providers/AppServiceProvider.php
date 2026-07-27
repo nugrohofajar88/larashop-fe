@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\GuestCart;
 use App\Support\LarashopApi;
 use App\Support\LarashopApiException;
 use Illuminate\Support\Facades\Cache;
@@ -28,14 +29,19 @@ class AppServiceProvider extends ServiceProvider
         // simply yields a zero badge instead of breaking the page render.
         View::composer('components.layouts.customer', function ($view): void {
             $count = 0;
-            $token = session('customer.token');
 
-            if (is_string($token) && $token !== '') {
-                try {
-                    $cart = app(LarashopApi::class)->customerCart($token);
-                    $count = count(data_get($cart, 'items', []));
-                } catch (LarashopApiException) {
-                    $count = 0;
+            if (config('storefront.checkout_mode') === 'whatsapp') {
+                $count = app(GuestCart::class)->count();
+            } else {
+                $token = session('customer.token');
+
+                if (is_string($token) && $token !== '') {
+                    try {
+                        $cart = app(LarashopApi::class)->customerCart($token);
+                        $count = count(data_get($cart, 'items', []));
+                    } catch (LarashopApiException) {
+                        $count = 0;
+                    }
                 }
             }
 

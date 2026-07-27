@@ -18,6 +18,7 @@
             $isCart = request()->routeIs('cart');
             $isOrders = request()->routeIs('customer.orders') || request()->routeIs('customer.orders.*');
             $isAccount = request()->routeIs('profile') || request()->routeIs('addresses');
+            $isAccountMode = config('storefront.checkout_mode', 'account') === 'account';
             $navActive = 'text-primary border-b-2 border-primary pb-1 font-bold';
             $navIdle = 'text-on-surface-variant hover:text-primary transition-colors';
         @endphp
@@ -35,62 +36,64 @@
                     <a href="{{ route('home') }}" class="text-label-lg {{ $isCatalog ? $navActive : $navIdle }}">Katalog</a>
                     <a href="{{ route('cart') }}" class="text-label-lg flex items-center gap-1.5 {{ $isCart ? $navActive : $navIdle }}">
                         Keranjang
-                        @if ($cartCount > 0)
-                            <span class="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error px-1.5 text-[11px] font-bold text-on-error">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
-                        @endif
+                        <span data-cart-badge class="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error px-1.5 text-[11px] font-bold text-on-error {{ $cartCount > 0 ? '' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
                     </a>
-                    <a href="{{ route('customer.orders') }}" class="text-label-lg {{ $isOrders ? $navActive : $navIdle }}">Pesanan</a>
+                    @if ($isAccountMode)
+                        <a href="{{ route('customer.orders') }}" class="text-label-lg {{ $isOrders ? $navActive : $navIdle }}">Pesanan</a>
 
-                    @if (session('customer.user'))
-                        <div class="relative" data-customer-menu>
-                            <button
-                                type="button"
-                                class="flex items-center gap-2 rounded-full border border-outline-variant/50 bg-surface-container-lowest py-1.5 pl-1.5 pr-3 text-label-lg text-on-surface transition hover:border-primary"
-                                data-customer-menu-trigger
-                                aria-expanded="false"
-                            >
-                                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
-                                    {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
-                                </span>
-                                <span class="max-w-[8rem] truncate">{{ data_get(session('customer.user'), 'username', 'Profil') }}</span>
-                                <span class="material-symbols-outlined text-lg text-outline">expand_more</span>
-                            </button>
+                        @if (session('customer.user'))
+                            <div class="relative" data-customer-menu>
+                                <button
+                                    type="button"
+                                    class="flex items-center gap-2 rounded-full border border-outline-variant/50 bg-surface-container-lowest py-1.5 pl-1.5 pr-3 text-label-lg text-on-surface transition hover:border-primary"
+                                    data-customer-menu-trigger
+                                    aria-expanded="false"
+                                >
+                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
+                                        {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
+                                    </span>
+                                    <span class="max-w-[8rem] truncate">{{ data_get(session('customer.user'), 'username', 'Profil') }}</span>
+                                    <span class="material-symbols-outlined text-lg text-outline">expand_more</span>
+                                </button>
 
-                            <div
-                                class="absolute right-0 top-full z-40 mt-3 hidden w-60 overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest shadow-[0_20px_50px_rgba(28,25,23,0.15)]"
-                                data-customer-menu-panel
-                            >
-                                <div class="border-b border-outline-variant/20 px-5 py-4">
-                                    <p class="truncate text-body-md font-semibold text-on-surface">{{ data_get(session('customer.user'), 'name', 'Pelanggan') }}</p>
-                                    <p class="mt-0.5 truncate text-body-sm text-on-surface-variant">{{ data_get(session('customer.user'), 'username', '') }}</p>
+                                <div
+                                    class="absolute right-0 top-full z-40 mt-3 hidden w-60 overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest shadow-[0_20px_50px_rgba(28,25,23,0.15)]"
+                                    data-customer-menu-panel
+                                >
+                                    <div class="border-b border-outline-variant/20 px-5 py-4">
+                                        <p class="truncate text-body-md font-semibold text-on-surface">{{ data_get(session('customer.user'), 'name', 'Pelanggan') }}</p>
+                                        <p class="mt-0.5 truncate text-body-sm text-on-surface-variant">{{ data_get(session('customer.user'), 'username', '') }}</p>
+                                    </div>
+                                    <a href="{{ route('profile') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
+                                        <span class="material-symbols-outlined text-xl text-outline">person</span> Akun Saya
+                                    </a>
+                                    <a href="{{ route('customer.orders') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
+                                        <span class="material-symbols-outlined text-xl text-outline">receipt_long</span> Pesanan Saya
+                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}" class="border-t border-outline-variant/20">
+                                        @csrf
+                                        <button type="submit" class="flex w-full items-center gap-3 px-5 py-3.5 text-left text-body-md font-medium text-error transition hover:bg-error-container/40">
+                                            <span class="material-symbols-outlined text-xl">logout</span> Log Out
+                                        </button>
+                                    </form>
                                 </div>
-                                <a href="{{ route('profile') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
-                                    <span class="material-symbols-outlined text-xl text-outline">person</span> Akun Saya
-                                </a>
-                                <a href="{{ route('customer.orders') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
-                                    <span class="material-symbols-outlined text-xl text-outline">receipt_long</span> Pesanan Saya
-                                </a>
-                                <form method="POST" action="{{ route('logout') }}" class="border-t border-outline-variant/20">
-                                    @csrf
-                                    <button type="submit" class="flex w-full items-center gap-3 px-5 py-3.5 text-left text-body-md font-medium text-error transition hover:bg-error-container/40">
-                                        <span class="material-symbols-outlined text-xl">logout</span> Log Out
-                                    </button>
-                                </form>
                             </div>
-                        </div>
-                    @else
-                        <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-6 py-2 text-label-lg text-on-primary transition-all duration-200 ease-in-out hover:bg-primary active:scale-95">Masuk</a>
+                        @else
+                            <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-6 py-2 text-label-lg text-on-primary transition-all duration-200 ease-in-out hover:bg-primary active:scale-95">Masuk</a>
+                        @endif
                     @endif
                 </div>
 
                 {{-- Mobile account / login (bottom nav handles primary nav) --}}
                 <div class="md:hidden">
-                    @if (session('customer.user'))
-                        <a href="{{ route('profile') }}" class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
-                            {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-4 py-1.5 text-body-sm font-medium text-on-primary">Masuk</a>
+                    @if ($isAccountMode)
+                        @if (session('customer.user'))
+                            <a href="{{ route('profile') }}" class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
+                                {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-4 py-1.5 text-body-sm font-medium text-on-primary">Masuk</a>
+                        @endif
                     @endif
                 </div>
             </nav>
@@ -122,18 +125,18 @@
             <a href="{{ route('cart') }}" class="relative flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isCart ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
                 <span class="material-symbols-outlined">shopping_cart</span>
                 <span class="text-label-md">Keranjang</span>
-                @if ($cartCount > 0)
-                    <span class="absolute right-2 top-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
-                @endif
+                <span data-cart-badge class="absolute right-2 top-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error {{ $cartCount > 0 ? '' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
             </a>
-            <a href="{{ route('customer.orders') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isOrders ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
-                <span class="material-symbols-outlined">receipt_long</span>
-                <span class="text-label-md">Pesanan</span>
-            </a>
-            <a href="{{ route('profile') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isAccount ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
-                <span class="material-symbols-outlined">person</span>
-                <span class="text-label-md">Profil</span>
-            </a>
+            @if ($isAccountMode)
+                <a href="{{ route('customer.orders') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isOrders ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+                    <span class="material-symbols-outlined">receipt_long</span>
+                    <span class="text-label-md">Pesanan</span>
+                </a>
+                <a href="{{ route('profile') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isAccount ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+                    <span class="material-symbols-outlined">person</span>
+                    <span class="text-label-md">Profil</span>
+                </a>
+            @endif
         </nav>
 
         {{-- Tombol WhatsApp melayang → chat toko. Muncul kalau nomor WA toko diisi. --}}
@@ -185,5 +188,44 @@
                 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
             })();
         </script>
+
+        @if (config('storefront.checkout_mode') === 'whatsapp')
+            {{-- Toast notifikasi quick-add (mode WhatsApp). --}}
+            <div data-quick-add-toast
+                data-quick-add-csrf="{{ csrf_token() }}"
+                data-quick-add-endpoint="{{ route('cart.items.store') }}"
+                data-quick-add-placeholder="{{ asset('images/logo-circle.png') }}"
+                aria-live="polite"
+                class="pointer-events-none fixed inset-x-4 top-4 z-[70] flex flex-col items-center gap-2 sm:inset-x-auto sm:right-4 sm:items-end">
+            </div>
+
+            {{-- Modal pilih varian quick-add (mode WhatsApp). --}}
+            <div data-quick-add-modal class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+                <div class="w-full max-w-md rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-6 soft-warm-shadow">
+                    <div class="flex items-start gap-4">
+                        <img data-quick-add-modal-image class="h-16 w-16 shrink-0 rounded-xl bg-surface-container object-cover" alt="">
+                        <div class="flex-1">
+                            <h3 data-quick-add-modal-title class="font-headline-md text-lg font-bold text-on-surface"></h3>
+                            <p class="mt-0.5 text-xs text-on-surface-variant">Pilih varian sebelum menambah ke keranjang.</p>
+                        </div>
+                        <button type="button" data-quick-add-modal-close class="text-outline"><span class="material-symbols-outlined">close</span></button>
+                    </div>
+                    <div data-quick-add-modal-variants class="mt-5 max-h-64 space-y-2 overflow-y-auto pr-1"></div>
+                    <div class="mt-5 flex items-center justify-between rounded-2xl bg-surface-container-low px-4 py-2">
+                        <span class="text-sm font-semibold text-on-surface">Jumlah</span>
+                        <div class="flex items-center rounded-full bg-surface-container-lowest px-2 py-1 soft-warm-shadow">
+                            <button type="button" data-quick-add-modal-decrease class="flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-40">−</button>
+                            <span data-quick-add-modal-qty class="w-10 text-center text-sm font-bold">1</span>
+                            <button type="button" data-quick-add-modal-increase class="flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-40">+</button>
+                        </div>
+                    </div>
+                    <p data-quick-add-modal-error class="mt-3 hidden text-body-sm text-error"></p>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" data-quick-add-modal-cancel class="rounded-2xl border border-surface-container-highest px-4 py-2.5 text-sm font-semibold text-on-surface">Batal</button>
+                        <button type="button" data-quick-add-modal-confirm class="rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary">Tambah ke Keranjang</button>
+                    </div>
+                </div>
+            </div>
+        @endif
     </body>
 </html>
