@@ -42,6 +42,14 @@ class StorefrontController extends Controller
             ['path' => $request->url(), 'query' => $request->except('page')]
         );
 
+        $storeWhatsapp = Cache::remember('storefront.store_whatsapp', now()->addMinutes(30), function (): string {
+            try {
+                return (string) ($this->api->storeInfo()['whatsapp'] ?? '');
+            } catch (\Throwable) {
+                return '';
+            }
+        });
+
         return view('storefront.catalog', [
             'products' => $products,
             'catalogQuery' => $query,
@@ -51,6 +59,7 @@ class StorefrontController extends Controller
             'activeSort' => $request->string('sort')->toString() ?: 'default',
             'categories' => data_get($response, 'meta.categories', []),
             'statuses' => data_get($response, 'meta.statuses', []),
+            'storeWhatsapp' => $storeWhatsapp,
         ]);
     }
 

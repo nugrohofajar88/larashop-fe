@@ -141,7 +141,7 @@ export const initQuickAdd = () => {
             const outOfStock = Number(variant.stock) <= 0;
             const label = document.createElement('label');
             label.className = `flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 transition-colors ${
-                outOfStock ? 'cursor-not-allowed opacity-50' : 'hover:border-primary'
+                outOfStock ? 'cursor-not-allowed opacity-50' : 'hover:border-orange-500'
             } border-surface-container-highest`;
 
             const radio = document.createElement('input');
@@ -162,12 +162,12 @@ export const initQuickAdd = () => {
             label.append(radio, text, price);
 
             const setSelected = (selected) => {
-                label.classList.toggle('border-primary', selected);
-                label.classList.toggle('bg-primary', selected);
+                label.classList.toggle('border-orange-500', selected);
+                label.classList.toggle('bg-orange-500', selected);
                 label.classList.toggle('border-surface-container-highest', !selected);
-                text.classList.toggle('text-on-primary', selected);
+                text.classList.toggle('text-white', selected);
                 text.classList.toggle('text-on-surface', !selected);
-                price.classList.toggle('text-on-primary', selected);
+                price.classList.toggle('text-white', selected);
                 price.classList.toggle('text-larashop-rose', !selected);
             };
 

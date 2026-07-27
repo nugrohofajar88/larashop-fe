@@ -33,7 +33,8 @@
 
                 {{-- Desktop links --}}
                 <div class="hidden items-center gap-8 md:flex">
-                    <a href="{{ route('home') }}" class="text-label-lg {{ $isCatalog ? $navActive : $navIdle }}">Katalog</a>
+                    <a href="{{ route('home') }}#katalog" class="text-label-lg {{ $isCatalog ? $navActive : $navIdle }}">Katalog</a>
+                    <a href="{{ route('home') }}#tentang" class="text-label-lg {{ $navIdle }}">Tentang</a>
                     <a href="{{ route('cart') }}" class="text-label-lg flex items-center gap-1.5 {{ $isCart ? $navActive : $navIdle }}">
                         Keranjang
                         <span data-cart-badge class="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error px-1.5 text-[11px] font-bold text-on-error {{ $cartCount > 0 ? '' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
@@ -118,7 +119,7 @@
 
         {{-- ===== Mobile bottom navigation ===== --}}
         <nav class="fixed bottom-0 left-0 z-50 flex w-full items-center justify-around rounded-t-2xl border-t border-outline-variant/30 bg-surface px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,108,74,0.06)] md:hidden">
-            <a href="{{ route('home') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isCatalog ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+            <a href="{{ route('home') }}#katalog" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isCatalog ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
                 <span class="material-symbols-outlined">grid_view</span>
                 <span class="text-label-md">Produk</span>
             </a>
@@ -137,6 +138,10 @@
                     <span class="text-label-md">Profil</span>
                 </a>
             @endif
+            <a href="{{ route('home') }}#tentang" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 text-on-surface-variant">
+                <span class="material-symbols-outlined">info</span>
+                <span class="text-label-md">Tentang</span>
+            </a>
         </nav>
 
         {{-- Tombol WhatsApp melayang → chat toko. Muncul kalau nomor WA toko diisi. --}}
