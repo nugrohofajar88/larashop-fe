@@ -331,12 +331,14 @@ class LarashopApi
 
     public function validateAdminOrderPayment(int $id): array
     {
-        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/validate-payment')['data'] ?? [];
+        // Validasi pembayaran memicu auto-booking Komerce di BE (timeout 25s).
+        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/validate-payment', timeout: 35)['data'] ?? [];
     }
 
     public function cancelAdminOrder(int $id): array
     {
-        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/cancel')['data'] ?? [];
+        // Kalau order sudah di-booking, BE juga membatalkan ke Komerce (timeout 25s).
+        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/cancel', timeout: 35)['data'] ?? [];
     }
 
     public function rejectAdminOrderCancellation(int $id): array
@@ -351,12 +353,14 @@ class LarashopApi
 
     public function scheduleAdminPickup(int $id, array $payload): array
     {
-        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/schedule-pickup', ['json' => $payload])['data'] ?? [];
+        // BE memanggil Komerce pickup/request (timeout BE 25s) - beri jeda lebih
+        // longgar dari default 15s supaya FE tidak menyerah duluan.
+        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/schedule-pickup', ['json' => $payload], 35)['data'] ?? [];
     }
 
     public function scheduleAdminPickupBulk(array $payload): array
     {
-        return $this->requestAsAdmin('POST', '/admin/orders/schedule-pickup-bulk', ['json' => $payload]);
+        return $this->requestAsAdmin('POST', '/admin/orders/schedule-pickup-bulk', ['json' => $payload], 35);
     }
 
     public function markAdminShippedBulk(array $payload): array
@@ -458,12 +462,12 @@ class LarashopApi
         $this->requestAsAdmin('DELETE', "/admin/customers/{$customerId}/addresses/{$addressId}");
     }
 
-    protected function requestAsAdmin(string $method, string $uri, array $options = []): array
+    protected function requestAsAdmin(string $method, string $uri, array $options = [], ?int $timeout = null): array
     {
         $token = $this->adminToken();
 
         try {
-            return $this->request($method, $uri, $options, $token);
+            return $this->request($method, $uri, $options, $token, $timeout);
         } catch (LarashopApiException $exception) {
             if ($exception->status !== 401) {
                 throw $exception;
@@ -471,7 +475,7 @@ class LarashopApi
 
             Cache::forget($this->adminTokenCacheKey());
 
-            return $this->request($method, $uri, $options, $this->adminToken());
+            return $this->request($method, $uri, $options, $this->adminToken(), $timeout);
         }
     }
 
@@ -554,9 +558,9 @@ class LarashopApi
         return 'larashop-fe.admin-token';
     }
 
-    protected function request(string $method, string $uri, array $options = [], ?string $token = null): array
+    protected function request(string $method, string $uri, array $options = [], ?string $token = null, ?int $timeout = null): array
     {
-        $response = $this->client($token)->send($method, ltrim($uri, '/'), $options);
+        $response = $this->client($token, $timeout)->send($method, ltrim($uri, '/'), $options);
 
         return $this->decode($response);
     }
