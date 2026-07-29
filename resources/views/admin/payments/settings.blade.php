@@ -69,6 +69,13 @@
                             <span class="block text-xs text-stone-500">Kirim QR pembayaran (perlu QRIS aktif di menu QRIS).</span>
                         </span>
                     </label>
+                    <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+                        <input type="checkbox" name="payment_cod_enabled" value="1" {{ old('payment_cod_enabled', ($settings['payment_cod_enabled'] ?? false)) ? 'checked' : '' }} class="mt-0.5 h-5 w-5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500">
+                        <span>
+                            <span class="text-sm font-medium text-stone-900">COD (Bayar di Tempat)</span>
+                            <span class="block text-xs text-stone-500">Khusus order via WhatsApp, dan hanya muncul kalau kurir yang kepilih memang mendukung COD di rute itu.</span>
+                        </span>
+                    </label>
                 </div>
                 @if (($settings['payment_qris_enabled'] ?? true) && ! ($qrisReady ?? false))
                     <div class="mt-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -76,7 +83,7 @@
                         <a href="{{ route('admin.qris.index') }}" class="font-semibold underline">upload &amp; aktifkan QRIS</a>.
                     </div>
                 @endif
-                <p class="mt-2 text-xs text-stone-400">Boleh aktif dua-duanya. Kalau keduanya mati, sistem otomatis pakai Transfer Bank.</p>
+                <p class="mt-2 text-xs text-stone-400">Boleh aktif lebih dari satu. Kalau semua mati, sistem otomatis pakai Transfer Bank.</p>
             </div>
 
             <button type="submit" class="mt-4 rounded-2xl bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-800">Simpan Pengaturan</button>
