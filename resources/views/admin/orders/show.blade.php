@@ -9,6 +9,18 @@
                 'cancelled' => 'bg-rose-100 text-rose-700',
                 default => 'bg-stone-100 text-stone-700',
             };
+            // Label berorientasi tindakan, sama seperti di halaman daftar pesanan
+            // admin - biar admin tahu apa yang perlu dilakukan, bukan cuma nama
+            // status teknis. Khusus admin - JANGAN dipakai di halaman customer.
+            $statusLabel = match ($status) {
+                'pending_payment' => 'Menunggu Pembayaran',
+                'paid' => 'Perlu Dikirim',
+                'processing' => 'Menunggu Penjemputan',
+                'shipped' => 'Dalam Pengiriman',
+                'completed' => 'Selesai',
+                'cancelled' => 'Dibatalkan',
+                default => $order['status_label'] ?? $status,
+            };
         @endphp
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
@@ -109,7 +121,7 @@
                             </p>
                         </div>
                         <div class="flex flex-col gap-2">
-                            <span class="w-fit rounded-full px-3 py-1 text-xs font-semibold {{ $statusBadgeClasses }}">{{ $order['status_label'] ?? $order['status'] }}</span>
+                            <span class="w-fit rounded-full px-3 py-1 text-xs font-semibold {{ $statusBadgeClasses }}">{{ $statusLabel }}</span>
                             <span class="w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ $order['payment_status'] }}</span>
                         </div>
                     </div>

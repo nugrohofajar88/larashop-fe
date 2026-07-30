@@ -576,14 +576,24 @@ class AdminController extends Controller
         $status = $request->string('status')->toString();
         $search = trim($request->string('search')->toString());
 
+        // Label berorientasi TINDAKAN (bukan cuma nama status teknis), supaya
+        // admin langsung tahu apa yang perlu dilakukan begitu lihat labelnya.
+        $statusLabels = [
+            'pending_payment' => 'Menunggu Pembayaran',
+            'paid' => 'Perlu Dikirim',
+            'processing' => 'Menunggu Penjemputan',
+            'shipped' => 'Dalam Pengiriman',
+            'completed' => 'Selesai',
+            'cancelled' => 'Dibatalkan',
+        ];
+
         $statusTabs = [
             ['key' => 'all', 'label' => 'Semua', 'count' => $allOrders->count()],
-            ['key' => 'pending_payment', 'label' => 'Belum bayar', 'count' => $allOrders->where('status', 'pending_payment')->count()],
-            ['key' => 'paid', 'label' => 'Dibayar', 'count' => $allOrders->where('status', 'paid')->count()],
-            ['key' => 'processing', 'label' => 'Diproses', 'count' => $allOrders->where('status', 'processing')->count()],
-            ['key' => 'shipped', 'label' => 'Dikirim', 'count' => $allOrders->where('status', 'shipped')->count()],
-            ['key' => 'completed', 'label' => 'Selesai', 'count' => $allOrders->where('status', 'completed')->count()],
-            ['key' => 'cancelled', 'label' => 'Dibatalkan', 'count' => $allOrders->where('status', 'cancelled')->count()],
+            ...collect($statusLabels)->map(fn (string $label, string $key): array => [
+                'key' => $key,
+                'label' => $label,
+                'count' => $allOrders->where('status', $key)->count(),
+            ])->values()->all(),
         ];
 
         if ($status !== '' && $status !== 'all') {
@@ -605,12 +615,13 @@ class AdminController extends Controller
             'orders' => $items,
             'activeStatus' => $status ?: 'all',
             'statusTabs' => $statusTabs,
+            'statusLabels' => $statusLabels,
             'search' => $search,
             'stats' => [
-                ['label' => 'Pending Payment', 'value' => (string) collect($items)->where('status', 'pending_payment')->count(), 'note' => 'Perlu follow up pembayaran'],
-                ['label' => 'Paid', 'value' => (string) collect($items)->where('status', 'paid')->count(), 'note' => 'Siap dibuat shipment'],
-                ['label' => 'Processing', 'value' => (string) collect($items)->where('status', 'processing')->count(), 'note' => 'Sedang dipacking'],
-                ['label' => 'Shipped', 'value' => (string) collect($items)->where('status', 'shipped')->count(), 'note' => 'Sudah memiliki AWB'],
+                ['label' => $statusLabels['pending_payment'], 'value' => (string) collect($items)->where('status', 'pending_payment')->count(), 'note' => 'Perlu follow up pembayaran'],
+                ['label' => $statusLabels['paid'], 'value' => (string) collect($items)->where('status', 'paid')->count(), 'note' => 'Siap dibuat shipment'],
+                ['label' => $statusLabels['processing'], 'value' => (string) collect($items)->where('status', 'processing')->count(), 'note' => 'Sedang dipacking'],
+                ['label' => $statusLabels['shipped'], 'value' => (string) collect($items)->where('status', 'shipped')->count(), 'note' => 'Sudah memiliki AWB'],
             ],
         ]);
     }
