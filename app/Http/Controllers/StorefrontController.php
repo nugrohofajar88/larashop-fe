@@ -938,10 +938,19 @@ class StorefrontController extends Controller
                 ->all();
         }
 
+        $storeWhatsapp = Cache::remember('storefront.store_whatsapp', now()->addMinutes(30), function (): string {
+            try {
+                return (string) ($this->api->storeInfo()['whatsapp'] ?? '');
+            } catch (\Throwable) {
+                return '';
+            }
+        });
+
         return view('storefront.orders', [
             'orders' => $orders,
             'orderTabs' => $tabs,
             'activeOrderStatus' => $activeStatus,
+            'storeWhatsapp' => $storeWhatsapp,
             'statuses' => [
                 ['label' => 'pending_payment', 'description' => 'Order dibuat dan menunggu pembayaran.'],
                 ['label' => 'paid', 'description' => 'Pembayaran sudah tervalidasi admin.'],

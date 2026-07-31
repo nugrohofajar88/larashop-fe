@@ -5,7 +5,14 @@
         <section class="flex-1 space-y-6">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <h1 class="font-headline-lg text-headline-lg text-on-surface">Riwayat Pesanan</h1>
-                <a href="{{ route('checkout') }}" class="self-start rounded-full bg-primary px-5 py-3 font-body-md font-bold text-on-primary transition hover:bg-secondary">Lanjut checkout</a>
+                @if (config('storefront.checkout_mode') === 'whatsapp')
+                    @if (! empty($storeWhatsapp))
+                        <a href="https://wa.me/{{ $storeWhatsapp }}?text={{ urlencode('Halo Akar Tani Kimia, saya mau pesan.') }}" target="_blank" rel="noopener"
+                           class="self-start rounded-full bg-primary px-5 py-3 font-body-md font-bold text-on-primary transition hover:bg-secondary">Pesan via WhatsApp</a>
+                    @endif
+                @else
+                    <a href="{{ route('checkout') }}" class="self-start rounded-full bg-primary px-5 py-3 font-body-md font-bold text-on-primary transition hover:bg-secondary">Lanjut checkout</a>
+                @endif
             </div>
 
             {{-- Status tabs --}}

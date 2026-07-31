@@ -18,7 +18,6 @@
             $isCart = request()->routeIs('cart');
             $isOrders = request()->routeIs('customer.orders') || request()->routeIs('customer.orders.*');
             $isAccount = request()->routeIs('profile') || request()->routeIs('addresses');
-            $isAccountMode = config('storefront.checkout_mode', 'account') === 'account';
             $navActive = 'text-primary border-b-2 border-primary pb-1 font-bold';
             $navIdle = 'text-on-surface-variant hover:text-primary transition-colors';
         @endphp
@@ -39,62 +38,58 @@
                         Keranjang
                         <span data-cart-badge class="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error px-1.5 text-[11px] font-bold text-on-error {{ $cartCount > 0 ? '' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
                     </a>
-                    @if ($isAccountMode)
-                        <a href="{{ route('customer.orders') }}" class="text-label-lg {{ $isOrders ? $navActive : $navIdle }}">Pesanan</a>
+                    <a href="{{ route('customer.orders') }}" class="text-label-lg {{ $isOrders ? $navActive : $navIdle }}">Pesanan</a>
 
-                        @if (session('customer.user'))
-                            <div class="relative" data-customer-menu>
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-2 rounded-full border border-outline-variant/50 bg-surface-container-lowest py-1.5 pl-1.5 pr-3 text-label-lg text-on-surface transition hover:border-primary"
-                                    data-customer-menu-trigger
-                                    aria-expanded="false"
-                                >
-                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
-                                        {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
-                                    </span>
-                                    <span class="max-w-[8rem] truncate">{{ data_get(session('customer.user'), 'username', 'Profil') }}</span>
-                                    <span class="material-symbols-outlined text-lg text-outline">expand_more</span>
-                                </button>
+                    @if (session('customer.user'))
+                        <div class="relative" data-customer-menu>
+                            <button
+                                type="button"
+                                class="flex items-center gap-2 rounded-full border border-outline-variant/50 bg-surface-container-lowest py-1.5 pl-1.5 pr-3 text-label-lg text-on-surface transition hover:border-primary"
+                                data-customer-menu-trigger
+                                aria-expanded="false"
+                            >
+                                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
+                                    {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
+                                </span>
+                                <span class="max-w-[8rem] truncate">{{ data_get(session('customer.user'), 'username', 'Profil') }}</span>
+                                <span class="material-symbols-outlined text-lg text-outline">expand_more</span>
+                            </button>
 
-                                <div
-                                    class="absolute right-0 top-full z-40 mt-3 hidden w-60 overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest shadow-[0_20px_50px_rgba(28,25,23,0.15)]"
-                                    data-customer-menu-panel
-                                >
-                                    <div class="border-b border-outline-variant/20 px-5 py-4">
-                                        <p class="truncate text-body-md font-semibold text-on-surface">{{ data_get(session('customer.user'), 'name', 'Pelanggan') }}</p>
-                                        <p class="mt-0.5 truncate text-body-sm text-on-surface-variant">{{ data_get(session('customer.user'), 'username', '') }}</p>
-                                    </div>
-                                    <a href="{{ route('profile') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
-                                        <span class="material-symbols-outlined text-xl text-outline">person</span> Akun Saya
-                                    </a>
-                                    <a href="{{ route('customer.orders') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
-                                        <span class="material-symbols-outlined text-xl text-outline">receipt_long</span> Pesanan Saya
-                                    </a>
-                                    <form method="POST" action="{{ route('logout') }}" class="border-t border-outline-variant/20">
-                                        @csrf
-                                        <button type="submit" class="flex w-full items-center gap-3 px-5 py-3.5 text-left text-body-md font-medium text-error transition hover:bg-error-container/40">
-                                            <span class="material-symbols-outlined text-xl">logout</span> Log Out
-                                        </button>
-                                    </form>
+                            <div
+                                class="absolute right-0 top-full z-40 mt-3 hidden w-60 overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest shadow-[0_20px_50px_rgba(28,25,23,0.15)]"
+                                data-customer-menu-panel
+                            >
+                                <div class="border-b border-outline-variant/20 px-5 py-4">
+                                    <p class="truncate text-body-md font-semibold text-on-surface">{{ data_get(session('customer.user'), 'name', 'Pelanggan') }}</p>
+                                    <p class="mt-0.5 truncate text-body-sm text-on-surface-variant">{{ data_get(session('customer.user'), 'username', '') }}</p>
                                 </div>
+                                <a href="{{ route('profile') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
+                                    <span class="material-symbols-outlined text-xl text-outline">person</span> Akun Saya
+                                </a>
+                                <a href="{{ route('customer.orders') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
+                                    <span class="material-symbols-outlined text-xl text-outline">receipt_long</span> Pesanan Saya
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}" class="border-t border-outline-variant/20">
+                                    @csrf
+                                    <button type="submit" class="flex w-full items-center gap-3 px-5 py-3.5 text-left text-body-md font-medium text-error transition hover:bg-error-container/40">
+                                        <span class="material-symbols-outlined text-xl">logout</span> Log Out
+                                    </button>
+                                </form>
                             </div>
-                        @else
-                            <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-6 py-2 text-label-lg text-on-primary transition-all duration-200 ease-in-out hover:bg-primary active:scale-95">Masuk</a>
-                        @endif
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-6 py-2 text-label-lg text-on-primary transition-all duration-200 ease-in-out hover:bg-primary active:scale-95">Masuk</a>
                     @endif
                 </div>
 
                 {{-- Mobile account / login (bottom nav handles primary nav) --}}
                 <div class="md:hidden">
-                    @if ($isAccountMode)
-                        @if (session('customer.user'))
-                            <a href="{{ route('profile') }}" class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
-                                {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
-                            </a>
-                        @else
-                            <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-4 py-1.5 text-body-sm font-medium text-on-primary">Masuk</a>
-                        @endif
+                    @if (session('customer.user'))
+                        <a href="{{ route('profile') }}" class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
+                            {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-4 py-1.5 text-body-sm font-medium text-on-primary">Masuk</a>
                     @endif
                 </div>
             </nav>
@@ -128,16 +123,14 @@
                 <span class="text-label-md">Keranjang</span>
                 <span data-cart-badge class="absolute right-2 top-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error {{ $cartCount > 0 ? '' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
             </a>
-            @if ($isAccountMode)
-                <a href="{{ route('customer.orders') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isOrders ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
-                    <span class="material-symbols-outlined">receipt_long</span>
-                    <span class="text-label-md">Pesanan</span>
-                </a>
-                <a href="{{ route('profile') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isAccount ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
-                    <span class="material-symbols-outlined">person</span>
-                    <span class="text-label-md">Profil</span>
-                </a>
-            @endif
+            <a href="{{ route('customer.orders') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isOrders ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span class="text-label-md">Pesanan</span>
+            </a>
+            <a href="{{ route('profile') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isAccount ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+                <span class="material-symbols-outlined">person</span>
+                <span class="text-label-md">Profil</span>
+            </a>
             <a href="{{ route('home') }}#tentang" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 text-on-surface-variant">
                 <span class="material-symbols-outlined">info</span>
                 <span class="text-label-md">Tentang</span>
