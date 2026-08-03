@@ -284,6 +284,11 @@
 
                         {{-- Perintah bayar (rekening + konfirmasi WA) HANYA saat belum bayar. --}}
                         @if (($order['status'] ?? '') === 'pending_payment')
+                            @if (! empty($order['payment_deadline']))
+                                <div class="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+                                    ⏰ Selesaikan pembayaran sebelum <span class="font-semibold">{{ $order['payment_deadline'] }} WIB</span> — order otomatis dibatalkan & stok dilepas kalau lewat batas waktu ini.
+                                </div>
+                            @endif
                             @if (!empty($order['payment_accounts']))
                                 <div class="mt-5 rounded-2xl border border-primary/20 bg-primary/5 p-4">
                                     <p class="font-body-sm text-body-sm font-semibold text-on-surface">💳 Transfer ke salah satu rekening:</p>
