@@ -164,7 +164,7 @@ class GuestCart
         $items = array_values(array_filter($this->hydrated(), fn (array $item) => $item['available']));
         $summary = $this->summary();
 
-        $lines = ['Nama: ', 'No HP: ', 'Alamat: ', 'Pesanan:'];
+        $lines = ['Nama: ', 'No HP: ', 'Alamat: ', 'Kelurahan/Desa: ', 'Kecamatan: ', 'Kota/Kabupaten: ', 'Pesanan:'];
 
         foreach ($items as $item) {
             $lines[] = sprintf('- %s (%s) x%d', $item['name'], $item['variant'], $item['qty']);
