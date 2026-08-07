@@ -510,9 +510,22 @@ class StorefrontController extends Controller
         try {
             $payload = $this->api->register($validated);
         } catch (LarashopApiException $exception) {
+            $errors = $exception->errors !== [] ? $exception->errors : ['username' => [$exception->getMessage()]];
+
+            // Nomor HP sudah terdaftar - kemungkinan besar customer ini sudah
+            // punya akun dari order via WhatsApp (akun WA otomatis dibuat
+            // dengan username = nomor HP). Pesan default BE ("has already
+            // been taken") tidak membantu; arahkan langsung ke Login.
+            $phoneTaken = collect($errors['phone'] ?? [])
+                ->contains(fn ($m) => str_contains(strtolower((string) $m), 'taken'));
+
+            if ($phoneTaken) {
+                $errors['phone'] = ['Nomor ini sudah terdaftar. Kalau kamu pernah pesan via WhatsApp, akun kamu sudah ada - silakan Login pakai nomor HP sebagai username & password.'];
+            }
+
             return back()
                 ->withInput($request->except('password', 'password_confirmation'))
-                ->withErrors($exception->errors !== [] ? $exception->errors : ['username' => $exception->getMessage()]);
+                ->withErrors($errors);
         }
 
         $this->storeCustomerSession($payload);
