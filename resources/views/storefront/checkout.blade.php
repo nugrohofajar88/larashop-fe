@@ -68,17 +68,25 @@
                     </article>
                 @endif
 
-                <article class="rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-6 soft-warm-shadow">
-                    <h2 class="font-headline-md text-headline-md text-on-surface">Informasi pembayaran</h2>
-                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                        <div class="rounded-2xl bg-surface-container-low px-4 py-4">
-                            <p class="font-label-eyebrow text-label-eyebrow uppercase text-outline">Metode</p>
-                            <p class="mt-2 font-body-md font-semibold text-on-surface">Transfer manual</p>
-                        </div>
-                        <div class="rounded-2xl bg-surface-container-low px-4 py-4">
-                            <p class="font-label-eyebrow text-label-eyebrow uppercase text-outline">Konfirmasi</p>
-                            <p class="mt-2 font-body-md font-semibold text-on-surface">WhatsApp admin</p>
-                        </div>
+                <article class="rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-6 soft-warm-shadow" data-payment-method-section>
+                    <h2 class="font-headline-md text-headline-md text-on-surface">Metode pembayaran</h2>
+                    <div class="mt-4 space-y-3">
+                        <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-primary bg-secondary-container/20 px-4 py-4" data-payment-option="transfer">
+                            <input type="radio" name="payment_method_choice" value="transfer" class="mt-1 text-primary focus:ring-primary" data-payment-input checked>
+                            <span class="flex-1">
+                                <span class="block font-body-md font-semibold text-on-surface">Transfer Bank</span>
+                                <span class="mt-1 block font-body-sm text-body-sm text-on-surface-variant">Transfer ke rekening toko, konfirmasi bukti via WhatsApp admin. QRIS juga bisa dipilih setelah pesanan dibuat.</span>
+                            </span>
+                        </label>
+                        @if (!empty($paymentMethods['cod']))
+                            <label class="hidden cursor-pointer items-start gap-3 rounded-2xl border border-surface-container-highest px-4 py-4" data-payment-option="cod">
+                                <input type="radio" name="payment_method_choice" value="cod" class="mt-1 text-primary focus:ring-primary" data-payment-input>
+                                <span class="flex-1">
+                                    <span class="block font-body-md font-semibold text-on-surface">COD (Bayar di Tempat)</span>
+                                    <span class="mt-1 block font-body-sm text-body-sm text-on-surface-variant">Bayar tunai ke kurir saat barang diterima. Tanpa kode unik.</span>
+                                </span>
+                            </label>
+                        @endif
                     </div>
                 </article>
             </div>
@@ -123,7 +131,7 @@
                     </div>
                     <div class="border-t border-dashed border-surface-container-highest pt-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-on-surface">Total transfer</span>
+                            <span class="text-on-surface" data-summary-total-label>Total transfer</span>
                             <span class="font-headline-md text-xl font-bold text-primary" data-summary-grand-total>{{ $paymentSummary['grand_total'] }}</span>
                         </div>
                     </div>
@@ -134,12 +142,13 @@
                     <input type="hidden" name="address_id" value="{{ $address['id'] ?? '' }}" data-checkout-address-id>
                     <input type="hidden" name="shipping_option_id" value="{{ collect($shippingOptions)->firstWhere('selected', true)['id'] ?? ($shippingOptions[0]['id'] ?? '') }}" data-checkout-shipping-option-id>
                     <input type="hidden" name="use_unique_code_balance" value="{{ !empty($paymentSummary['use_unique_code_balance']) ? '1' : '0' }}" data-checkout-use-unique-code-balance>
+                    <input type="hidden" name="payment_method" value="transfer" data-checkout-payment-method>
                     <button class="inline-flex w-full items-center justify-center rounded-2xl bg-primary px-5 py-4 font-body-md font-bold text-on-primary shadow-lg shadow-primary/20 transition hover:bg-secondary active:scale-95">
                         Buat Pesanan
                     </button>
                 </form>
 
-                <p class="mt-4 font-body-sm text-xs leading-5 text-on-surface-variant">
+                <p class="mt-4 font-body-sm text-xs leading-5 text-on-surface-variant" data-payment-note>
                     Setelah order dibuat, customer dapat melanjutkan transfer dan mengirim bukti pembayaran ke WhatsApp admin.
                 </p>
             </aside>

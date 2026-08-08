@@ -344,6 +344,7 @@ class StorefrontController extends Controller
             'addresses' => data_get($payload, 'addresses', []),
             'shippingOptions' => data_get($payload, 'shipping_options', []),
             'paymentSummary' => data_get($payload, 'payment_summary', []),
+            'paymentMethods' => data_get($payload, 'payment_methods', []),
             'shipmentOrigin' => data_get($payload, 'shipment_origin'),
             'items' => data_get($payload, 'items', []),
         ]);
@@ -383,6 +384,7 @@ class StorefrontController extends Controller
                 'addresses' => data_get($payload, 'addresses', []),
                 'shipping_options' => data_get($payload, 'shipping_options', []),
                 'payment_summary' => data_get($payload, 'payment_summary', []),
+                'payment_methods' => data_get($payload, 'payment_methods', []),
                 'shipment_origin' => data_get($payload, 'shipment_origin'),
             ],
         ]);
@@ -425,6 +427,7 @@ class StorefrontController extends Controller
             'address_id' => ['required', 'integer'],
             'shipping_option_id' => ['required', 'string', 'max:100'],
             'use_unique_code_balance' => ['nullable', 'boolean'],
+            'payment_method' => ['nullable', 'string', 'in:transfer,cod'],
         ]);
 
         try {
@@ -432,6 +435,7 @@ class StorefrontController extends Controller
                 'address_id' => (int) $validated['address_id'],
                 'shipping_option_id' => $validated['shipping_option_id'],
                 'use_unique_code_balance' => $request->boolean('use_unique_code_balance'),
+                'payment_method' => $validated['payment_method'] ?? 'transfer',
             ]);
         } catch (LarashopApiException $exception) {
             if (in_array($exception->status, [401, 403], true)) {

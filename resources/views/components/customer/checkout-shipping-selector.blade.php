@@ -48,6 +48,7 @@
                                     data-price="{{ $option['price'] }}"
                                     data-price-value="{{ $option['price_value'] }}"
                                     data-estimate="{{ ($option['estimate'] ?? '') !== '' ? 'Estimasi '.$option['estimate'] : '' }}"
+                                    data-is-cod="{{ ($option['is_cod'] ?? false) ? '1' : '0' }}"
                                     {{ $option['selected'] ? 'checked' : '' }}
                                 >
                                 <div class="flex-1">

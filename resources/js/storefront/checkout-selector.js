@@ -8,6 +8,11 @@ export const initCheckoutSelector = () => {
     const addressIdField = orderForm?.querySelector('[data-checkout-address-id]');
     const shippingOptionIdField = orderForm?.querySelector('[data-checkout-shipping-option-id]');
     const useUniqueCodeBalanceField = orderForm?.querySelector('[data-checkout-use-unique-code-balance]');
+    const paymentMethodField = orderForm?.querySelector('[data-checkout-payment-method]');
+    const paymentSection = document.querySelector('[data-payment-method-section]');
+    const codOption = paymentSection?.querySelector('[data-payment-option="cod"]');
+    const totalLabel = summary?.querySelector('[data-summary-total-label]');
+    const paymentNote = document.querySelector('[data-payment-note]');
 
     if (!addressRoot || !shippingRoot || !summary) {
         return;
@@ -105,6 +110,75 @@ export const initCheckoutSelector = () => {
             option.classList.toggle('border-stone-200', !isChecked);
             option.classList.toggle('bg-white', !isChecked);
         });
+    };
+
+    // --- Metode pembayaran (Transfer/COD) ---------------------------------
+    // COD cuma boleh muncul kalau kurir yang SEDANG terpilih mendukungnya
+    // (is_cod per opsi ongkir) - jadi harus dievaluasi ulang tiap kali
+    // pilihan pengiriman berubah, bukan cuma sekali di awal.
+
+    const syncPaymentStyles = () => {
+        if (!paymentSection) {
+            return;
+        }
+
+        paymentSection.querySelectorAll('[data-payment-option]').forEach((option) => {
+            const input = option.querySelector('[data-payment-input]');
+            const isChecked = Boolean(input?.checked);
+
+            option.classList.toggle('border-primary', isChecked);
+            option.classList.toggle('bg-secondary-container/20', isChecked);
+            option.classList.toggle('border-surface-container-highest', !isChecked);
+        });
+    };
+
+    const updatePaymentMethodField = () => {
+        const checked = Array.from(paymentSection?.querySelectorAll('[data-payment-input]') || []).find(
+            (input) => input.checked
+        );
+        const value = checked?.value || 'transfer';
+
+        if (paymentMethodField) {
+            paymentMethodField.value = value;
+        }
+
+        if (totalLabel) {
+            totalLabel.textContent = value === 'cod' ? 'Total bayar tunai' : 'Total transfer';
+        }
+
+        if (paymentNote) {
+            paymentNote.textContent =
+                value === 'cod'
+                    ? 'Siapkan uang pas sesuai total di atas - kurir akan menagih saat barang diserahkan.'
+                    : 'Setelah order dibuat, customer dapat melanjutkan transfer dan mengirim bukti pembayaran ke WhatsApp admin.';
+        }
+    };
+
+    const updateCodAvailability = (isCod) => {
+        if (!codOption) {
+            return;
+        }
+
+        codOption.classList.toggle('hidden', !isCod);
+        codOption.classList.toggle('flex', isCod);
+
+        // Kurir baru tidak dukung COD tapi COD masih terpilih -> balik ke Transfer,
+        // jangan biarkan submit dengan metode yang sudah tidak valid.
+        if (!isCod) {
+            const codInput = codOption.querySelector('[data-payment-input]');
+
+            if (codInput?.checked) {
+                const transferInput = paymentSection?.querySelector('[data-payment-option="transfer"] [data-payment-input]');
+
+                if (transferInput) {
+                    transferInput.checked = true;
+                }
+
+                syncPaymentStyles();
+            }
+        }
+
+        updatePaymentMethodField();
     };
 
     const bindRoot = (root) => {
@@ -215,6 +289,7 @@ export const initCheckoutSelector = () => {
                                 data-price="${escapeHtml(option.price)}"
                                 data-price-value="${escapeHtml(option.price_value)}"
                                 data-estimate="${option.estimate ? escapeHtml(`Estimasi ${option.estimate}`) : ''}"
+                                data-is-cod="${option.is_cod ? '1' : '0'}"
                                 ${option.selected ? 'checked' : ''}
                             >
                             <div class="flex-1">
@@ -356,6 +431,8 @@ export const initCheckoutSelector = () => {
         if (applyButton) {
             applyButton.parentElement?.classList.toggle('hidden', shippingOptions.length === 0);
         }
+
+        updateCodAvailability(Boolean(selectedShipping?.is_cod));
     };
 
     const refreshCheckout = async (addressId) => {
@@ -456,6 +533,7 @@ export const initCheckoutSelector = () => {
         }
 
         syncOptionStyles(shippingRoot);
+        updateCodAvailability(selected.getAttribute('data-is-cod') === '1');
         closeModal(shippingRoot);
     };
 
@@ -488,6 +566,20 @@ export const initCheckoutSelector = () => {
 
     if (shippingOptionIdField) {
         shippingOptionIdField.value = getSelectedShippingOptionId();
+    }
+
+    // Metode pembayaran: state awal ikut kurir yang aktif terpilih di atas,
+    // lalu re-evaluasi tiap kali radio Transfer/COD diklik langsung.
+    if (paymentSection) {
+        const initialShippingInput = shippingInputs.find((input) => input.checked);
+        updateCodAvailability(initialShippingInput?.getAttribute('data-is-cod') === '1');
+
+        paymentSection.querySelectorAll('[data-payment-input]').forEach((input) => {
+            input.addEventListener('change', () => {
+                syncPaymentStyles();
+                updatePaymentMethodField();
+            });
+        });
     }
 
     // Cegah submit kalau opsi pengiriman belum ada/terpilih (hindari error mentah dari server).
