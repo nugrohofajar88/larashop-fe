@@ -23,7 +23,10 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="ml-1 font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Password</label>
+                    <div class="flex items-center justify-between">
+                        <label class="ml-1 font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Password</label>
+                        <a href="{{ route('password.forgot') }}" class="mr-1 font-body-sm text-body-sm font-semibold text-primary hover:underline">Lupa password?</a>
+                    </div>
                     <div class="relative" data-password-field>
                         <input type="password" name="password" placeholder="Masukkan kata sandi" data-password-input
                             class="w-full rounded-2xl border border-transparent bg-surface-container-low px-5 py-4 pr-14 font-body-md text-body-md outline-none transition-all duration-200 placeholder:text-outline focus:border-primary focus:ring-4 focus:ring-primary/10">

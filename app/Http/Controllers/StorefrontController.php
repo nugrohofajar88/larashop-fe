@@ -537,6 +537,55 @@ class StorefrontController extends Controller
         return redirect()->route('home')->with('success', 'Akun customer berhasil dibuat.');
     }
 
+    public function forgotPassword(): View
+    {
+        return view('storefront.auth.forgot-password');
+    }
+
+    public function sendForgotPasswordOtp(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'login' => ['required', 'string'],
+        ]);
+
+        try {
+            $this->api->forgotPassword($validated['login']);
+        } catch (LarashopApiException $exception) {
+            return back()->withInput()->withErrors($exception->errors !== [] ? $exception->errors : ['login' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('password.reset')
+            ->with('success', 'Kalau akun terdaftar, kode OTP sudah dikirim ke WhatsApp yang terdaftar.')
+            ->with('reset_login', $validated['login']);
+    }
+
+    public function resetPassword(Request $request): View
+    {
+        return view('storefront.auth.reset-password', [
+            'login' => old('login', session('reset_login', '')),
+        ]);
+    }
+
+    public function updateResetPassword(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'login' => ['required', 'string'],
+            'otp' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+        $validated['password_confirmation'] = (string) $request->input('password_confirmation');
+
+        try {
+            $this->api->resetPassword($validated);
+        } catch (LarashopApiException $exception) {
+            return back()
+                ->withInput($request->except('password', 'password_confirmation'))
+                ->withErrors($exception->errors !== [] ? $exception->errors : ['otp' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('login')->with('success', 'Password berhasil direset. Silakan login dengan password baru.');
+    }
+
     public function logout(Request $request): RedirectResponse
     {
         $token = $this->customerToken();

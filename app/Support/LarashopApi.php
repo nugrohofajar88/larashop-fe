@@ -41,6 +41,16 @@ class LarashopApi
         return $this->request('POST', '/auth/register', ['json' => $payload])['data'] ?? [];
     }
 
+    public function forgotPassword(string $login): array
+    {
+        return $this->request('POST', '/auth/forgot-password', ['json' => ['login' => $login]]);
+    }
+
+    public function resetPassword(array $payload): array
+    {
+        return $this->request('POST', '/auth/reset-password', ['json' => $payload]);
+    }
+
     public function me(string $token): array
     {
         return $this->request('GET', '/auth/me', token: $token)['data'] ?? [];
