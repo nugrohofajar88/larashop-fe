@@ -51,7 +51,7 @@ function _s(i,t){return function(){return i.apply(t,arguments)}}const{toString:Z
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Harga coret</label>
-                    <input type="text" inputmode="numeric" value="${Wi(i.compare_at_price)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="30.000" data-variant-field="compare_at_price">
+                    <input type="text" inputmode="numeric" value="${Wi(i.compare_at_price)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="0" data-variant-field="compare_at_price">
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Stok</label>
@@ -59,7 +59,7 @@ function _s(i,t){return function(){return i.apply(t,arguments)}}const{toString:Z
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Berat (gram)</label>
-                    <input type="number" min="0" value="${$e(i.weight_grams)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="500" data-variant-field="weight_grams">
+                    <input type="number" min="0" value="${$e(i.weight_grams)}" class="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:bg-white" placeholder="0" data-variant-field="weight_grams">
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-stone-700">Panjang (cm)</label>
