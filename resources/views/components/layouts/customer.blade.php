@@ -17,7 +17,7 @@
             $isCatalog = request()->routeIs('home') || request()->routeIs('catalog') || request()->routeIs('products.show');
             $isCart = request()->routeIs('cart');
             $isOrders = request()->routeIs('customer.orders') || request()->routeIs('customer.orders.*');
-            $isAccount = request()->routeIs('profile') || request()->routeIs('addresses');
+            $isAccount = request()->routeIs('profile') || request()->routeIs('addresses') || request()->routeIs('customer.orders') || request()->routeIs('customer.orders.*');
             $navActive = 'text-primary border-b-2 border-primary pb-1 font-bold';
             $navIdle = 'text-on-surface-variant hover:text-primary transition-colors';
         @endphp
@@ -122,10 +122,6 @@
                 <span class="material-symbols-outlined">shopping_cart</span>
                 <span class="text-label-md">Keranjang</span>
                 <span data-cart-badge class="absolute right-2 top-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error {{ $cartCount > 0 ? '' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
-            </a>
-            <a href="{{ route('customer.orders') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isOrders ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
-                <span class="material-symbols-outlined">receipt_long</span>
-                <span class="text-label-md">Pesanan</span>
             </a>
             <a href="{{ route('profile') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isAccount ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
                 <span class="material-symbols-outlined">person</span>
