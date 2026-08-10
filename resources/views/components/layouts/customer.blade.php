@@ -151,10 +151,6 @@
                 <span class="text-label-md">Keranjang</span>
                 <span data-cart-badge class="absolute right-2 top-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error {{ $cartCount > 0 ? '' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
             </a>
-            <a href="{{ route('customer.orders') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isOrders ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
-                <span class="material-symbols-outlined">receipt_long</span>
-                <span class="text-label-md">Pesanan</span>
-            </a>
             <a href="{{ route('home') }}#tentang" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 text-on-surface-variant">
                 <span class="material-symbols-outlined">info</span>
                 <span class="text-label-md">Tentang</span>
