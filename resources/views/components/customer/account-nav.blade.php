@@ -47,6 +47,14 @@
                 </a>
             </nav>
         </div>
+        <hr class="my-4 border-surface-container-highest">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="flex w-full items-center gap-3 rounded-full px-4 py-3 text-left text-error transition-all hover:bg-error-container/40">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="font-body-md text-body-md">Log Out</span>
+            </button>
+        </form>
     </div>
 
     {{-- Mobile pill nav --}}
@@ -60,5 +68,11 @@
         <a href="{{ route('customer.orders') }}" class="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm {{ $isOrders ? $pillActive : 'border border-surface-container-highest bg-surface-container-lowest text-on-surface-variant shadow-sm' }}">
             <span class="material-symbols-outlined text-[20px]">receipt_long</span> Pesanan
         </a>
+        <form method="POST" action="{{ route('logout') }}" class="shrink-0">
+            @csrf
+            <button type="submit" class="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-error-container bg-error-container/40 px-5 py-2.5 text-sm text-error shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">logout</span> Log Out
+            </button>
+        </form>
     </div>
 </aside>
