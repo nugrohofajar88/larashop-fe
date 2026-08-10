@@ -4,7 +4,6 @@
     $initial = strtoupper(substr($username, 0, 1));
     $isProfile = request()->routeIs('profile');
     $isAddresses = request()->routeIs('addresses');
-    $isOrders = request()->routeIs('customer.orders.*') || request()->routeIs('customer.orders');
     $pillActive = 'bg-secondary-container text-on-secondary-container font-bold';
     $pillIdle = 'text-on-surface-variant hover:bg-surface-container-low';
 @endphp
@@ -38,15 +37,6 @@
                 </a>
             </nav>
         </div>
-        <div>
-            <p class="mb-3 px-4 font-label-eyebrow text-label-eyebrow uppercase text-outline">Pesanan Saya</p>
-            <nav class="space-y-1">
-                <a href="{{ route('customer.orders') }}" class="flex items-center gap-3 rounded-full px-4 py-3 transition-all {{ $isOrders ? $pillActive : $pillIdle }}">
-                    <span class="material-symbols-outlined" @if($isOrders) style="font-variation-settings: 'FILL' 1;" @endif>receipt_long</span>
-                    <span class="font-body-md text-body-md">Riwayat Pesanan</span>
-                </a>
-            </nav>
-        </div>
         <hr class="my-4 border-surface-container-highest">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
@@ -64,9 +54,6 @@
         </a>
         <a href="{{ route('addresses') }}" class="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm {{ $isAddresses ? $pillActive : 'border border-surface-container-highest bg-surface-container-lowest text-on-surface-variant shadow-sm' }}">
             <span class="material-symbols-outlined text-[20px]">location_on</span> Alamat
-        </a>
-        <a href="{{ route('customer.orders') }}" class="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm {{ $isOrders ? $pillActive : 'border border-surface-container-highest bg-surface-container-lowest text-on-surface-variant shadow-sm' }}">
-            <span class="material-symbols-outlined text-[20px]">receipt_long</span> Pesanan
         </a>
         <form method="POST" action="{{ route('logout') }}" class="shrink-0">
             @csrf
