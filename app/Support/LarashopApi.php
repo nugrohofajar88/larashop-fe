@@ -352,10 +352,12 @@ class LarashopApi
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/retry-booking', timeout: 35);
     }
 
-    public function cancelAdminOrder(int $id): array
+    public function cancelAdminOrder(int $id, ?string $reason = null): array
     {
         // Kalau order sudah di-booking, BE juga membatalkan ke Komerce (timeout 25s).
-        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/cancel', timeout: 35)['data'] ?? [];
+        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/cancel', [
+            'json' => ['reason' => $reason],
+        ], 35)['data'] ?? [];
     }
 
     public function rejectAdminOrderCancellation(int $id): array

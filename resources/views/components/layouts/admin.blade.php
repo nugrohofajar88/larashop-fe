@@ -113,6 +113,21 @@
                 </div>
             </div>
         </div>
+
+        {{-- Modal batalkan order + keterangan. Dipicu form[data-cancel-reason-form].
+             Keterangannya dikirim ke pembeli lewat email & WA notifikasi pembatalan. --}}
+        <div data-cancel-reason-modal class="fixed inset-0 z-[60] hidden items-center justify-center bg-stone-950/40 p-4">
+            <div class="w-full max-w-md rounded-3xl border border-stone-200 bg-white p-6 shadow-2xl">
+                <h3 class="text-lg font-semibold text-stone-950">Batalkan Order</h3>
+                <p class="mt-2 text-sm text-stone-600">Keterangan ini (opsional) akan dikirim ke pembeli lewat email &amp; WA.</p>
+                <textarea data-cancel-reason-input rows="3" placeholder="Contoh: Produk sudah tidak dijual lagi, silakan pesan produk lain."
+                    class="mt-4 w-full rounded-2xl border border-stone-200 px-4 py-3 text-sm text-stone-800 focus:border-rose-400 focus:outline-none"></textarea>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" data-cancel-reason-cancel class="rounded-2xl border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-50">Batal</button>
+                    <button type="button" data-cancel-reason-ok class="rounded-2xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700">Ya, Batalkan Order</button>
+                </div>
+            </div>
+        </div>
         <script>
             (function () {
                 const modal = document.querySelector('[data-confirm-modal]');
@@ -135,6 +150,39 @@
                     open();
                 });
                 okBtn.addEventListener('click', () => { if (pendingForm) pendingForm.submit(); });
+                cancelBtn.addEventListener('click', close);
+                modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            })();
+
+            (function () {
+                const modal = document.querySelector('[data-cancel-reason-modal]');
+                if (!modal) return;
+                const input = modal.querySelector('[data-cancel-reason-input]');
+                const okBtn = modal.querySelector('[data-cancel-reason-ok]');
+                const cancelBtn = modal.querySelector('[data-cancel-reason-cancel]');
+                let pendingForm = null;
+                const open = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.classList.add('overflow-hidden'); input.focus(); };
+                const close = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('overflow-hidden'); pendingForm = null; input.value = ''; };
+                document.addEventListener('submit', (e) => {
+                    const form = e.target;
+                    if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-cancel-reason-form')) return;
+                    e.preventDefault();
+                    pendingForm = form;
+                    open();
+                });
+                okBtn.addEventListener('click', () => {
+                    if (!pendingForm) return;
+                    let hidden = pendingForm.querySelector('input[name="reason"]');
+                    if (!hidden) {
+                        hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'reason';
+                        pendingForm.appendChild(hidden);
+                    }
+                    hidden.value = input.value.trim();
+                    pendingForm.submit();
+                });
                 cancelBtn.addEventListener('click', close);
                 modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
                 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });

@@ -853,10 +853,11 @@ class AdminController extends Controller
         return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Order {$updated['code']} berhasil ditandai selesai.");
     }
 
-    public function cancelOrder(string $code): RedirectResponse
+    public function cancelOrder(Request $request, string $code): RedirectResponse
     {
         $order = $this->findOrderByCode($code);
-        $updated = $this->api->cancelAdminOrder($order['id']);
+        $reason = trim((string) $request->input('reason', ''));
+        $updated = $this->api->cancelAdminOrder($order['id'], $reason !== '' ? $reason : null);
 
         return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Order {$updated['code']} berhasil dibatalkan.");
     }

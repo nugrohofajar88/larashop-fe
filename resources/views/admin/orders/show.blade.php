@@ -66,7 +66,7 @@
                 {{-- Saat ada pengajuan pembatalan, tombol Setujui/Tolak pindah ke banner di bawah
                      supaya deretan aksi atas tidak berantakan. --}}
                 @if (in_array($order['status'], ['pending_payment', 'paid', 'processing'], true) && empty($order['cancel_requested']))
-                    <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}" data-confirm="Batalkan order ini?" data-confirm-title="Batalkan order" data-confirm-ok="Ya, batalkan">
+                    <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}" data-cancel-reason-form>
                         @csrf
                         <button type="submit" class="rounded-2xl bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-700">
                             Batalkan order
@@ -83,7 +83,7 @@
                     Setujui untuk membatalkan order (stok dikembalikan), atau tolak agar order tetap berjalan.
                 </p>
                 <div class="mt-4 flex flex-wrap gap-3">
-                    <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}" data-confirm="Setujui pembatalan order ini? Order akan dibatalkan & stok dikembalikan." data-confirm-title="Setujui pembatalan" data-confirm-ok="Ya, setujui">
+                    <form method="POST" action="{{ route('admin.orders.cancel', $order['code']) }}" data-cancel-reason-form>
                         @csrf
                         <button type="submit" class="rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-700">
                             Setujui pembatalan
