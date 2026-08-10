@@ -7,6 +7,12 @@
         $statusTotal = collect($statuses)->sum('count') ?: 0;
         $produk = $d['produk_terlaris'] ?? [];
         $orders = $d['orders_terbaru'] ?? [];
+        $catatan = $d['catatan_produk'] ?? [];
+        $catatanGroups = [
+            'stok_habis' => ['label' => 'Stok Habis', 'icon' => '📭'],
+            'harga_belum_diset' => ['label' => 'Harga Belum Diset', 'icon' => '💸'],
+            'berat_belum_diset' => ['label' => 'Berat Belum Diset', 'icon' => '⚖️'],
+        ];
 
         // Bangun stop conic-gradient untuk donut status.
         $acc = 0;
@@ -167,5 +173,41 @@
                 </div>
             </section>
         </div>
+
+        {{-- Catatan data produk yang belum lengkap --}}
+        <section class="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-stone-950">Catatan Data Produk</h2>
+            <p class="mt-1 text-sm text-stone-500">Varian produk aktif yang datanya belum lengkap - bisa bikin ongkir/booking ekspedisi gagal.</p>
+
+            <div class="mt-5 grid gap-4 md:grid-cols-3">
+                @foreach ($catatanGroups as $key => $meta)
+                    @php $group = $catatan[$key] ?? ['count' => 0, 'items' => []]; @endphp
+                    <div class="rounded-2xl border border-stone-200 p-4">
+                        <div class="flex items-center gap-2">
+                            <span>{{ $meta['icon'] }}</span>
+                            <p class="text-sm font-semibold text-stone-900">{{ $meta['label'] }}</p>
+                            <span class="ml-auto rounded-full {{ $group['count'] > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700' }} px-2.5 py-0.5 text-xs font-semibold">{{ $group['count'] }}</span>
+                        </div>
+
+                        @if ($group['count'] > 0)
+                            <ul class="mt-3 space-y-2">
+                                @foreach ($group['items'] as $item)
+                                    <li>
+                                        <a href="{{ route('admin.products.edit', $item['sku']) }}" class="block truncate text-sm text-stone-700 hover:text-emerald-700 hover:underline">
+                                            {{ $item['product_name'] }} <span class="text-stone-400">({{ $item['variant_label'] }})</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            @if ($group['count'] > count($group['items']))
+                                <p class="mt-2 text-xs text-stone-400">+{{ $group['count'] - count($group['items']) }} lainnya</p>
+                            @endif
+                        @else
+                            <p class="mt-3 text-sm text-stone-500">Aman, tidak ada catatan. ✅</p>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </section>
     </section>
 </x-layouts.admin>
