@@ -345,6 +345,13 @@ class LarashopApi
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/validate-payment', timeout: 35)['data'] ?? [];
     }
 
+    /** Return utuh (bukan cuma 'data') karena 'message' dipakai buat bedakan berhasil/masih gagal. */
+    public function retryAdminOrderBooking(int $id): array
+    {
+        // Coba lagi createOrder() ke Komerce untuk order yang gagal booking (timeout 25s).
+        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/retry-booking', timeout: 35);
+    }
+
     public function cancelAdminOrder(int $id): array
     {
         // Kalau order sudah di-booking, BE juga membatalkan ke Komerce (timeout 25s).
