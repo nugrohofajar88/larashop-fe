@@ -17,7 +17,6 @@
             $isCatalog = request()->routeIs('home') || request()->routeIs('catalog') || request()->routeIs('products.show');
             $isCart = request()->routeIs('cart');
             $isOrders = request()->routeIs('customer.orders') || request()->routeIs('customer.orders.*');
-            $isAccount = request()->routeIs('profile') || request()->routeIs('addresses') || request()->routeIs('customer.orders') || request()->routeIs('customer.orders.*');
             $navActive = 'text-primary border-b-2 border-primary pb-1 font-bold';
             $navIdle = 'text-on-surface-variant hover:text-primary transition-colors';
         @endphp
@@ -85,9 +84,38 @@
                 {{-- Mobile account / login (bottom nav handles primary nav) --}}
                 <div class="md:hidden">
                     @if (session('customer.user'))
-                        <a href="{{ route('profile') }}" class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary">
-                            {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
-                        </a>
+                        <div class="relative" data-customer-menu>
+                            <button
+                                type="button"
+                                class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-xs font-bold text-on-primary"
+                                data-customer-menu-trigger
+                                aria-expanded="false"
+                            >
+                                {{ strtoupper(substr(data_get(session('customer.user'), 'username', 'P'), 0, 1)) }}
+                            </button>
+
+                            <div
+                                class="absolute right-0 top-full z-40 mt-3 hidden w-60 overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest shadow-[0_20px_50px_rgba(28,25,23,0.15)]"
+                                data-customer-menu-panel
+                            >
+                                <div class="border-b border-outline-variant/20 px-5 py-4">
+                                    <p class="truncate text-body-md font-semibold text-on-surface">{{ data_get(session('customer.user'), 'name', 'Pelanggan') }}</p>
+                                    <p class="mt-0.5 truncate text-body-sm text-on-surface-variant">{{ data_get(session('customer.user'), 'username', '') }}</p>
+                                </div>
+                                <a href="{{ route('profile') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
+                                    <span class="material-symbols-outlined text-xl text-outline">person</span> Profil
+                                </a>
+                                <a href="{{ route('customer.orders') }}" class="flex items-center gap-3 px-5 py-3.5 text-body-md font-medium text-on-surface transition hover:bg-surface-container-low">
+                                    <span class="material-symbols-outlined text-xl text-outline">receipt_long</span> Pesanan Saya
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}" class="border-t border-outline-variant/20">
+                                    @csrf
+                                    <button type="submit" class="flex w-full items-center gap-3 px-5 py-3.5 text-left text-body-md font-medium text-error transition hover:bg-error-container/40">
+                                        <span class="material-symbols-outlined text-xl">logout</span> Log Out
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     @else
                         <a href="{{ route('login') }}" class="rounded-lg bg-on-background px-4 py-1.5 text-body-sm font-medium text-on-primary">Masuk</a>
                     @endif
@@ -123,9 +151,9 @@
                 <span class="text-label-md">Keranjang</span>
                 <span data-cart-badge class="absolute right-2 top-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error {{ $cartCount > 0 ? '' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
             </a>
-            <a href="{{ route('profile') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isAccount ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
-                <span class="material-symbols-outlined">person</span>
-                <span class="text-label-md">Profil</span>
+            <a href="{{ route('customer.orders') }}" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 {{ $isOrders ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant' }}">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span class="text-label-md">Pesanan</span>
             </a>
             <a href="{{ route('home') }}#tentang" class="flex flex-col items-center justify-center gap-0.5 rounded-full px-5 py-1 text-on-surface-variant">
                 <span class="material-symbols-outlined">info</span>
