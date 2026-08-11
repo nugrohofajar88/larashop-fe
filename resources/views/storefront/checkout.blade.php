@@ -68,7 +68,7 @@
                     </article>
                 @endif
 
-                <article class="rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-6 soft-warm-shadow" data-payment-method-section>
+                <article class="rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-6 soft-warm-shadow" data-payment-method-section data-cod-max-amount="{{ $paymentMethods['cod_max_amount'] ?? 5000000 }}">
                     <h2 class="font-headline-md text-headline-md text-on-surface">Metode pembayaran</h2>
                     <div class="mt-4 space-y-3">
                         <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-primary bg-secondary-container/20 px-4 py-4" data-payment-option="transfer">

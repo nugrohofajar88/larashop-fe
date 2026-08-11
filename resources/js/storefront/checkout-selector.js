@@ -11,6 +11,7 @@ export const initCheckoutSelector = () => {
     const paymentMethodField = orderForm?.querySelector('[data-checkout-payment-method]');
     const paymentSection = document.querySelector('[data-payment-method-section]');
     const codOption = paymentSection?.querySelector('[data-payment-option="cod"]');
+    const codMaxAmount = Number(paymentSection?.getAttribute('data-cod-max-amount') || '5000000');
     const totalLabel = summary?.querySelector('[data-summary-total-label]');
     const paymentNote = document.querySelector('[data-payment-note]');
 
@@ -154,17 +155,22 @@ export const initCheckoutSelector = () => {
         }
     };
 
-    const updateCodAvailability = (isCod) => {
+    const updateCodAvailability = (isCod, shippingValue = 0) => {
         if (!codOption) {
             return;
         }
 
-        codOption.classList.toggle('hidden', !isCod);
-        codOption.classList.toggle('flex', isCod);
+        const itemsTotalValue = Number(summary?.getAttribute('data-items-total-value') || '0');
+        const withinCodLimit = (itemsTotalValue + shippingValue) <= codMaxAmount;
+        const show = isCod && withinCodLimit;
 
-        // Kurir baru tidak dukung COD tapi COD masih terpilih -> balik ke Transfer,
-        // jangan biarkan submit dengan metode yang sudah tidak valid.
-        if (!isCod) {
+        codOption.classList.toggle('hidden', !show);
+        codOption.classList.toggle('flex', show);
+
+        // Kurir baru tidak dukung COD (atau total kelewat batas COD) tapi COD masih
+        // terpilih -> balik ke Transfer, jangan biarkan submit dengan metode yang
+        // sudah tidak valid.
+        if (!show) {
             const codInput = codOption.querySelector('[data-payment-input]');
 
             if (codInput?.checked) {
@@ -432,7 +438,7 @@ export const initCheckoutSelector = () => {
             applyButton.parentElement?.classList.toggle('hidden', shippingOptions.length === 0);
         }
 
-        updateCodAvailability(Boolean(selectedShipping?.is_cod));
+        updateCodAvailability(Boolean(selectedShipping?.is_cod), Number(selectedShipping?.price_value || 0));
     };
 
     const refreshCheckout = async (addressId) => {
@@ -533,7 +539,7 @@ export const initCheckoutSelector = () => {
         }
 
         syncOptionStyles(shippingRoot);
-        updateCodAvailability(selected.getAttribute('data-is-cod') === '1');
+        updateCodAvailability(selected.getAttribute('data-is-cod') === '1', shippingValue);
         closeModal(shippingRoot);
     };
 
@@ -572,7 +578,10 @@ export const initCheckoutSelector = () => {
     // lalu re-evaluasi tiap kali radio Transfer/COD diklik langsung.
     if (paymentSection) {
         const initialShippingInput = shippingInputs.find((input) => input.checked);
-        updateCodAvailability(initialShippingInput?.getAttribute('data-is-cod') === '1');
+        updateCodAvailability(
+            initialShippingInput?.getAttribute('data-is-cod') === '1',
+            Number(initialShippingInput?.getAttribute('data-price-value') || '0')
+        );
 
         paymentSection.querySelectorAll('[data-payment-input]').forEach((input) => {
             input.addEventListener('change', () => {

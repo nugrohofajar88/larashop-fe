@@ -311,6 +311,10 @@
                                     </div>
                                     <p class="mt-3 font-body-sm text-xs text-on-surface-variant">Transfer tepat sesuai <span class="font-semibold">Total transfer</span> di atas (termasuk kode unik) lalu konfirmasi via WhatsApp.</p>
                                 </div>
+
+                                <div class="mt-4 rounded-2xl border border-error-container bg-error-container/20 p-4 text-sm font-semibold text-on-error-container">
+                                    ⚠️ JANGAN LUPA konfirmasi pembayaran ke CS setelah transfer. Apabila tidak melakukan konfirmasi pembayaran, pesanan TIDAK AKAN DIPROSES.
+                                </div>
                             @endif
 
                             @php($waNumber = $order['store_whatsapp'] ?? '')
