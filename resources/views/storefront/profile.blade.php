@@ -5,6 +5,17 @@
         <section class="flex-1">
             <h1 class="mb-8 font-headline-lg text-headline-lg text-on-surface">Profil</h1>
 
+            @if (($customer['unique_code_balance_value'] ?? 0) > 0)
+                <div class="mb-8 flex items-center gap-4 rounded-3xl border border-secondary-container bg-secondary-container/30 p-6 soft-warm-shadow">
+                    <span class="material-symbols-outlined text-3xl text-on-secondary-container">savings</span>
+                    <div>
+                        <p class="font-body-sm text-body-sm text-on-secondary-container">Saldo Kode Unik</p>
+                        <p class="font-headline-md text-headline-md font-bold text-on-secondary-container">{{ $customer['unique_code_balance'] }}</p>
+                        <p class="mt-1 font-body-sm text-body-sm text-on-secondary-container/80">Otomatis terpakai buat potong tagihan produk di checkout berikutnya.</p>
+                    </div>
+                </div>
+            @endif
+
             <div class="rounded-3xl border border-surface-container-highest bg-surface-container-lowest p-6 soft-warm-shadow md:p-10">
                 @if (session('success'))
                     <div class="mb-8 flex items-center gap-3 rounded-xl border border-on-secondary-container/10 bg-secondary-container p-4 text-on-secondary-container">
