@@ -41,6 +41,11 @@
                     <label class="{{ $labelClass }}">Email Toko</label>
                     <input type="email" name="store_email" value="{{ old('store_email', $settings['store_email'] ?? '') }}" placeholder="admin@tokomu.id" class="{{ $inputClass }}">
                 </div>
+                <div>
+                    <label class="{{ $labelClass }}">Kode Komoditas LION Parcel</label>
+                    <input type="text" name="lion_commodity_code" value="{{ old('lion_commodity_code', $settings['lion_commodity_code'] ?? 'BPI105') }}" placeholder="BPI105" class="{{ $inputClass }} uppercase">
+                    <p class="mt-1 text-xs text-stone-400">Wajib diisi khusus booking via kurir LION - kalau kosong, Komerce otomatis anggap "Aksesoris & Barang Pribadi" (salah kategori untuk produk kita).</p>
+                </div>
             </div>
 
             <label class="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">

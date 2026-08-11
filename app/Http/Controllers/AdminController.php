@@ -998,6 +998,7 @@ class AdminController extends Controller
             'store_whatsapp' => ['nullable', 'string', 'max:20'],
             'store_brand' => ['nullable', 'string', 'max:100'],
             'store_email' => ['nullable', 'email', 'max:100'],
+            'lion_commodity_code' => ['nullable', 'string', 'max:20'],
             'unique_code_enabled' => ['nullable', 'boolean'],
             'payment_transfer_enabled' => ['nullable', 'boolean'],
             'payment_qris_enabled' => ['nullable', 'boolean'],
