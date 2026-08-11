@@ -170,7 +170,12 @@
                                 ⏳ Permintaan pembatalan kamu sedang <span class="font-semibold text-on-surface">menunggu konfirmasi admin</span>.
                             </div>
                         @elseif (! empty($order['can_cancel']))
-                            @php $isPending = ($order['status'] ?? '') === 'pending_payment'; @endphp
+                            @php
+                                // pending_payment (belum bayar) DAN COD berstatus paid yang belum
+                                // diproses admin (uang belum benar-benar diterima) -> batal langsung.
+                                $isPending = ($order['status'] ?? '') === 'pending_payment'
+                                    || (($order['status'] ?? '') === 'paid' && ($order['payment']['method'] ?? '') === 'COD');
+                            @endphp
                             <form action="{{ route('customer.orders.cancel', $order['code']) }}" method="POST" class="mt-4"
                                   data-confirm="{{ $isPending ? 'Yakin batalkan pesanan ini? Tindakan ini tidak bisa dibatalkan.' : 'Ajukan pembatalan pesanan ini? Pesanan sudah dibayar sehingga perlu ditinjau admin dulu.' }}"
                                   data-confirm-title="{{ $isPending ? 'Batalkan pesanan' : 'Ajukan pembatalan' }}"
