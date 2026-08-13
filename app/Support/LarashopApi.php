@@ -334,7 +334,11 @@ class LarashopApi
         return $this->requestAsAdmin('GET', '/admin/dashboard')['data'] ?? [];
     }
 
-    /** Return utuh (data + meta) karena meta berisi total per kartu ringkasan. */
+    /**
+     * Return utuh (data + meta) karena meta berisi total per kartu ringkasan,
+     * termasuk potential_income (snapshot COD in-transit, independen dari
+     * filter month/paymentMethod di parameter - selalu real-time).
+     */
     public function adminAccounting(?string $month = null, string $mode = 'seller', string $paymentMethod = 'all'): array
     {
         return $this->requestAsAdmin('GET', '/admin/accounting', [

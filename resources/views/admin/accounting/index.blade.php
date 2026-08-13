@@ -109,6 +109,22 @@
             </article>
         </div>
 
+        {{-- Snapshot real-time, BUKAN bagian dari rekap bulan/filter di atas - sengaja
+             dikasih visual beda (amber) + border putus-putus supaya jelas ini angka
+             lain sumbernya, tidak boleh dijumlah ke Total Net / kartu-kartu di atas. --}}
+        <article class="rounded-[1.5rem] border-2 border-dashed border-amber-300 bg-amber-50 p-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <p class="text-sm font-semibold text-amber-800">📦 Sedang di Perjalanan (COD)</p>
+                    <p class="mt-3 text-2xl font-semibold tracking-tight text-amber-900">{{ $meta['potential_income'] ?? 'Rp0' }}</p>
+                    <p class="mt-1 text-xs text-amber-700">{{ $meta['potential_income_count'] ?? 0 }} order COD masih dikirim (belum ditandai selesai)</p>
+                </div>
+                <p class="max-w-sm text-xs leading-5 text-amber-700">
+                    Snapshot <b>saat ini</b>, di luar filter bulan &amp; metode pembayaran di atas - <b>bukan</b> bagian dari Total Net atau kartu lain. Uangnya masih dipegang kurir, baru masuk setelah order ditandai selesai. Setara "Potential Income" di dashboard RajaOngkir/Komerce.
+                </p>
+            </div>
+        </article>
+
         <section class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
             <div class="flex items-center justify-between">
                 <div>
