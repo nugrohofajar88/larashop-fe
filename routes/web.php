@@ -49,6 +49,7 @@ Route::prefix('admin')->group(function (): void {
 
 Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/accounting', [AdminController::class, 'accounting'])->name('admin.accounting');
     Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
     Route::get('/accounts', [AdminController::class, 'accounts'])->name('admin.accounts.index');
     Route::get('/accounts/create', [AdminController::class, 'createAccount'])->name('admin.accounts.create');

@@ -26,6 +26,17 @@ class AdminController extends Controller
         ]);
     }
 
+    public function accounting(Request $request): View
+    {
+        $month = trim((string) $request->query('month', ''));
+        $result = $this->api->adminAccounting($month !== '' ? $month : null);
+
+        return view('admin.accounting.index', [
+            'orders' => $result['data'] ?? [],
+            'meta' => $result['meta'] ?? [],
+        ]);
+    }
+
     public function login(): View|RedirectResponse
     {
         if (session('admin.authenticated')) {
