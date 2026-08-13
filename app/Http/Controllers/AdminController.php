@@ -30,7 +30,8 @@ class AdminController extends Controller
     {
         $month = trim((string) $request->query('month', ''));
         $mode = $request->query('mode') === 'buyer' ? 'buyer' : 'seller';
-        $result = $this->api->adminAccounting($month !== '' ? $month : null, $mode);
+        $paymentMethod = in_array($request->query('payment_method'), ['cod', 'transfer', 'qris'], true) ? $request->query('payment_method') : 'all';
+        $result = $this->api->adminAccounting($month !== '' ? $month : null, $mode, $paymentMethod);
 
         return view('admin.accounting.index', [
             'orders' => $result['data'] ?? [],

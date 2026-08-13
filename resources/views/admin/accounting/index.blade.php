@@ -1,6 +1,26 @@
 <x-layouts.admin title="Admin Sobat Akar Tani Kimia | Akuntansi">
     <section class="space-y-6">
         @php($mode = $meta['mode'] ?? 'seller')
+        @php($paymentMethod = $meta['payment_method'] ?? 'all')
+        @php($paymentMethodOptions = ['all' => 'ALL', 'cod' => 'COD', 'transfer' => 'TRANSFER', 'qris' => 'QRIS'])
+
+        <form method="GET" action="{{ route('admin.accounting') }}" class="rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm" data-accounting-payment-method-form>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Metode Pembayaran</p>
+            <div class="mt-2 flex flex-wrap gap-3">
+                @foreach ($paymentMethodOptions as $value => $label)
+                    <label class="flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-medium {{ $paymentMethod === $value ? 'border-emerald-600 bg-emerald-50 text-emerald-700' : 'border-stone-200 text-stone-600' }}">
+                        <input type="radio" name="payment_method" value="{{ $value }}" {{ $paymentMethod === $value ? 'checked' : '' }} onchange="this.form.submit()" class="h-4 w-4 text-emerald-600">
+                        {{ $label }}
+                    </label>
+                @endforeach
+            </div>
+            @if (! empty($meta['month']))
+                <input type="hidden" name="month" value="{{ $meta['month'] }}">
+            @endif
+            @if ($mode !== 'seller')
+                <input type="hidden" name="mode" value="{{ $mode }}">
+            @endif
+        </form>
 
         <form method="GET" action="{{ route('admin.accounting') }}" class="rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm" data-accounting-mode-form>
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Mode Cashback Ongkir</p>
@@ -24,6 +44,9 @@
             @if (! empty($meta['month']))
                 <input type="hidden" name="month" value="{{ $meta['month'] }}">
             @endif
+            @if ($paymentMethod !== 'all')
+                <input type="hidden" name="payment_method" value="{{ $paymentMethod }}">
+            @endif
         </form>
 
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -42,6 +65,9 @@
                 </div>
                 @if ($mode !== 'seller')
                     <input type="hidden" name="mode" value="{{ $mode }}">
+                @endif
+                @if ($paymentMethod !== 'all')
+                    <input type="hidden" name="payment_method" value="{{ $paymentMethod }}">
                 @endif
                 <button type="submit" class="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white">Tampilkan</button>
             </form>
