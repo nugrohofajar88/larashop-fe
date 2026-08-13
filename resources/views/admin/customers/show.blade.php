@@ -76,6 +76,30 @@
                         </a>
                     </x-slot:actions>
                 </x-admin.address-book>
+
+                <x-admin.form-section title="Riwayat saldo" description="Penerimaan (dari sisa kode unik order yang sudah selesai) dan penggunaan saldo customer.">
+                    <div class="mt-5 space-y-2">
+                        @forelse ($customer['balance_ledger'] as $entry)
+                            <div class="flex items-center justify-between gap-3 rounded-2xl border border-stone-200 px-4 py-3">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-stone-900">
+                                        {{ $entry['type_label'] }}
+                                        @if ($entry['order_code'])
+                                            <span class="text-stone-500">· {{ $entry['order_code'] }}</span>
+                                        @endif
+                                    </p>
+                                    <p class="mt-0.5 text-xs text-stone-500">{{ $entry['date'] }}</p>
+                                    @if (! $entry['counted'])
+                                        <p class="mt-1 text-xs font-medium text-amber-700">⏳ Belum dihitung ke saldo - order belum selesai ({{ $entry['order_status'] }})</p>
+                                    @endif
+                                </div>
+                                <span class="shrink-0 font-semibold {{ $entry['type'] === 'used' ? 'text-rose-600' : 'text-emerald-700' }}">{{ $entry['value_signed'] }}</span>
+                            </div>
+                        @empty
+                            <p class="rounded-2xl border border-dashed border-stone-300 px-4 py-6 text-center text-sm text-stone-500">Belum ada riwayat saldo untuk customer ini.</p>
+                        @endforelse
+                    </div>
+                </x-admin.form-section>
             </div>
 
             <aside class="space-y-6">
@@ -88,6 +112,10 @@
                         <div class="flex items-center justify-between rounded-2xl bg-stone-50 px-4 py-4">
                             <span class="text-stone-500">Total belanja</span>
                             <span class="font-semibold text-stone-900">{{ $customer['total_spent'] }}</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-4">
+                            <span class="text-stone-600">Saldo tersedia</span>
+                            <span class="font-semibold {{ ($customer['unique_code_balance_value'] ?? 0) > 0 ? 'text-emerald-700' : 'text-stone-500' }}">{{ $customer['unique_code_balance'] }}</span>
                         </div>
                     </div>
                 </x-admin.form-section>

@@ -73,6 +73,7 @@
                             <th class="px-4 py-3 font-medium">Alamat</th>
                             <th class="px-4 py-3 font-medium">Ringkasan</th>
                             <th class="px-4 py-3 font-medium">Order</th>
+                            <th class="px-4 py-3 font-medium">Saldo</th>
                             <th class="px-4 py-3 font-medium">Status</th>
                             <th class="px-4 py-3 font-medium">Aksi</th>
                         </tr>
@@ -105,6 +106,9 @@
                                     <p class="mt-1 text-xs text-stone-500">{{ $customer['total_spent'] }}</p>
                                 </td>
                                 <td class="px-4 py-4 align-top">
+                                    <span class="font-semibold {{ ($customer['unique_code_balance_value'] ?? 0) > 0 ? 'text-emerald-700' : 'text-stone-500' }}">{{ $customer['unique_code_balance'] }}</span>
+                                </td>
+                                <td class="px-4 py-4 align-top">
                                     <span class="rounded-full {{ $customer['status'] === 'Aktif' ? 'bg-emerald-100 text-emerald-700' : ($customer['status'] === 'Menunggu verifikasi' ? 'bg-amber-100 text-amber-800' : 'bg-stone-100 text-stone-700') }} px-3 py-1 text-xs font-semibold">
                                         {{ $customer['status'] }}
                                     </span>
@@ -118,7 +122,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada customer yang cocok dengan filter saat ini.</td>
+                                <td colspan="9" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada customer yang cocok dengan filter saat ini.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -155,6 +159,10 @@
                             <div class="flex items-start justify-between gap-3">
                                 <dt class="text-stone-500">Order</dt>
                                 <dd class="text-right text-stone-800">{{ $customer['total_orders'] }} order<span class="block text-xs text-stone-500">{{ $customer['total_spent'] }}</span></dd>
+                            </div>
+                            <div class="flex items-start justify-between gap-3">
+                                <dt class="text-stone-500">Saldo</dt>
+                                <dd class="text-right font-semibold {{ ($customer['unique_code_balance_value'] ?? 0) > 0 ? 'text-emerald-700' : 'text-stone-500' }}">{{ $customer['unique_code_balance'] }}</dd>
                             </div>
                         </dl>
                         <div class="mt-3 flex gap-2">

@@ -1409,6 +1409,8 @@ class AdminController extends Controller
             'last_order' => '-',
             'total_orders' => 0,
             'total_spent' => 'Rp0',
+            'unique_code_balance' => $customer['unique_code_balance'] ?? 'Rp0',
+            'unique_code_balance_value' => $customer['unique_code_balance_value'] ?? 0,
         ];
     }
 
@@ -1434,6 +1436,7 @@ class AdminController extends Controller
             ->values()
             ->all();
         $summary['address_count'] = count($summary['addresses']);
+        $summary['balance_ledger'] = $customer['balance_ledger'] ?? [];
 
         return $summary;
     }
