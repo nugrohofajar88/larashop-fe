@@ -20,7 +20,7 @@
             @endforeach
         </div>
 
-        <section class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
+        <section id="daftar-order" class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm scroll-mt-4">
             <form class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between" method="GET" action="{{ route('admin.orders.index') }}">
                 <div>
                     <h2 class="text-xl font-semibold text-stone-950">Daftar order</h2>
@@ -46,7 +46,7 @@
                 <div class="inline-flex min-w-full gap-2 rounded-[1.5rem] border border-stone-200 bg-stone-50/80 p-2">
                     @foreach ($statusTabs as $tab)
                         <a
-                            href="{{ route('admin.orders.index', array_filter(['status' => $tab['key'] === 'all' ? null : $tab['key'], 'search' => $search !== '' ? $search : null])) }}"
+                            href="{{ route('admin.orders.index', array_filter(['status' => $tab['key'] === 'all' ? null : $tab['key'], 'search' => $search !== '' ? $search : null])) }}#daftar-order"
                             class="whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-semibold transition {{ $activeStatus === $tab['key'] ? 'bg-stone-900 text-white shadow-sm' : 'text-stone-600 hover:bg-white hover:text-stone-900' }}"
                         >
                             {{ $tab['label'] }} ({{ $tab['count'] }})
