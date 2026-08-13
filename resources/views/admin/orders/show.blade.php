@@ -55,13 +55,13 @@
                        class="inline-flex items-center gap-2 rounded-2xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700">
                         🖨️ Cetak Label
                     </a>
-                    {{-- Tombol Label DIY disembunyikan dulu (label resmi Komerce yang dipakai).
-                         Aktifkan lagi kalau perlu cadangan tanpa kode sortir.
+                    {{-- Packing list internal (isi paket per baris, bukan pengganti label resmi -
+                         label DIY ini TIDAK punya kode sortir kurir, jangan ditempel ke paket). --}}
                     <a href="{{ route('admin.orders.label-diy', $order['code']) }}" target="_blank" rel="noopener"
+                       title="Packing list internal (bukan pengganti label resmi - tidak ada kode sortir kurir)"
                        class="inline-flex items-center gap-2 rounded-2xl border border-sky-600 px-5 py-3 text-sm font-semibold text-sky-700 hover:bg-sky-50">
-                        🧪 Cetak Label (DIY)
+                        📋 Packing List
                     </a>
-                    --}}
                 @endif
                 {{-- Saat ada pengajuan pembatalan, tombol Setujui/Tolak pindah ke banner di bawah
                      supaya deretan aksi atas tidak berantakan. --}}
