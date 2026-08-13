@@ -103,6 +103,7 @@
                             <th class="px-4 py-3 font-medium text-right">Shipping Fee</th>
                             <th class="px-4 py-3 font-medium text-right">Fee COD</th>
                             <th class="px-4 py-3 font-medium text-right">Cashback</th>
+                            <th class="px-4 py-3 font-medium text-right">Kode Unik</th>
                             <th class="px-4 py-3 font-medium text-right">Net</th>
                             <th class="px-4 py-3 font-medium text-center">Status</th>
                         </tr>
@@ -110,6 +111,7 @@
                     <tbody class="divide-y divide-stone-200 bg-white">
                         @forelse ($orders as $order)
                             @php($netClass = $order['net_value'] > 0 ? 'text-emerald-700' : ($order['net_value'] < 0 ? 'text-rose-600' : 'text-stone-900'))
+                            @php($statusClass = $order['status'] === 'CUAN' ? 'bg-emerald-100 text-emerald-700' : ($order['status'] === 'BONCOS' ? 'bg-rose-100 text-rose-700' : 'bg-stone-100 text-stone-600'))
                             <tr>
                                 <td class="px-4 py-3">
                                     <p class="font-semibold text-stone-900">{{ $order['code'] }}{{ !empty($order['awb']) ? ' ('.$order['awb'].')' : '' }}</p>
@@ -121,14 +123,15 @@
                                 <td class="px-4 py-3 text-right text-stone-600">{{ $order['shipping_total'] }}</td>
                                 <td class="px-4 py-3 text-right text-stone-600">{{ $order['cod_service_fee'] }}</td>
                                 <td class="px-4 py-3 text-right text-stone-600">{{ $order['shipping_cashback'] }}</td>
+                                <td class="px-4 py-3 text-right text-stone-600">{{ $order['unique_code_pembeli'] }}</td>
                                 <td class="px-4 py-3 text-right font-semibold {{ $netClass }}">{{ $order['net'] }}</td>
                                 <td class="px-4 py-3 text-center">
-                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $order['status'] === 'CUAN' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">{{ $order['status'] }}</span>
+                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">{{ $order['status'] }}</span>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada order pada bulan ini.</td>
+                                <td colspan="10" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada order pada bulan ini.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -139,13 +142,14 @@
             <div class="mt-5 space-y-3 md:hidden">
                 @forelse ($orders as $order)
                     @php($netClass = $order['net_value'] > 0 ? 'text-emerald-700' : ($order['net_value'] < 0 ? 'text-rose-600' : 'text-stone-900'))
+                    @php($statusClass = $order['status'] === 'CUAN' ? 'bg-emerald-100 text-emerald-700' : ($order['status'] === 'BONCOS' ? 'bg-rose-100 text-rose-700' : 'bg-stone-100 text-stone-600'))
                     <article class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <p class="font-semibold text-stone-900">{{ $order['code'] }}{{ !empty($order['awb']) ? ' ('.$order['awb'].')' : '' }}</p>
                                 <p class="mt-0.5 text-xs text-stone-500">{{ $order['date'] }} · {{ $order['payment_method'] }}</p>
                             </div>
-                            <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold {{ $order['status'] === 'CUAN' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">{{ $order['status'] }}</span>
+                            <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClass }}">{{ $order['status'] }}</span>
                         </div>
                         <dl class="mt-3 space-y-1.5 text-sm">
                             <div class="flex items-center justify-between"><dt class="text-stone-500">Gross</dt><dd class="text-stone-800">{{ $order['gross'] }}</dd></div>
@@ -153,6 +157,7 @@
                             <div class="flex items-center justify-between"><dt class="text-stone-500">Shipping Fee</dt><dd class="text-stone-600">{{ $order['shipping_total'] }}</dd></div>
                             <div class="flex items-center justify-between"><dt class="text-stone-500">Fee COD</dt><dd class="text-stone-600">{{ $order['cod_service_fee'] }}</dd></div>
                             <div class="flex items-center justify-between"><dt class="text-stone-500">Cashback</dt><dd class="text-stone-600">{{ $order['shipping_cashback'] }}</dd></div>
+                            <div class="flex items-center justify-between"><dt class="text-stone-500">Kode Unik</dt><dd class="text-stone-600">{{ $order['unique_code_pembeli'] }}</dd></div>
                             <div class="flex items-center justify-between border-t border-stone-100 pt-1.5"><dt class="font-medium text-stone-700">Net</dt><dd class="font-semibold {{ $netClass }}">{{ $order['net'] }}</dd></div>
                         </dl>
                     </article>
