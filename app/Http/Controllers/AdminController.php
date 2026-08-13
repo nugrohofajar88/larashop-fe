@@ -29,7 +29,8 @@ class AdminController extends Controller
     public function accounting(Request $request): View
     {
         $month = trim((string) $request->query('month', ''));
-        $result = $this->api->adminAccounting($month !== '' ? $month : null);
+        $mode = $request->query('mode') === 'buyer' ? 'buyer' : 'seller';
+        $result = $this->api->adminAccounting($month !== '' ? $month : null, $mode);
 
         return view('admin.accounting.index', [
             'orders' => $result['data'] ?? [],

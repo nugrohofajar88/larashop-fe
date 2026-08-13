@@ -335,10 +335,10 @@ class LarashopApi
     }
 
     /** Return utuh (data + meta) karena meta berisi total per kartu ringkasan. */
-    public function adminAccounting(?string $month = null): array
+    public function adminAccounting(?string $month = null, string $mode = 'seller'): array
     {
         return $this->requestAsAdmin('GET', '/admin/accounting', [
-            'query' => array_filter(['month' => $month]),
+            'query' => array_filter(['month' => $month, 'mode' => $mode !== 'seller' ? $mode : null]),
         ]);
     }
 

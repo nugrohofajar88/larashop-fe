@@ -1,5 +1,31 @@
 <x-layouts.admin title="Admin Sobat Akar Tani Kimia | Akuntansi">
     <section class="space-y-6">
+        @php($mode = $meta['mode'] ?? 'seller')
+
+        <form method="GET" action="{{ route('admin.accounting') }}" class="rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm" data-accounting-mode-form>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Mode Cashback Ongkir</p>
+            <div class="mt-2 flex flex-wrap gap-3">
+                <label class="flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-medium {{ $mode === 'seller' ? 'border-emerald-600 bg-emerald-50 text-emerald-700' : 'border-stone-200 text-stone-600' }}">
+                    <input type="radio" name="mode" value="seller" {{ $mode === 'seller' ? 'checked' : '' }} onchange="this.form.submit()" class="h-4 w-4 text-emerald-600">
+                    Cashback untuk Penjual
+                </label>
+                <label class="flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-medium {{ $mode === 'buyer' ? 'border-emerald-600 bg-emerald-50 text-emerald-700' : 'border-stone-200 text-stone-600' }}">
+                    <input type="radio" name="mode" value="buyer" {{ $mode === 'buyer' ? 'checked' : '' }} onchange="this.form.submit()" class="h-4 w-4 text-emerald-600">
+                    Cashback untuk Pembeli
+                </label>
+            </div>
+            <p class="mt-2 text-xs text-stone-500">
+                @if ($mode === 'buyer')
+                    Cashback ongkir dianggap dikasihkan ke pembeli - <b>tidak</b> ikut dihitung sebagai keuntungan penjual.
+                @else
+                    Cashback ongkir tetap jadi keuntungan penjual (kondisi saat ini).
+                @endif
+            </p>
+            @if (! empty($meta['month']))
+                <input type="hidden" name="month" value="{{ $meta['month'] }}">
+            @endif
+        </form>
+
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-700">Admin Akuntansi</p>
@@ -14,8 +40,27 @@
                     <label class="block text-xs font-medium text-stone-600">Bulan</label>
                     <input type="month" name="month" value="{{ $meta['month'] ?? '' }}" class="mt-1 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-stone-800 outline-none focus:border-emerald-500 focus:bg-white">
                 </div>
+                @if ($mode !== 'seller')
+                    <input type="hidden" name="mode" value="{{ $mode }}">
+                @endif
                 <button type="submit" class="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white">Tampilkan</button>
             </form>
+        </div>
+
+        {{-- Ringkasan CUAN/BONCOS untuk mode yang sedang dipilih --}}
+        <div class="grid gap-4 sm:grid-cols-3">
+            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
+                <p class="text-sm text-stone-500">Total Net ({{ $mode === 'buyer' ? 'kalau cashback ke pembeli' : 'cashback ke penjual' }})</p>
+                <p class="mt-3 text-2xl font-semibold tracking-tight {{ ($meta['total_net_value'] ?? 0) > 0 ? 'text-emerald-700' : (($meta['total_net_value'] ?? 0) < 0 ? 'text-rose-600' : 'text-stone-950') }}">{{ $meta['total_net'] ?? 'Rp0' }}</p>
+            </article>
+            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
+                <p class="text-sm text-stone-500">Order CUAN</p>
+                <p class="mt-3 text-2xl font-semibold tracking-tight text-emerald-700">{{ $meta['cuan_count'] ?? 0 }}</p>
+            </article>
+            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
+                <p class="text-sm text-stone-500">Order BONCOS</p>
+                <p class="mt-3 text-2xl font-semibold tracking-tight text-rose-600">{{ $meta['boncos_count'] ?? 0 }}</p>
+            </article>
         </div>
 
         {{-- Kartu total --}}
