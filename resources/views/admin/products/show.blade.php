@@ -126,7 +126,7 @@
                     <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                         <div class="rounded-2xl bg-stone-50 px-4 py-4">
                             <p class="text-xs uppercase tracking-[0.18em] text-stone-500">Berat</p>
-                            <p class="mt-2 font-semibold text-stone-900">{{ $product['weight'] }}</p>
+                            <p class="mt-2 font-semibold text-stone-900">{{ $product['weight_grams'] ? number_format($product['weight_grams'], 0, ',', '.') . ' gram' : '-' }}</p>
                         </div>
                         <div class="rounded-2xl bg-stone-50 px-4 py-4">
                             <p class="text-xs uppercase tracking-[0.18em] text-stone-500">Panjang</p>

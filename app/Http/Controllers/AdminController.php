@@ -1295,6 +1295,7 @@ class AdminController extends Controller
             'price_value' => $product['price_value'] ?? (int) preg_replace('/\D/', '', $product['price']),
             'stock' => $product['stock'],
             'weight' => $product['weight_label'] ?? '-',
+            'weight_grams' => $product['weight_grams'] ?? null,
             'dimension' => $product['dimension'] ?? 'Belum diatur',
             'length' => (string) ($product['length_cm'] ?? 0),
             'width' => (string) ($product['width_cm'] ?? 0),
