@@ -55,6 +55,9 @@
                                 <div class="flex flex-col">
                                     <span class="font-body-sm text-stone-400">{{ $item['price'] }} / unit</span>
                                     <span class="font-headline-md font-bold text-larashop-rose" data-cart-subtotal>{{ $item['subtotal'] }}</span>
+                                    @if (! empty($item['price_changed']))
+                                        <span class="mt-0.5 font-body-sm text-xs font-semibold text-error">Harga berubah, sudah disesuaikan</span>
+                                    @endif
                                 </div>
 
                                 <div class="flex items-center rounded-full bg-surface-container-low px-2 py-1">
