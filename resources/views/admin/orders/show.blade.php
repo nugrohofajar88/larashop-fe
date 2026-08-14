@@ -225,6 +225,10 @@
                             <p class="text-stone-500">Order ID Komerce</p>
                             <p class="mt-1 font-mono text-sm font-semibold text-stone-900">{{ $order['shipping']['komerce_order_no'] ?? 'Belum di-booking' }}</p>
                         </div>
+                        <div class="rounded-2xl bg-stone-50 px-4 py-4">
+                            <p class="text-stone-500">Status Cetak Label</p>
+                            <p class="mt-1 font-semibold {{ ! empty($order['is_printed']) ? 'text-emerald-700' : 'text-stone-900' }}">{{ $order['printed_label'] ?? 'Belum dicetak' }}</p>
+                        </div>
                         @if (! empty($order['shipping']['note']))
                             <div class="rounded-2xl bg-amber-50 px-4 py-4">
                                 <p class="text-amber-700">Catatan pengiriman</p>
