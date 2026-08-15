@@ -3,9 +3,9 @@
     'formAddressId' => '',
 ])
 
-<div class="fixed inset-0 z-[60] hidden p-3 backdrop-blur-sm sm:p-6" style="background-color: rgba(12,10,9,0.35);" data-address-modal aria-hidden="true">
-    <div class="mx-auto flex min-h-full max-w-2xl items-center justify-center">
-        <section class="max-h-[92vh] w-full overflow-hidden rounded-3xl border border-surface-container-highest bg-surface-container-lowest shadow-2xl" data-address-modal-panel>
+<div class="fixed inset-0 z-[60] hidden overflow-y-auto p-3 backdrop-blur-sm sm:p-6" style="background-color: rgba(12,10,9,0.35);" data-address-modal aria-hidden="true">
+    <div class="mx-auto flex min-h-full max-w-2xl items-start justify-center py-6 sm:items-center">
+        <section class="w-full overflow-hidden rounded-3xl border border-surface-container-highest bg-surface-container-lowest shadow-2xl" data-address-modal-panel>
             <div class="flex items-start justify-between gap-4 border-b border-surface-container-highest px-5 py-5 sm:px-6">
                 <div>
                     <h3 class="font-headline-md text-headline-md text-on-surface" data-address-modal-title>Tambah alamat baru</h3>
@@ -16,7 +16,7 @@
                 </button>
             </div>
 
-            <div class="max-h-[calc(92vh-84px)] overflow-y-auto px-5 py-5 sm:px-6">
+            <div class="px-5 py-5 sm:px-6">
                 <form method="POST" action="{{ route('addresses.save') }}" class="grid gap-4" data-address-modal-form>
                     @csrf
                     <input type="hidden" name="_address_mode" value="{{ $formMode }}" data-address-mode-field>
