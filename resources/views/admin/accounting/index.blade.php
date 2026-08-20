@@ -112,6 +112,10 @@
                         <dt class="text-stone-500">Total Service Charge COD</dt>
                         <dd class="font-medium text-rose-600">{{ $fmtRp(-$codVal) }}</dd>
                     </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <dt class="text-stone-500">Total Cashback{{ $mode === 'buyer' ? ' (ke pembeli)' : '' }}</dt>
+                        <dd class="font-medium text-emerald-700">{{ $fmtRp($cashbackVal) }}</dd>
+                    </div>
                 </dl>
 
                 <div class="my-5 border-t border-dashed border-stone-200"></div>
