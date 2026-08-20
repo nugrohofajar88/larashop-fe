@@ -381,6 +381,12 @@ class LarashopApi
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/reject-cancellation')['data'] ?? [];
     }
 
+    /** Cuma boleh untuk order yang belum di-booking (BE yang menegakkan). */
+    public function updateAdminOrderRecipient(int $id, array $payload): array
+    {
+        return $this->requestAsAdmin('PUT', '/admin/orders/'.$id.'/recipient', ['json' => $payload])['data'] ?? [];
+    }
+
     public function processAdminOrderShipment(int $id): array
     {
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/process-shipment')['data'] ?? [];

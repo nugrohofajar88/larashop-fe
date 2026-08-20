@@ -227,6 +227,24 @@
                                     -
                                 @endif
                             </p>
+
+                            @if (empty($order['awb']))
+                                <details class="mt-3">
+                                    <summary class="cursor-pointer text-xs font-semibold text-sky-700">Perbaiki data penerima</summary>
+                                    <form method="POST" action="{{ route('admin.orders.update-recipient', $order['code']) }}" class="mt-3 space-y-2">
+                                        @csrf
+                                        <div>
+                                            <label class="block text-xs font-medium text-stone-600">Nama penerima</label>
+                                            <input type="text" name="recipient_name" value="{{ old('recipient_name', $order['shipping']['recipient_name'] ?? '') }}" required maxlength="255" class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 outline-none focus:border-emerald-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-stone-600">Nomor HP penerima</label>
+                                            <input type="text" name="recipient_phone" value="{{ old('recipient_phone', $recipientPhone) }}" required maxlength="20" class="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 outline-none focus:border-emerald-500">
+                                        </div>
+                                        <button type="submit" class="rounded-xl bg-stone-900 px-4 py-2 text-xs font-semibold text-white">Simpan perubahan</button>
+                                    </form>
+                                </details>
+                            @endif
                         </div>
                         <div class="rounded-2xl bg-stone-50 px-4 py-4">
                             <p class="text-stone-500">Layanan</p>

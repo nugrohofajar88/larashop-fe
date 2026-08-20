@@ -80,6 +80,7 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/orders/{code}', [AdminController::class, 'showOrder'])->name('admin.orders.show');
     Route::post('/orders/{code}/validate-payment', [AdminController::class, 'validatePayment'])->name('admin.orders.validate-payment');
     Route::post('/orders/{code}/retry-booking', [AdminController::class, 'retryBooking'])->name('admin.orders.retry-booking');
+    Route::post('/orders/{code}/recipient', [AdminController::class, 'updateRecipient'])->name('admin.orders.update-recipient');
     Route::post('/orders/{code}/cancel', [AdminController::class, 'cancelOrder'])->name('admin.orders.cancel');
     Route::post('/orders/{code}/reject-cancellation', [AdminController::class, 'rejectOrderCancellation'])->name('admin.orders.reject-cancellation');
     Route::post('/orders/{code}/process-shipment', [AdminController::class, 'processShipment'])->name('admin.orders.process-shipment');

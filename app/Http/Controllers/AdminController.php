@@ -664,6 +664,24 @@ class AdminController extends Controller
         return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Pembayaran order {$updated['code']} berhasil divalidasi.");
     }
 
+    public function updateRecipient(Request $request, string $code): RedirectResponse
+    {
+        $validated = $request->validate([
+            'recipient_name' => ['required', 'string', 'max:255'],
+            'recipient_phone' => ['required', 'string', 'max:20'],
+        ]);
+
+        $order = $this->findOrderByCode($code);
+
+        try {
+            $this->api->updateAdminOrderRecipient($order['id'], $validated);
+        } catch (LarashopApiException $exception) {
+            return redirect()->route('admin.orders.show', $code)->with('error', $exception->getMessage());
+        }
+
+        return redirect()->route('admin.orders.show', $code)->with('success', 'Data penerima berhasil diperbarui.');
+    }
+
     public function retryBooking(string $code): RedirectResponse
     {
         $order = $this->findOrderByCode($code);
