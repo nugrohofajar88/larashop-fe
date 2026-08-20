@@ -88,20 +88,26 @@
                     <table class="min-w-full text-left text-sm">
                         <thead class="bg-stone-50 text-stone-500">
                             <tr>
-                                <th class="px-4 py-3 font-medium">Order</th>
                                 <th class="px-4 py-3 font-medium">Pelanggan</th>
+                                <th class="px-4 py-3 font-medium">Order</th>
+                                <th class="px-4 py-3 font-medium">Komerce Order No</th>
                                 <th class="px-4 py-3 font-medium">AWB</th>
                                 <th class="px-4 py-3 font-medium">Tanggal</th>
                                 <th class="px-4 py-3 font-medium text-right">Biaya Retry</th>
+                                <th class="px-4 py-3 font-medium text-right">Banyak Retry</th>
+                                <th class="px-4 py-3 font-medium text-right">Total</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-stone-200 bg-white">
                             @foreach ($retryFees as $item)
                                 <tr>
-                                    <td class="px-4 py-3 font-medium text-stone-900">{{ $item['code'] }}</td>
                                     <td class="px-4 py-3 text-stone-600">{{ $item['recipient_name'] ?: '-' }}</td>
+                                    <td class="px-4 py-3 font-medium text-stone-900">{{ $item['code'] }}</td>
+                                    <td class="px-4 py-3 text-stone-600">{{ $item['komerce_order_no'] ?: '-' }}</td>
                                     <td class="px-4 py-3 text-stone-600">{{ $item['awb'] ?: '-' }}</td>
                                     <td class="px-4 py-3 text-stone-500">{{ $item['date'] }}</td>
+                                    <td class="px-4 py-3 text-right text-stone-700">{{ $item['fee_per_retry'] }}</td>
+                                    <td class="px-4 py-3 text-right text-stone-700">{{ $item['retry_count'] }}x</td>
                                     <td class="px-4 py-3 text-right font-semibold text-rose-600">{{ $item['fee'] }}</td>
                                 </tr>
                             @endforeach
@@ -117,6 +123,7 @@
                                 <p class="font-semibold text-rose-600">{{ $item['fee'] }}</p>
                             </div>
                             <p class="mt-1 text-xs text-stone-500">{{ $item['recipient_name'] ?: '-' }} &middot; AWB {{ $item['awb'] ?: '-' }} &middot; {{ $item['date'] }}</p>
+                            <p class="mt-1 text-xs text-stone-400">Komerce {{ $item['komerce_order_no'] ?: '-' }} &middot; {{ $item['fee_per_retry'] }} x {{ $item['retry_count'] }}</p>
                         </article>
                     @endforeach
                 </div>
