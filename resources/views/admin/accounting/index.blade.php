@@ -92,6 +92,10 @@
         {{-- Kartu total --}}
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
+                <p class="text-sm text-stone-500">Total Dibayar Pembeli (Gross)</p>
+                <p class="mt-3 text-2xl font-semibold tracking-tight text-stone-950">{{ $meta['total_gross'] ?? 'Rp0' }}</p>
+            </article>
+            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
                 <p class="text-sm text-stone-500">Total Ongkir (Shipping Fee)</p>
                 <p class="mt-3 text-2xl font-semibold tracking-tight text-stone-950">{{ $meta['total_shipping_fee'] ?? 'Rp0' }}</p>
             </article>
