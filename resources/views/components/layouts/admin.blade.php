@@ -196,6 +196,29 @@
                 modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
                 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
             })();
+
+            (function () {
+                // Cegah submit dobel (klik 2x) di form manapun di panel admin - disable
+                // tombol & tampilkan "Memproses..." begitu form pertama kali di-submit.
+                // Insiden nyata: klik dobel tombol "Validasi pembayaran" bikin sistem
+                // booking ke Komerce 2-3x utk order yang sama (kurir tetap motong biaya
+                // di tiap percobaan) - kerugian ~Rp267rb dari 11 order (lihat kolom
+                // shipping_retry_fee di tabel orders). Dilewati utk form data-confirm /
+                // data-cancel-reason-form (submit-nya ditunda sampai modal di-OK-kan,
+                // bukan langsung) & tombol yang buka tab baru (formtarget=_blank,
+                // halaman ini tidak reload jadi aman diklik lagi).
+                document.addEventListener('submit', (e) => {
+                    const form = e.target;
+                    if (!(form instanceof HTMLFormElement)) return;
+                    if (form.hasAttribute('data-confirm') || form.hasAttribute('data-cancel-reason-form')) return;
+                    const btn = e.submitter;
+                    if (!(btn instanceof HTMLButtonElement) || btn.disabled) return;
+                    const target = btn.getAttribute('formtarget') || form.getAttribute('target');
+                    if (target === '_blank') return;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Memproses...</span>';
+                });
+            })();
         </script>
     </body>
 </html>
