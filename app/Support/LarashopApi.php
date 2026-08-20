@@ -350,6 +350,26 @@ class LarashopApi
         ]);
     }
 
+    public function adminReportProducts(?string $month = null): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/reports/products', ['query' => array_filter(['month' => $month])]);
+    }
+
+    public function adminReportShipping(?string $month = null): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/reports/shipping', ['query' => array_filter(['month' => $month])]);
+    }
+
+    public function adminReportStock(): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/reports/stock');
+    }
+
+    public function adminReportCustomers(?string $month = null): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/reports/customers', ['query' => array_filter(['month' => $month])]);
+    }
+
     public function adminOrder(int $id): array
     {
         return $this->requestAsAdmin('GET', '/admin/orders/'.$id)['data'] ?? [];

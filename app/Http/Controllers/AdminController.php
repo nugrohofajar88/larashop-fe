@@ -39,6 +39,50 @@ class AdminController extends Controller
         ]);
     }
 
+    public function reportProducts(Request $request): View
+    {
+        $month = trim((string) $request->query('month', ''));
+        $result = $this->api->adminReportProducts($month !== '' ? $month : null);
+
+        return view('admin.reports.products', [
+            'products' => $result['data'] ?? [],
+            'meta' => $result['meta'] ?? [],
+        ]);
+    }
+
+    public function reportShipping(Request $request): View
+    {
+        $month = trim((string) $request->query('month', ''));
+        $result = $this->api->adminReportShipping($month !== '' ? $month : null);
+
+        return view('admin.reports.shipping', [
+            'couriers' => $result['data'] ?? [],
+            'meta' => $result['meta'] ?? [],
+        ]);
+    }
+
+    public function reportStock(): View
+    {
+        $result = $this->api->adminReportStock();
+
+        return view('admin.reports.stock', [
+            'lowStock' => $result['data']['low_stock'] ?? [],
+            'slowMoving' => $result['data']['slow_moving'] ?? [],
+            'meta' => $result['meta'] ?? [],
+        ]);
+    }
+
+    public function reportCustomers(Request $request): View
+    {
+        $month = trim((string) $request->query('month', ''));
+        $result = $this->api->adminReportCustomers($month !== '' ? $month : null);
+
+        return view('admin.reports.customers', [
+            'customers' => $result['data'] ?? [],
+            'meta' => $result['meta'] ?? [],
+        ]);
+    }
+
     public function login(): View|RedirectResponse
     {
         if (session('admin.authenticated')) {
