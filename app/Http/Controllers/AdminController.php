@@ -90,6 +90,7 @@ class AdminController extends Controller
         return view('admin.rajaongkir-balance.index', [
             'topups' => $result['data']['topups'] ?? [],
             'flaggedDiscrepancies' => $result['data']['flagged_discrepancies'] ?? [],
+            'retryFees' => $result['data']['retry_fees'] ?? [],
             'meta' => $result['meta'] ?? [],
         ]);
     }

@@ -35,6 +35,10 @@
                         <dt class="text-stone-500">Dana COD dalam Perjalanan</dt>
                         <dd class="font-medium text-rose-600">(-{{ $meta['cod_in_transit'] ?? 'Rp0' }})</dd>
                     </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <dt class="text-stone-500">Biaya Retry-Booking ({{ $meta['retry_fee_count'] ?? 0 }}x)</dt>
+                        <dd class="font-medium text-rose-600">(-{{ $meta['total_retry_fee'] ?? 'Rp0' }})</dd>
+                    </div>
                 </dl>
 
                 <div class="my-5 border-t border-dashed border-stone-200"></div>
@@ -64,6 +68,49 @@
                             </div>
                             <p class="mt-2 text-xs leading-5 text-stone-600">{{ $item['note'] }}</p>
                             <p class="mt-1 text-xs text-stone-400">Ditandai {{ $item['reconciled_at'] }}</p>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        {{-- Order dengan biaya retry-booking (percobaan booking gagal, tetap kepotong) --}}
+        @if (! empty($retryFees))
+            <section class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
+                <h3 class="text-sm font-semibold text-stone-900">Biaya Retry-Booking ({{ count($retryFees) }} order)</h3>
+                <p class="mt-1 text-xs text-stone-500">Order ini sempat gagal booking pengiriman (kemungkinan karena timeout/koneksi saat memanggil API kurir), lalu dicoba ulang sampai berhasil. Kurir tetap mengenakan biaya di setiap percobaan, bukan cuma yang berhasil - jadi ada biaya ekstra yang beneran kepotong dari saldo deposit, di luar ongkir yang tercatat normal.</p>
+
+                <div class="mt-4 hidden overflow-x-auto rounded-2xl border border-stone-200 md:block">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-stone-50 text-stone-500">
+                            <tr>
+                                <th class="px-4 py-3 font-medium">Order</th>
+                                <th class="px-4 py-3 font-medium">AWB</th>
+                                <th class="px-4 py-3 font-medium">Tanggal</th>
+                                <th class="px-4 py-3 font-medium text-right">Biaya Retry</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-200 bg-white">
+                            @foreach ($retryFees as $item)
+                                <tr>
+                                    <td class="px-4 py-3 font-medium text-stone-900">{{ $item['code'] }}</td>
+                                    <td class="px-4 py-3 text-stone-600">{{ $item['awb'] ?: '-' }}</td>
+                                    <td class="px-4 py-3 text-stone-500">{{ $item['date'] }}</td>
+                                    <td class="px-4 py-3 text-right font-semibold text-rose-600">{{ $item['fee'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 space-y-3 md:hidden">
+                    @foreach ($retryFees as $item)
+                        <article class="rounded-2xl border border-stone-200 bg-white p-4">
+                            <div class="flex items-center justify-between">
+                                <p class="font-semibold text-stone-900">{{ $item['code'] }}</p>
+                                <p class="font-semibold text-rose-600">{{ $item['fee'] }}</p>
+                            </div>
+                            <p class="mt-1 text-xs text-stone-500">AWB {{ $item['awb'] ?: '-' }} &middot; {{ $item['date'] }}</p>
                         </article>
                     @endforeach
                 </div>
