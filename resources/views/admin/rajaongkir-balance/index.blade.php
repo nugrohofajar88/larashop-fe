@@ -89,6 +89,7 @@
                         <thead class="bg-stone-50 text-stone-500">
                             <tr>
                                 <th class="px-4 py-3 font-medium">Order</th>
+                                <th class="px-4 py-3 font-medium">Pelanggan</th>
                                 <th class="px-4 py-3 font-medium">AWB</th>
                                 <th class="px-4 py-3 font-medium">Tanggal</th>
                                 <th class="px-4 py-3 font-medium text-right">Biaya Retry</th>
@@ -98,6 +99,7 @@
                             @foreach ($retryFees as $item)
                                 <tr>
                                     <td class="px-4 py-3 font-medium text-stone-900">{{ $item['code'] }}</td>
+                                    <td class="px-4 py-3 text-stone-600">{{ $item['recipient_name'] ?: '-' }}</td>
                                     <td class="px-4 py-3 text-stone-600">{{ $item['awb'] ?: '-' }}</td>
                                     <td class="px-4 py-3 text-stone-500">{{ $item['date'] }}</td>
                                     <td class="px-4 py-3 text-right font-semibold text-rose-600">{{ $item['fee'] }}</td>
@@ -114,7 +116,7 @@
                                 <p class="font-semibold text-stone-900">{{ $item['code'] }}</p>
                                 <p class="font-semibold text-rose-600">{{ $item['fee'] }}</p>
                             </div>
-                            <p class="mt-1 text-xs text-stone-500">AWB {{ $item['awb'] ?: '-' }} &middot; {{ $item['date'] }}</p>
+                            <p class="mt-1 text-xs text-stone-500">{{ $item['recipient_name'] ?: '-' }} &middot; AWB {{ $item['awb'] ?: '-' }} &middot; {{ $item['date'] }}</p>
                         </article>
                     @endforeach
                 </div>
