@@ -97,27 +97,35 @@
         @php($summaryStatusVal = $summaryNetVal - $itemsVal)
         @php($summaryStatusLabel = $summaryStatusVal > 0 ? 'Cuan' : ($summaryStatusVal < 0 ? 'Boncos' : 'Netral'))
         @php($summaryStatusClass = $summaryStatusVal > 0 ? 'text-emerald-700' : ($summaryStatusVal < 0 ? 'text-rose-600' : 'text-stone-700'))
+        @php($summaryStatusBg = $summaryStatusVal > 0 ? 'bg-emerald-50' : ($summaryStatusVal < 0 ? 'bg-rose-50' : 'bg-stone-50'))
         <section class="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm">
-            <table class="w-full text-sm">
-                <tbody class="divide-y divide-stone-100">
-                    <tr>
-                        <td class="px-5 py-3 text-stone-500">Total Penjualan Produk</td>
-                        <td class="px-5 py-3 text-right font-semibold text-stone-900">{{ $fmtRp($itemsVal) }}</td>
-                    </tr>
-                    <tr>
-                        <td class="px-5 py-3 text-stone-500">Total Service Charge COD</td>
-                        <td class="px-5 py-3 text-right font-semibold text-rose-600">{{ $fmtRp(-$codVal) }}</td>
-                    </tr>
-                    <tr class="bg-stone-50">
-                        <td class="px-5 py-3 font-medium text-stone-700">Net</td>
-                        <td class="px-5 py-3 text-right font-bold text-stone-950">{{ $fmtRp($summaryNetVal) }}</td>
-                    </tr>
-                    <tr>
-                        <td class="px-5 py-3 font-medium text-stone-700">Status ({{ $summaryStatusLabel }})</td>
-                        <td class="px-5 py-3 text-right font-bold {{ $summaryStatusClass }}">{{ $fmtRp($summaryStatusVal) }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="px-6 py-5">
+                <h3 class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">Ringkasan Laba/Rugi</h3>
+                <p class="mt-0.5 text-sm text-stone-500">{{ $meta['month_label'] ?? '-' }}</p>
+
+                <dl class="mt-5 space-y-3">
+                    <div class="flex items-center justify-between text-sm">
+                        <dt class="text-stone-500">Total Penjualan Produk</dt>
+                        <dd class="font-medium text-stone-900">{{ $fmtRp($itemsVal) }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <dt class="text-stone-500">Total Service Charge COD</dt>
+                        <dd class="font-medium text-rose-600">{{ $fmtRp(-$codVal) }}</dd>
+                    </div>
+                </dl>
+
+                <div class="my-5 border-t border-dashed border-stone-200"></div>
+
+                <div class="flex items-end justify-between">
+                    <p class="text-sm font-medium text-stone-600">Net</p>
+                    <p class="text-3xl font-bold tracking-tight text-stone-950">{{ $fmtRp($summaryNetVal) }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between border-t border-stone-100 {{ $summaryStatusBg }} px-6 py-4">
+                <p class="text-sm font-semibold {{ $summaryStatusClass }}">Status: {{ $summaryStatusLabel }}</p>
+                <p class="text-lg font-bold {{ $summaryStatusClass }}">{{ $fmtRp($summaryStatusVal) }}</p>
+            </div>
         </section>
 
         {{-- Snapshot real-time, BUKAN bagian dari rekap bulan/filter di atas - sengaja
