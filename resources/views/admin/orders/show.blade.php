@@ -212,6 +212,22 @@
                 <section class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
                     <h2 class="text-xl font-semibold text-stone-950">Pengiriman</h2>
                     <div class="mt-5 space-y-3 text-sm">
+                        @php
+                            $recipientPhone = $order['shipping']['recipient_phone'] ?? '';
+                            $recipientWaDigits = preg_replace('/\D/', '', $recipientPhone);
+                            $recipientWaDigits = \Illuminate\Support\Str::startsWith($recipientWaDigits, '0') ? '62'.substr($recipientWaDigits, 1) : $recipientWaDigits;
+                        @endphp
+                        <div class="rounded-2xl bg-stone-50 px-4 py-4">
+                            <p class="text-stone-500">Penerima</p>
+                            <p class="mt-1 font-semibold text-stone-900">{{ $order['shipping']['recipient_name'] ?? '-' }}</p>
+                            <p class="mt-1 text-stone-700">
+                                @if ($recipientPhone !== '')
+                                    <a href="https://wa.me/{{ $recipientWaDigits }}" target="_blank" rel="noopener" class="font-medium text-emerald-700 hover:underline">{{ $recipientPhone }}</a>
+                                @else
+                                    -
+                                @endif
+                            </p>
+                        </div>
                         <div class="rounded-2xl bg-stone-50 px-4 py-4">
                             <p class="text-stone-500">Layanan</p>
                             <p class="mt-1 font-semibold text-stone-900">{{ $order['shipping_service'] }}</p>
