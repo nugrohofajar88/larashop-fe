@@ -20,7 +20,7 @@
                         <dd class="font-medium text-emerald-700">{{ $meta['total_topup'] ?? 'Rp0' }}</dd>
                     </div>
                     <div class="flex items-center justify-between text-sm">
-                        <dt class="text-stone-500">Total Ongkir (sudah di-booking)</dt>
+                        <dt class="text-stone-500">Total Ongkir Non-COD (net cashback, sudah di-booking)</dt>
                         <dd class="font-medium text-rose-600">(-{{ $meta['total_ongkir'] ?? 'Rp0' }})</dd>
                     </div>
                     <div class="flex items-center justify-between text-sm">
