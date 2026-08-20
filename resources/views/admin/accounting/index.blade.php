@@ -73,47 +73,49 @@
             @endif
         </form>
 
-        {{-- Ringkasan CUAN/BONCOS untuk mode yang sedang dipilih --}}
-        <div class="grid gap-4 sm:grid-cols-3">
-            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-                <p class="text-sm text-stone-500">Total Net ({{ $mode === 'buyer' ? 'kalau cashback ke pembeli' : 'cashback ke penjual' }})</p>
-                <p class="mt-3 text-2xl font-semibold tracking-tight {{ ($meta['total_net_value'] ?? 0) > 0 ? 'text-emerald-700' : (($meta['total_net_value'] ?? 0) < 0 ? 'text-rose-600' : 'text-stone-950') }}">{{ $meta['total_net'] ?? 'Rp0' }}</p>
-            </article>
-            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-                <p class="text-sm text-stone-500">Order CUAN</p>
-                <p class="mt-3 text-2xl font-semibold tracking-tight text-emerald-700">{{ $meta['cuan_count'] ?? 0 }}</p>
-                <p class="mt-1 text-sm font-medium text-emerald-700">{{ $meta['cuan_total'] ?? 'Rp0' }}</p>
-            </article>
-            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-                <p class="text-sm text-stone-500">Order BONCOS</p>
-                <p class="mt-3 text-2xl font-semibold tracking-tight text-rose-600">{{ $meta['boncos_count'] ?? 0 }}</p>
-                <p class="mt-1 text-sm font-medium text-rose-600">{{ $meta['boncos_total'] ?? 'Rp0' }}</p>
-            </article>
-        </div>
-
-        {{-- Kartu total --}}
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-                <p class="text-sm text-stone-500">Total Dibayar Pembeli (Gross)</p>
-                <p class="mt-3 text-2xl font-semibold tracking-tight text-stone-950">{{ $meta['total_gross'] ?? 'Rp0' }}</p>
-            </article>
-            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-                <p class="text-sm text-stone-500">Total Ongkir (Shipping Fee)</p>
-                <p class="mt-3 text-2xl font-semibold tracking-tight text-stone-950">{{ $meta['total_shipping_fee'] ?? 'Rp0' }}</p>
-            </article>
-            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-                <p class="text-sm text-stone-500">Total Cashback Ongkir</p>
-                <p class="mt-3 text-2xl font-semibold tracking-tight text-emerald-700">{{ $meta['total_cashback'] ?? 'Rp0' }}</p>
-            </article>
-            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-                <p class="text-sm text-stone-500">Total Biaya Jasa COD</p>
-                <p class="mt-3 text-2xl font-semibold tracking-tight text-rose-700">{{ $meta['total_cod_service_fee'] ?? 'Rp0' }}</p>
-            </article>
-            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-                <p class="text-sm text-stone-500">Total Produk (Items)</p>
-                <p class="mt-3 text-2xl font-semibold tracking-tight text-stone-950">{{ $meta['total_items'] ?? 'Rp0' }}</p>
-            </article>
-        </div>
+        {{-- Ringkasan bulan terpilih, dalam 1 tabel ringkas (bukan sebar kartu) --}}
+        @php($summaryStatus = ($meta['total_net_value'] ?? 0) > 0 ? 'CUAN' : (($meta['total_net_value'] ?? 0) < 0 ? 'BONCOS' : 'NETRAL'))
+        @php($summaryStatusClass = $summaryStatus === 'CUAN' ? 'text-emerald-700' : ($summaryStatus === 'BONCOS' ? 'text-rose-600' : 'text-stone-700'))
+        <section class="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm">
+            <table class="w-full text-sm">
+                <tbody class="divide-y divide-stone-100">
+                    <tr>
+                        <td class="px-5 py-3 text-stone-500">Total Produk (Items)</td>
+                        <td class="px-5 py-3 text-right font-semibold text-emerald-700">{{ $meta['total_items'] ?? 'Rp0' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="px-5 py-3 text-stone-500">Total Ongkir (Shipping Fee)</td>
+                        <td class="px-5 py-3 text-right font-semibold text-emerald-700">{{ $meta['total_shipping_fee'] ?? 'Rp0' }}</td>
+                    </tr>
+                    <tr class="bg-stone-50">
+                        <td class="px-5 py-3 font-medium text-stone-700">Total Dibayar Pembeli (Gross)</td>
+                        <td class="px-5 py-3 text-right font-bold text-sky-700">{{ $meta['total_gross'] ?? 'Rp0' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="px-5 py-3 text-stone-500">Total Biaya Jasa COD</td>
+                        <td class="px-5 py-3 text-right font-semibold text-rose-600">{{ $meta['total_cod_service_fee'] ?? 'Rp0' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="px-5 py-3 text-stone-500">Total Cashback Ongkir</td>
+                        <td class="px-5 py-3 text-right font-semibold text-emerald-700">{{ $meta['total_cashback'] ?? 'Rp0' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="px-5 py-3 text-stone-500">Net (pendapatan riil)</td>
+                        <td class="px-5 py-3 text-right font-bold text-stone-950">{{ $meta['total_net_income'] ?? 'Rp0' }}</td>
+                    </tr>
+                    <tr class="bg-stone-50">
+                        <td class="px-5 py-3 font-medium text-stone-700">
+                            Status
+                            <span class="mt-0.5 block text-xs font-normal text-stone-400">
+                                {{ $meta['cuan_count'] ?? 0 }} CUAN &middot; {{ $meta['boncos_count'] ?? 0 }} BONCOS &middot; {{ $meta['impas_count'] ?? 0 }} IMPAS dari {{ $meta['count'] ?? 0 }} order
+                                ({{ $mode === 'buyer' ? 'cashback ke pembeli' : 'cashback ke penjual' }})
+                            </span>
+                        </td>
+                        <td class="px-5 py-3 text-right font-bold {{ $summaryStatusClass }}">{{ $summaryStatus }} {{ $meta['total_net'] ?? 'Rp0' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
 
         {{-- Snapshot real-time, BUKAN bagian dari rekap bulan/filter di atas - sengaja
              dikasih visual beda (amber) + border putus-putus supaya jelas ini angka
