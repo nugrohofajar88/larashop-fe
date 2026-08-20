@@ -42,6 +42,30 @@
             </div>
         </section>
 
+        {{-- Order dengan selisih ongkir ke ekspedisi - potensi tagihan susulan --}}
+        @if (! empty($flaggedDiscrepancies))
+            <section class="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5">
+                <h3 class="text-sm font-semibold text-amber-800">⚠️ Order dengan Potensi Tagihan Susulan ({{ count($flaggedDiscrepancies) }})</h3>
+                <p class="mt-1 text-xs text-amber-700">Ongkir yang tercatat di order ini beda dari yang beneran di-charge ekspedisi (biasanya karena data berat produk salah saat booking). Ongkir ke customer tetap sesuai (kolom "Tercatat"), tapi kalau kurir nimbang ulang & nagih susulan di akhir bulan, cocokkan ke daftar ini dulu.</p>
+
+                <div class="mt-4 space-y-3">
+                    @foreach ($flaggedDiscrepancies as $item)
+                        <article class="rounded-2xl border border-amber-200 bg-white p-4">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <p class="font-semibold text-stone-900">{{ $item['code'] }}</p>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <span class="text-stone-500">Tercatat: <span class="font-medium text-stone-800">{{ $item['shipping_total'] }}</span></span>
+                                    <span class="text-stone-500">Real ekspedisi: <span class="font-medium text-rose-600">{{ $item['shipping_actual_value'] }}</span></span>
+                                </div>
+                            </div>
+                            <p class="mt-2 text-xs leading-5 text-stone-600">{{ $item['note'] }}</p>
+                            <p class="mt-1 text-xs text-stone-400">Ditandai {{ $item['reconciled_at'] }}</p>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
         {{-- Form tambah top up --}}
         <section class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
             <h3 class="text-sm font-semibold text-stone-900">Catat Top Up Baru</h3>
