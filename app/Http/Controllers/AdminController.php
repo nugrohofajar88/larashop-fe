@@ -83,6 +83,44 @@ class AdminController extends Controller
         ]);
     }
 
+    public function rajaOngkirBalance(): View
+    {
+        $result = $this->api->adminRajaOngkirBalance();
+
+        return view('admin.rajaongkir-balance.index', [
+            'topups' => $result['data']['topups'] ?? [],
+            'meta' => $result['meta'] ?? [],
+        ]);
+    }
+
+    public function storeRajaOngkirTopup(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'amount' => ['required', 'integer', 'min:1'],
+            'topup_date' => ['required', 'date'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        try {
+            $this->api->storeAdminRajaOngkirTopup($validated);
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return redirect()->route('admin.rajaongkir-balance')->with('success', 'Top up berhasil dicatat.');
+    }
+
+    public function destroyRajaOngkirTopup(int $id): RedirectResponse
+    {
+        try {
+            $this->api->destroyAdminRajaOngkirTopup($id);
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return redirect()->route('admin.rajaongkir-balance')->with('success', 'Catatan top up dihapus.');
+    }
+
     public function login(): View|RedirectResponse
     {
         if (session('admin.authenticated')) {

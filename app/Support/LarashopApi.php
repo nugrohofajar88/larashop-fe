@@ -370,6 +370,21 @@ class LarashopApi
         return $this->requestAsAdmin('GET', '/admin/reports/customers', ['query' => array_filter(['month' => $month])]);
     }
 
+    public function adminRajaOngkirBalance(): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/rajaongkir-balance');
+    }
+
+    public function storeAdminRajaOngkirTopup(array $payload): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/rajaongkir-balance/topups', ['json' => $payload]);
+    }
+
+    public function destroyAdminRajaOngkirTopup(int $id): array
+    {
+        return $this->requestAsAdmin('DELETE', '/admin/rajaongkir-balance/topups/'.$id);
+    }
+
     public function adminOrder(int $id): array
     {
         return $this->requestAsAdmin('GET', '/admin/orders/'.$id)['data'] ?? [];

@@ -54,6 +54,9 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/reports/shipping', [AdminController::class, 'reportShipping'])->name('admin.reports.shipping');
     Route::get('/reports/stock', [AdminController::class, 'reportStock'])->name('admin.reports.stock');
     Route::get('/reports/customers', [AdminController::class, 'reportCustomers'])->name('admin.reports.customers');
+    Route::get('/rajaongkir-balance', [AdminController::class, 'rajaOngkirBalance'])->name('admin.rajaongkir-balance');
+    Route::post('/rajaongkir-balance/topups', [AdminController::class, 'storeRajaOngkirTopup'])->name('admin.rajaongkir-balance.store-topup');
+    Route::post('/rajaongkir-balance/topups/{id}/delete', [AdminController::class, 'destroyRajaOngkirTopup'])->name('admin.rajaongkir-balance.destroy-topup');
     Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
     Route::get('/accounts', [AdminController::class, 'accounts'])->name('admin.accounts.index');
     Route::get('/accounts/create', [AdminController::class, 'createAccount'])->name('admin.accounts.create');

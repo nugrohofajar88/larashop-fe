@@ -1,0 +1,128 @@
+<x-layouts.admin title="Admin Sobat Akar Tani Kimia | Saldo RajaOngkir">
+    <section class="space-y-6">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-700">Admin</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-stone-950">Saldo RajaOngkir</h1>
+            <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
+                Estimasi saldo deposit RajaOngkir/Komerce, direkonstruksi dari top up yang kamu catat manual, ongkir yang sudah di-booking, biaya generate QRIS, dan remitansi COD yang sudah selesai. Bandingkan angka "Estimasi Saldo" di bawah dengan saldo asli di dashboard RajaOngkir - kalau selisihnya jauh, ada yang perlu ditelusuri.
+            </p>
+        </div>
+
+        {{-- Kartu estimasi saldo --}}
+        @php($estVal = $meta['estimated_balance_value'] ?? 0)
+        <section class="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm">
+            <div class="px-6 py-5">
+                <h3 class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">Rekonstruksi Saldo</h3>
+
+                <dl class="mt-5 space-y-3">
+                    <div class="flex items-center justify-between text-sm">
+                        <dt class="text-stone-500">Total Top Up</dt>
+                        <dd class="font-medium text-emerald-700">{{ $meta['total_topup'] ?? 'Rp0' }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <dt class="text-stone-500">Total Ongkir (sudah di-booking)</dt>
+                        <dd class="font-medium text-rose-600">(-{{ $meta['total_ongkir'] ?? 'Rp0' }})</dd>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <dt class="text-stone-500">Total Biaya QRIS ({{ $meta['qris_count'] ?? 0 }}x generate)</dt>
+                        <dd class="font-medium text-rose-600">(-{{ $meta['total_qris_fee'] ?? 'Rp0' }})</dd>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <dt class="text-stone-500">Total COD Diremit (order selesai)</dt>
+                        <dd class="font-medium text-emerald-700">{{ $meta['total_cod_remitted'] ?? 'Rp0' }}</dd>
+                    </div>
+                </dl>
+
+                <div class="my-5 border-t border-dashed border-stone-200"></div>
+
+                <div class="flex items-end justify-between">
+                    <p class="text-sm font-medium text-stone-600">Estimasi Saldo</p>
+                    <p class="text-3xl font-bold tracking-tight {{ $estVal < 0 ? 'text-rose-600' : 'text-stone-950' }}">{{ $meta['estimated_balance'] ?? 'Rp0' }}</p>
+                </div>
+            </div>
+        </section>
+
+        {{-- Form tambah top up --}}
+        <section class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
+            <h3 class="text-sm font-semibold text-stone-900">Catat Top Up Baru</h3>
+            <form method="POST" action="{{ route('admin.rajaongkir-balance.store-topup') }}" class="mt-4 grid gap-3 sm:grid-cols-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-medium text-stone-600">Tanggal</label>
+                    <input type="date" name="topup_date" value="{{ old('topup_date', now()->format('Y-m-d')) }}" required class="mt-1 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-800 outline-none focus:border-emerald-500 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-stone-600">Nominal (Rp)</label>
+                    <input type="number" name="amount" min="1" value="{{ old('amount') }}" required placeholder="500000" class="mt-1 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-800 outline-none focus:border-emerald-500 focus:bg-white">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-stone-600">Catatan (opsional)</label>
+                    <input type="text" name="note" value="{{ old('note') }}" placeholder="Mis. top up via QRIS pribadi" class="mt-1 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-800 outline-none focus:border-emerald-500 focus:bg-white">
+                </div>
+                <div class="sm:col-span-4">
+                    <button type="submit" class="rounded-2xl bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white">Simpan Top Up</button>
+                </div>
+            </form>
+        </section>
+
+        {{-- Riwayat top up --}}
+        <section class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
+            <h2 class="text-xl font-semibold text-stone-950">Riwayat Top Up</h2>
+
+            <div class="mt-5 hidden overflow-x-auto rounded-2xl border border-stone-200 md:block">
+                <table class="min-w-full text-left text-sm">
+                    <thead class="bg-stone-50 text-stone-500">
+                        <tr>
+                            <th class="px-4 py-3 font-medium">Tanggal</th>
+                            <th class="px-4 py-3 font-medium text-right">Nominal</th>
+                            <th class="px-4 py-3 font-medium">Catatan</th>
+                            <th class="px-4 py-3 font-medium">Dicatat oleh</th>
+                            <th class="px-4 py-3 font-medium text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-200 bg-white">
+                        @forelse ($topups as $topup)
+                            <tr>
+                                <td class="px-4 py-3 text-stone-700">{{ $topup['topup_date'] }}</td>
+                                <td class="px-4 py-3 text-right font-semibold text-emerald-700">{{ $topup['amount'] }}</td>
+                                <td class="px-4 py-3 text-stone-600">{{ $topup['note'] ?: '-' }}</td>
+                                <td class="px-4 py-3 text-stone-500">{{ $topup['created_by'] ?: '-' }}</td>
+                                <td class="px-4 py-3 text-center">
+                                    <form method="POST" action="{{ route('admin.rajaongkir-balance.destroy-topup', $topup['id']) }}" onsubmit="return confirm('Hapus catatan top up ini?')">
+                                        @csrf
+                                        <button type="submit" class="text-xs font-semibold text-rose-600 hover:underline">Hapus</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada catatan top up.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-5 space-y-3 md:hidden">
+                @forelse ($topups as $topup)
+                    <article class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold text-stone-900">{{ $topup['topup_date'] }}</p>
+                                <p class="mt-0.5 text-xs text-stone-500">{{ $topup['note'] ?: '-' }}</p>
+                                <p class="mt-0.5 text-xs text-stone-400">oleh {{ $topup['created_by'] ?: '-' }}</p>
+                            </div>
+                            <p class="font-semibold text-emerald-700">{{ $topup['amount'] }}</p>
+                        </div>
+                        <form method="POST" action="{{ route('admin.rajaongkir-balance.destroy-topup', $topup['id']) }}" onsubmit="return confirm('Hapus catatan top up ini?')" class="mt-3">
+                            @csrf
+                            <button type="submit" class="text-xs font-semibold text-rose-600 hover:underline">Hapus</button>
+                        </form>
+                    </article>
+                @empty
+                    <p class="rounded-2xl border border-stone-200 bg-white px-4 py-8 text-center text-sm text-stone-500">Belum ada catatan top up.</p>
+                @endforelse
+            </div>
+        </section>
+    </section>
+</x-layouts.admin>
