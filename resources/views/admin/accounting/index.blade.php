@@ -73,21 +73,30 @@
             @endif
         </form>
 
-        {{-- Kartu Total Ongkir - berdiri sendiri, di luar tabel ringkas --}}
-        <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-stone-500">Total Ongkir (Shipping Fee)</p>
-            <p class="mt-2 text-2xl font-semibold tracking-tight text-stone-950">{{ $meta['total_shipping_fee'] ?? 'Rp0' }}</p>
-        </article>
+        {{-- Kartu Total Ongkir & Total Cashback - berdiri sendiri, di luar tabel ringkas --}}
+        @php($cashbackVal = $mode === 'buyer' ? 0 : ($meta['total_cashback_value'] ?? 0))
+        @php($fmtRp = fn ($v) => $v < 0 ? '(Rp'.number_format(abs($v), 0, ',', '.').')' : 'Rp'.number_format($v, 0, ',', '.'))
+        <div class="grid gap-4 sm:grid-cols-2">
+            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
+                <p class="text-sm text-stone-500">Total Ongkir (Shipping Fee)</p>
+                <p class="mt-2 text-2xl font-semibold tracking-tight text-stone-950">{{ $meta['total_shipping_fee'] ?? 'Rp0' }}</p>
+            </article>
+            <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
+                <p class="text-sm text-stone-500">Total Cashback</p>
+                <p class="mt-2 text-2xl font-semibold tracking-tight text-emerald-700">{{ $fmtRp($cashbackVal) }}</p>
+                @if ($mode === 'buyer')
+                    <p class="mt-1 text-xs text-stone-400">Rp0 karena cashback masuk saldo pembeli, bukan toko (lihat mode di atas)</p>
+                @endif
+            </article>
+        </div>
 
         {{-- Ringkasan bulan terpilih, disederhanakan: produk -> fee COD -> cashback -> Net -> Status --}}
         @php($itemsVal = $meta['total_items_value'] ?? 0)
         @php($codVal = $meta['total_cod_service_fee_value'] ?? 0)
-        @php($cashbackVal = $meta['total_cashback_value'] ?? 0)
         @php($summaryNetVal = $itemsVal - $codVal + $cashbackVal)
         @php($summaryStatusVal = $summaryNetVal - $itemsVal)
         @php($summaryStatusLabel = $summaryStatusVal > 0 ? 'Cuan' : ($summaryStatusVal < 0 ? 'Boncos' : 'Netral'))
         @php($summaryStatusClass = $summaryStatusVal > 0 ? 'text-emerald-700' : ($summaryStatusVal < 0 ? 'text-rose-600' : 'text-stone-700'))
-        @php($fmtRp = fn ($v) => $v < 0 ? '(Rp'.number_format(abs($v), 0, ',', '.').')' : 'Rp'.number_format($v, 0, ',', '.'))
         <section class="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm">
             <table class="w-full text-sm">
                 <tbody class="divide-y divide-stone-100">
@@ -98,10 +107,6 @@
                     <tr>
                         <td class="px-5 py-3 text-stone-500">Total Service Charge COD</td>
                         <td class="px-5 py-3 text-right font-semibold text-rose-600">{{ $fmtRp(-$codVal) }}</td>
-                    </tr>
-                    <tr>
-                        <td class="px-5 py-3 text-stone-500">Total Cashback</td>
-                        <td class="px-5 py-3 text-right font-semibold text-emerald-700">{{ $fmtRp($cashbackVal) }}</td>
                     </tr>
                     <tr class="bg-stone-50">
                         <td class="px-5 py-3 font-medium text-stone-700">Net</td>
