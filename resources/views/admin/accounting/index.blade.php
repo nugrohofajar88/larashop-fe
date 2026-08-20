@@ -82,10 +82,12 @@
             <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
                 <p class="text-sm text-stone-500">Order CUAN</p>
                 <p class="mt-3 text-2xl font-semibold tracking-tight text-emerald-700">{{ $meta['cuan_count'] ?? 0 }}</p>
+                <p class="mt-1 text-sm font-medium text-emerald-700">{{ $meta['cuan_total'] ?? 'Rp0' }}</p>
             </article>
             <article class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
                 <p class="text-sm text-stone-500">Order BONCOS</p>
                 <p class="mt-3 text-2xl font-semibold tracking-tight text-rose-600">{{ $meta['boncos_count'] ?? 0 }}</p>
+                <p class="mt-1 text-sm font-medium text-rose-600">{{ $meta['boncos_total'] ?? 'Rp0' }}</p>
             </article>
         </div>
 
