@@ -385,6 +385,19 @@ class LarashopApi
         return $this->requestAsAdmin('DELETE', '/admin/rajaongkir-balance/topups/'.$id);
     }
 
+    /** Sync total biaya generate QRIS dari file mutasi CSV (multipart) ke BE. */
+    public function syncAdminRajaOngkirQris(string $tmpPath, string $originalName): array
+    {
+        $response = Http::acceptJson()
+            ->baseUrl(rtrim((string) config('services.larashop_api.base_url'), '/').'/')
+            ->withToken($this->adminToken())
+            ->timeout(30)
+            ->attach('file', (string) file_get_contents($tmpPath), $originalName)
+            ->post('admin/rajaongkir-balance/sync-qris');
+
+        return $this->decode($response);
+    }
+
     public function adminOrder(int $id): array
     {
         return $this->requestAsAdmin('GET', '/admin/orders/'.$id)['data'] ?? [];

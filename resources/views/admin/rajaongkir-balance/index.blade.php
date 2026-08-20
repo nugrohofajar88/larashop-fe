@@ -40,6 +40,14 @@
                     <p class="text-3xl font-bold tracking-tight {{ $estVal < 0 ? 'text-rose-600' : 'text-stone-950' }}">{{ $meta['estimated_balance'] ?? 'Rp0' }}</p>
                 </div>
             </div>
+
+            <div class="flex items-center justify-between border-t border-stone-100 bg-sky-50 px-6 py-4">
+                <div>
+                    <p class="text-sm font-semibold text-sky-800">Dana COD dalam Perjalanan ({{ $meta['cod_in_transit_count'] ?? 0 }} order)</p>
+                    <p class="mt-0.5 text-xs text-sky-700">Belum diremit, masih dipegang kurir - belum masuk hitungan Estimasi Saldo di atas.</p>
+                </div>
+                <p class="text-lg font-bold text-sky-800">{{ $meta['cod_in_transit'] ?? 'Rp0' }}</p>
+            </div>
         </section>
 
         {{-- Order dengan selisih ongkir ke ekspedisi - potensi tagihan susulan --}}
@@ -65,6 +73,17 @@
                 </div>
             </section>
         @endif
+
+        {{-- Sinkronisasi biaya generate QRIS dari file mutasi --}}
+        <section class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
+            <h3 class="text-sm font-semibold text-stone-900">Sinkronisasi Biaya QRIS</h3>
+            <p class="mt-1 text-xs text-stone-500">Upload file mutasi RajaOngkir/Komerce (format CSV, kolom "Tanggal", "Jenis Transaksi", "Mutasi") untuk update total biaya generate QRIS di atas. Baris yang sudah pernah tercatat otomatis dilewati, jadi aman diulang.</p>
+            <form method="POST" action="{{ route('admin.rajaongkir-balance.sync-qris') }}" enctype="multipart/form-data" class="mt-4 flex flex-wrap items-center gap-3">
+                @csrf
+                <input type="file" name="file" accept=".csv,text/csv" required class="block w-full max-w-xs text-sm text-stone-600 file:mr-3 file:rounded-xl file:border-0 file:bg-stone-900 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white">
+                <button type="submit" class="rounded-2xl bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white">Sinkronkan</button>
+            </form>
+        </section>
 
         {{-- Form tambah top up --}}
         <section class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">

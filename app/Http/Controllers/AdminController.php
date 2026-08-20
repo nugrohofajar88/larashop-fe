@@ -122,6 +122,22 @@ class AdminController extends Controller
         return redirect()->route('admin.rajaongkir-balance')->with('success', 'Catatan top up dihapus.');
     }
 
+    public function syncRajaOngkirQris(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $result = $this->api->syncAdminRajaOngkirQris($file->getRealPath(), $file->getClientOriginalName());
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return redirect()->route('admin.rajaongkir-balance')->with('success', $result['message'] ?? 'Sinkronisasi selesai.');
+    }
+
     public function login(): View|RedirectResponse
     {
         if (session('admin.authenticated')) {
