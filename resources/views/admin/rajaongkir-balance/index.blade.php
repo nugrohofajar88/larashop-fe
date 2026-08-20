@@ -32,10 +32,6 @@
                         <dd class="font-medium text-emerald-700">{{ $meta['total_cod_remitted'] ?? 'Rp0' }}</dd>
                     </div>
                     <div class="flex items-center justify-between text-sm">
-                        <dt class="text-stone-500">Dana COD dalam Perjalanan</dt>
-                        <dd class="font-medium text-rose-600">(-{{ $meta['cod_in_transit'] ?? 'Rp0' }})</dd>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
                         <dt class="text-stone-500">Biaya Retry-Booking ({{ $meta['retry_fee_count'] ?? 0 }}x)</dt>
                         <dd class="font-medium text-rose-600">(-{{ $meta['total_retry_fee'] ?? 'Rp0' }})</dd>
                     </div>
@@ -47,6 +43,14 @@
                     <p class="text-sm font-medium text-stone-600">Estimasi Saldo</p>
                     <p class="text-3xl font-bold tracking-tight {{ $estVal < 0 ? 'text-rose-600' : 'text-stone-950' }}">{{ $meta['estimated_balance'] ?? 'Rp0' }}</p>
                 </div>
+            </div>
+
+            <div class="flex items-center justify-between border-t border-stone-100 bg-sky-50 px-6 py-4">
+                <div>
+                    <p class="text-sm font-semibold text-sky-800">Dana COD dalam Perjalanan ({{ $meta['cod_in_transit_count'] ?? 0 }} order)</p>
+                    <p class="mt-0.5 text-xs text-sky-700">Belum diremit, masih dipegang kurir - terpisah dari Estimasi Saldo di atas (persis seperti "Balance" vs "Potential Income" di dashboard RajaOngkir).</p>
+                </div>
+                <p class="text-lg font-bold text-sky-800">{{ $meta['cod_in_transit'] ?? 'Rp0' }}</p>
             </div>
         </section>
 
