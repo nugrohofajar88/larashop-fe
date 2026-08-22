@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ $title ?? 'Admin Sobat Akar Tani Kimia' }}</title>
         <link rel="icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
 
@@ -43,6 +44,13 @@
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </label>
             </div>
+
+            {{-- Toggle notifikasi push (order baru) - cuma tampil kalau browser support --}}
+            <button type="button" data-push-toggle hidden
+                class="mb-6 flex items-center justify-center gap-2 rounded-2xl border border-white/10 px-4 py-2.5 text-sm font-medium text-stone-300 transition hover:bg-white/5 hover:text-white">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                <span data-push-toggle-label>Aktifkan Notifikasi</span>
+            </button>
 
             <nav class="space-y-2 text-sm">
                 <a href="{{ route('admin.dashboard') }}" class="block rounded-2xl px-4 py-3 {{ request()->routeIs('admin.dashboard') ? 'bg-white/10 text-white' : 'text-stone-300 hover:bg-white/5 hover:text-white' }}">
@@ -237,6 +245,93 @@
                         .catch((err) => console.warn('Gagal daftarkan service worker admin:', err));
                 });
             }
+
+            {{-- Toggle notifikasi push (order baru). --}}
+            (function () {
+                const btn = document.querySelector('[data-push-toggle]');
+                const label = document.querySelector('[data-push-toggle-label]');
+                if (!btn || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+                btn.hidden = false;
+
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+                    || document.querySelector('input[name="_token"]')?.value;
+
+                const urlBase64ToUint8Array = (base64String) => {
+                    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+                    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+                    const raw = atob(base64);
+                    return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+                };
+
+                const setState = (subscribed) => {
+                    label.textContent = subscribed ? 'Notifikasi Aktif' : 'Aktifkan Notifikasi';
+                    btn.classList.toggle('bg-emerald-600/20', subscribed);
+                    btn.classList.toggle('text-emerald-300', subscribed);
+                };
+
+                const refreshState = async () => {
+                    const reg = await navigator.serviceWorker.ready;
+                    const sub = await reg.pushManager.getSubscription();
+                    setState(!!sub);
+                    return sub;
+                };
+
+                btn.addEventListener('click', async () => {
+                    btn.disabled = true;
+                    try {
+                        const reg = await navigator.serviceWorker.ready;
+                        const existing = await reg.pushManager.getSubscription();
+
+                        if (existing) {
+                            await fetch('{{ route('admin.push-subscriptions.destroy') }}', {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
+                                body: JSON.stringify({ endpoint: existing.endpoint }),
+                            });
+                            await existing.unsubscribe();
+                            setState(false);
+                            return;
+                        }
+
+                        const permission = await Notification.requestPermission();
+                        if (permission !== 'granted') {
+                            alert('Izin notifikasi ditolak - buka pengaturan browser utk mengizinkan.');
+                            return;
+                        }
+
+                        const keyRes = await fetch('{{ route('admin.push-subscriptions.public-key') }}');
+                        const { public_key: publicKey } = await keyRes.json();
+                        if (!publicKey) {
+                            alert('Fitur notifikasi belum dikonfigurasi di server.');
+                            return;
+                        }
+
+                        const sub = await reg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array(publicKey),
+                        });
+                        const json = sub.toJSON();
+
+                        await fetch('{{ route('admin.push-subscriptions.store') }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
+                            body: JSON.stringify({
+                                endpoint: json.endpoint,
+                                keys: json.keys,
+                                content_encoding: (reg.pushManager.supportedContentEncodings || ['aes128gcm'])[0],
+                            }),
+                        });
+                        setState(true);
+                    } catch (err) {
+                        console.error('Gagal toggle notifikasi:', err);
+                        alert('Gagal mengaktifkan notifikasi. Coba lagi.');
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+
+                window.addEventListener('load', refreshState);
+            })();
         </script>
     </body>
 </html>

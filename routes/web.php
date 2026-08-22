@@ -58,6 +58,9 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::post('/rajaongkir-balance/topups', [AdminController::class, 'storeRajaOngkirTopup'])->name('admin.rajaongkir-balance.store-topup');
     Route::post('/rajaongkir-balance/topups/{id}/delete', [AdminController::class, 'destroyRajaOngkirTopup'])->name('admin.rajaongkir-balance.destroy-topup');
     Route::post('/rajaongkir-balance/sync-qris', [AdminController::class, 'syncRajaOngkirQris'])->name('admin.rajaongkir-balance.sync-qris');
+    Route::get('/push-subscriptions/public-key', [AdminController::class, 'pushPublicKey'])->name('admin.push-subscriptions.public-key');
+    Route::post('/push-subscriptions', [AdminController::class, 'storePushSubscription'])->name('admin.push-subscriptions.store');
+    Route::delete('/push-subscriptions', [AdminController::class, 'destroyPushSubscription'])->name('admin.push-subscriptions.destroy');
     Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
     Route::get('/accounts', [AdminController::class, 'accounts'])->name('admin.accounts.index');
     Route::get('/accounts/create', [AdminController::class, 'createAccount'])->name('admin.accounts.create');

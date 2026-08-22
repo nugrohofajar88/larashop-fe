@@ -95,6 +95,44 @@ class AdminController extends Controller
         ]);
     }
 
+    public function pushPublicKey(): JsonResponse
+    {
+        $result = $this->api->adminPushPublicKey();
+
+        return response()->json(['public_key' => $result['data']['public_key'] ?? null]);
+    }
+
+    public function storePushSubscription(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'endpoint' => ['required', 'string'],
+            'keys.p256dh' => ['required', 'string'],
+            'keys.auth' => ['required', 'string'],
+            'content_encoding' => ['nullable', 'string'],
+        ]);
+
+        try {
+            $this->api->storeAdminPushSubscription($validated);
+        } catch (LarashopApiException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+
+        return response()->json(['message' => 'Notifikasi diaktifkan.']);
+    }
+
+    public function destroyPushSubscription(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['endpoint' => ['required', 'string']]);
+
+        try {
+            $this->api->destroyAdminPushSubscription($validated['endpoint']);
+        } catch (LarashopApiException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+
+        return response()->json(['message' => 'Notifikasi dinonaktifkan.']);
+    }
+
     public function storeRajaOngkirTopup(Request $request): RedirectResponse
     {
         $validated = $request->validate([

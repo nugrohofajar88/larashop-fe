@@ -375,6 +375,21 @@ class LarashopApi
         return $this->requestAsAdmin('GET', '/admin/rajaongkir-balance');
     }
 
+    public function adminPushPublicKey(): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/push-subscriptions/public-key');
+    }
+
+    public function storeAdminPushSubscription(array $payload): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/push-subscriptions', ['json' => $payload]);
+    }
+
+    public function destroyAdminPushSubscription(string $endpoint): array
+    {
+        return $this->requestAsAdmin('DELETE', '/admin/push-subscriptions', ['json' => ['endpoint' => $endpoint]]);
+    }
+
     public function storeAdminRajaOngkirTopup(array $payload): array
     {
         return $this->requestAsAdmin('POST', '/admin/rajaongkir-balance/topups', ['json' => $payload]);
