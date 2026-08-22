@@ -5,6 +5,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $title ?? 'Admin Sobat Akar Tani Kimia' }}</title>
         <link rel="icon" type="image/png" href="{{ asset('images/logo-circle.png') }}">
+
+        {{-- PWA: bisa di-install ke homescreen HP, buka standalone tanpa address bar --}}
+        <link rel="manifest" href="{{ asset('admin-manifest.json') }}">
+        <link rel="apple-touch-icon" href="{{ asset('images/pwa-icon-192.png') }}">
+        <meta name="theme-color" content="#0c0a09">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="AT Kimia Admin">
+
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -219,6 +229,14 @@
                     btn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Memproses...</span>';
                 });
             })();
+
+            {{-- Daftarkan service worker PWA (scope /admin/ saja, tidak sentuh storefront). --}}
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('{{ asset('admin-sw.js') }}', { scope: '/admin/' })
+                        .catch((err) => console.warn('Gagal daftarkan service worker admin:', err));
+                });
+            }
         </script>
     </body>
 </html>
