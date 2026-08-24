@@ -37,11 +37,11 @@
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <label class="mb-2 block font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Nama penerima <span class="text-error">*</span></label>
+                            <label class="mb-2 block font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Nama Penerima <span class="text-error">*</span></label>
                             <input type="text" name="recipient_name" value="{{ old('recipient_name') }}" required class="w-full rounded-xl border border-surface-container-highest bg-surface-container-low px-4 py-3 font-body-md text-on-surface outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary" data-address-recipient-name-input>
                         </div>
                         <div>
-                            <label class="mb-2 block font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Nomor penerima <span class="text-error">*</span></label>
+                            <label class="mb-2 block font-label-eyebrow text-label-eyebrow uppercase text-on-surface-variant">Nomor HP Penerima <span class="text-error">*</span></label>
                             <input type="text" name="recipient_phone" value="{{ old('recipient_phone') }}" required class="w-full rounded-xl border border-surface-container-highest bg-surface-container-low px-4 py-3 font-body-md text-on-surface outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary" data-address-recipient-phone-input>
                         </div>
                     </div>
