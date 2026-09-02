@@ -357,8 +357,10 @@ class LarashopApi
 
     public function askAdminAiAssistant(string $question): array
     {
-        // Bisa butuh beberapa putaran tool-calling + retry rate-limit di BE.
-        return $this->requestAsAdmin('POST', '/admin/ai-assistant/ask', ['json' => ['question' => $question]], timeout: 60);
+        // Bisa butuh beberapa putaran tool-calling (maks 4), tiap putaran bisa retry
+        // 2x kalau kena rate-limit (nunggu maks ~10s/retry) - worst-case realistis
+        // bisa >60s, kasih ruang lebih supaya gak keburu timeout duluan di sisi FE.
+        return $this->requestAsAdmin('POST', '/admin/ai-assistant/ask', ['json' => ['question' => $question]], timeout: 120);
     }
 
     public function adminReportProducts(?string $month = null): array
