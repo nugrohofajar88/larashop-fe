@@ -1,5 +1,6 @@
 @php
     $reportTabs = [
+        ['route' => 'admin.reports.trend', 'label' => 'Tren Penjualan'],
         ['route' => 'admin.reports.products', 'label' => 'Penjualan Produk'],
         ['route' => 'admin.reports.shipping', 'label' => 'Performa Ekspedisi'],
         ['route' => 'admin.reports.stock', 'label' => 'Stok'],

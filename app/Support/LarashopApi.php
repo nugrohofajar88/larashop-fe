@@ -350,6 +350,11 @@ class LarashopApi
         ]);
     }
 
+    public function adminReportTrend(string $granularity = 'day'): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/reports/trend', ['query' => ['granularity' => $granularity]]);
+    }
+
     public function adminReportProducts(?string $month = null): array
     {
         return $this->requestAsAdmin('GET', '/admin/reports/products', ['query' => array_filter(['month' => $month])]);

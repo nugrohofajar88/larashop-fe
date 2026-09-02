@@ -39,6 +39,17 @@ class AdminController extends Controller
         ]);
     }
 
+    public function reportTrend(Request $request): View
+    {
+        $granularity = $request->query('granularity') === 'month' ? 'month' : 'day';
+        $result = $this->api->adminReportTrend($granularity);
+
+        return view('admin.reports.trend', [
+            'points' => $result['data'] ?? [],
+            'meta' => $result['meta'] ?? [],
+        ]);
+    }
+
     public function reportProducts(Request $request): View
     {
         $month = trim((string) $request->query('month', ''));
