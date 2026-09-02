@@ -50,6 +50,7 @@ Route::prefix('admin')->group(function (): void {
 Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/accounting', [AdminController::class, 'accounting'])->name('admin.accounting');
+    Route::get('/accounting/export', [AdminController::class, 'accountingExport'])->name('admin.accounting.export');
     Route::get('/reports/trend', [AdminController::class, 'reportTrend'])->name('admin.reports.trend');
     Route::get('/ai-assistant', [AdminController::class, 'aiAssistant'])->name('admin.ai-assistant');
     Route::post('/ai-assistant/ask', [AdminController::class, 'aiAssistantAsk'])->name('admin.ai-assistant.ask');

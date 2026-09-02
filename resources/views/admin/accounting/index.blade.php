@@ -25,6 +25,10 @@
                     <input type="hidden" name="payment_method" value="{{ $paymentMethod }}">
                 @endif
                 <button type="submit" class="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white">Tampilkan</button>
+                <a href="{{ route('admin.accounting.export', array_filter(['month' => $meta['month'] ?? null, 'mode' => $mode !== 'seller' ? $mode : null, 'payment_method' => $paymentMethod !== 'all' ? $paymentMethod : null])) }}"
+                    class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">
+                    Download Excel
+                </a>
             </form>
         </div>
 

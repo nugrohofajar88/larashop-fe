@@ -350,6 +350,23 @@ class LarashopApi
         ]);
     }
 
+    /** @return array{content:string, content_type:string} */
+    public function exportAdminAccounting(?string $month = null, string $mode = 'seller', string $paymentMethod = 'all'): array
+    {
+        $response = $this->requestRawAsAdmin('GET', '/admin/accounting/export', [
+            'query' => array_filter([
+                'month' => $month,
+                'mode' => $mode !== 'seller' ? $mode : null,
+                'payment_method' => $paymentMethod !== 'all' ? $paymentMethod : null,
+            ]),
+        ]);
+
+        return [
+            'content' => $response->body(),
+            'content_type' => $response->header('Content-Type') ?: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ];
+    }
+
     public function adminReportTrend(string $granularity = 'day'): array
     {
         return $this->requestAsAdmin('GET', '/admin/reports/trend', ['query' => ['granularity' => $granularity]]);

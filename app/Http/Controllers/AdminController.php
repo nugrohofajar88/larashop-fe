@@ -39,6 +39,26 @@ class AdminController extends Controller
         ]);
     }
 
+    public function accountingExport(Request $request)
+    {
+        $month = trim((string) $request->query('month', ''));
+        $mode = $request->query('mode') === 'buyer' ? 'buyer' : 'seller';
+        $paymentMethod = in_array($request->query('payment_method'), ['cod', 'transfer', 'qris'], true) ? $request->query('payment_method') : 'all';
+
+        try {
+            $export = $this->api->exportAdminAccounting($month !== '' ? $month : null, $mode, $paymentMethod);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal export Excel: '.$e->getMessage());
+        }
+
+        $filename = 'akuntansi-'.($month !== '' ? $month : now()->format('Y-m')).'.xlsx';
+
+        return response($export['content'], 200, [
+            'Content-Type' => $export['content_type'],
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
+
     public function aiAssistant(): View
     {
         return view('admin.ai-assistant.index');
