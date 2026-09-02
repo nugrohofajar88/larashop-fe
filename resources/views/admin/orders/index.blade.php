@@ -195,6 +195,34 @@
                     <p class="rounded-2xl border border-stone-200 bg-white px-4 py-8 text-center text-sm text-stone-500">Belum ada order yang cocok dengan filter saat ini.</p>
                 @endforelse
             </div>
+
+            {{-- Paging --}}
+            @if (($pagination['last_page'] ?? 1) > 1)
+                @php
+                    $baseParams = array_filter(['status' => $activeStatus !== 'all' ? $activeStatus : null, 'search' => $search !== '' ? $search : null]);
+                    $curPage = $pagination['current_page'];
+                    $lastPage = $pagination['last_page'];
+                @endphp
+                <div class="mt-5 flex flex-col items-center justify-between gap-3 border-t border-stone-100 pt-5 sm:flex-row">
+                    <p class="text-sm text-stone-500">
+                        Halaman {{ $curPage }} dari {{ $lastPage }} &middot; total {{ $pagination['total'] }} order
+                    </p>
+                    <div class="flex items-center gap-2">
+                        @if ($curPage > 1)
+                            <a href="{{ route('admin.orders.index', [...$baseParams, 'page' => $curPage - 1]) }}#daftar-order"
+                                class="rounded-xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">&larr; Sebelumnya</a>
+                        @else
+                            <span class="rounded-xl border border-stone-100 px-4 py-2 text-sm font-medium text-stone-300">&larr; Sebelumnya</span>
+                        @endif
+                        @if ($curPage < $lastPage)
+                            <a href="{{ route('admin.orders.index', [...$baseParams, 'page' => $curPage + 1]) }}#daftar-order"
+                                class="rounded-xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Selanjutnya &rarr;</a>
+                        @else
+                            <span class="rounded-xl border border-stone-100 px-4 py-2 text-sm font-medium text-stone-300">Selanjutnya &rarr;</span>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </section>
     </section>
 

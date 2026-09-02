@@ -828,7 +828,7 @@ class ExampleTest extends TestCase
             $this->apiUrl('/auth/login') => Http::response([
                 'data' => ['token' => 'admin-token'],
             ]),
-            $this->apiUrl('/admin/orders') => Http::response([
+            $this->apiUrl('/admin/orders').'*' => Http::response([
                 'data' => [
                     [
                         'id' => 3,
@@ -844,6 +844,10 @@ class ExampleTest extends TestCase
                         'shipping_estimate' => '2-4 hari',
                         'awb' => 'JNT00123456789',
                     ],
+                ],
+                'meta' => [
+                    'current_page' => 1, 'last_page' => 1, 'per_page' => 20, 'total' => 1,
+                    'status_counts' => ['shipped' => 1], 'total_count' => 1,
                 ],
             ]),
             $this->apiUrl('/admin/shipments') => Http::response([
@@ -881,7 +885,7 @@ class ExampleTest extends TestCase
 
         $ordersResponse->assertOk()
             ->assertSee('ORD-003')
-            ->assertSee('Shipped');
+            ->assertSee('Dalam Pengiriman');
 
         $shipmentsResponse->assertOk()
             ->assertSee('SHP-ORD-003')
@@ -890,42 +894,57 @@ class ExampleTest extends TestCase
 
     public function test_admin_orders_can_be_filtered_with_status_tabs(): void
     {
+        $allOrders = [
+            [
+                'id' => 1,
+                'code' => 'ORD-001',
+                'date' => '14 Mei 2026',
+                'status' => 'pending_payment',
+                'status_label' => 'Belum bayar',
+                'total' => 'Rp81.500',
+                'customer' => 'Budi Santoso',
+                'phone' => '081234567890',
+                'payment_status' => 'Menunggu transfer',
+                'shipping_service' => 'JNT Regular',
+                'shipping_estimate' => '2-4 hari',
+                'awb' => null,
+            ],
+            [
+                'id' => 2,
+                'code' => 'ORD-003',
+                'date' => '15 Mei 2026',
+                'status' => 'shipped',
+                'status_label' => 'Dikirim',
+                'total' => 'Rp93.000',
+                'customer' => 'Budi Santoso',
+                'phone' => '081234567890',
+                'payment_status' => 'Tervalidasi',
+                'shipping_service' => 'JNT Regular',
+                'shipping_estimate' => '2-4 hari',
+                'awb' => 'JNT00123456789',
+            ],
+        ];
+
         Http::fake([
             $this->apiUrl('/auth/login') => Http::response([
                 'data' => ['token' => 'admin-token'],
             ]),
-            $this->apiUrl('/admin/orders') => Http::response([
-                'data' => [
-                    [
-                        'id' => 1,
-                        'code' => 'ORD-001',
-                        'date' => '14 Mei 2026',
-                        'status' => 'pending_payment',
-                        'status_label' => 'Belum bayar',
-                        'total' => 'Rp81.500',
-                        'customer' => 'Budi Santoso',
-                        'phone' => '081234567890',
-                        'payment_status' => 'Menunggu transfer',
-                        'shipping_service' => 'JNT Regular',
-                        'shipping_estimate' => '2-4 hari',
-                        'awb' => null,
+            // Simulasikan filtering status di sisi "BE" (sesuai perilaku nyata sekarang -
+            // AdminOrderController::index() memfilter via query, bukan lagi FE).
+            $this->apiUrl('/admin/orders').'*' => function ($request) use ($allOrders) {
+                parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+                $status = $query['status'] ?? null;
+                $filtered = $status ? array_values(array_filter($allOrders, fn ($o) => $o['status'] === $status)) : $allOrders;
+
+                return Http::response([
+                    'data' => $filtered,
+                    'meta' => [
+                        'current_page' => 1, 'last_page' => 1, 'per_page' => 20, 'total' => count($filtered),
+                        'status_counts' => ['pending_payment' => 1, 'shipped' => 1],
+                        'total_count' => count($allOrders),
                     ],
-                    [
-                        'id' => 2,
-                        'code' => 'ORD-003',
-                        'date' => '15 Mei 2026',
-                        'status' => 'shipped',
-                        'status_label' => 'Dikirim',
-                        'total' => 'Rp93.000',
-                        'customer' => 'Budi Santoso',
-                        'phone' => '081234567890',
-                        'payment_status' => 'Tervalidasi',
-                        'shipping_service' => 'JNT Regular',
-                        'shipping_estimate' => '2-4 hari',
-                        'awb' => 'JNT00123456789',
-                    ],
-                ],
-            ]),
+                ]);
+            },
         ]);
 
         $response = $this->withSession($this->adminSession())->get('/admin/orders?status=pending_payment');
@@ -933,7 +952,7 @@ class ExampleTest extends TestCase
         $response->assertOk()
             ->assertSee('ORD-001')
             ->assertDontSee('ORD-003')
-            ->assertSee('Belum bayar (1)');
+            ->assertSee('Menunggu Pembayaran (1)');
     }
 
     public function test_admin_can_complete_order_via_backend_api(): void
@@ -942,12 +961,10 @@ class ExampleTest extends TestCase
             $this->apiUrl('/auth/login') => Http::response([
                 'data' => ['token' => 'admin-token'],
             ]),
-            $this->apiUrl('/admin/orders') => Http::response([
+            $this->apiUrl('/admin/orders/by-code/ORD-003') => Http::response([
                 'data' => [
-                    [
-                        'id' => 3,
-                        'code' => 'ORD-003',
-                    ],
+                    'id' => 3,
+                    'code' => 'ORD-003',
                 ],
             ]),
             $this->apiUrl('/admin/orders/3') => Http::response([
@@ -976,12 +993,10 @@ class ExampleTest extends TestCase
             $this->apiUrl('/auth/login') => Http::response([
                 'data' => ['token' => 'admin-token'],
             ]),
-            $this->apiUrl('/admin/orders') => Http::response([
+            $this->apiUrl('/admin/orders/by-code/ORD-001') => Http::response([
                 'data' => [
-                    [
-                        'id' => 1,
-                        'code' => 'ORD-001',
-                    ],
+                    'id' => 1,
+                    'code' => 'ORD-001',
                 ],
             ]),
             $this->apiUrl('/admin/orders/1') => Http::response([

@@ -722,10 +722,21 @@ class AdminController extends Controller
 
     public function orders(Request $request): View
     {
-        $orders = collect($this->api->adminOrders());
-        $allOrders = $orders;
         $status = $request->string('status')->toString();
         $search = trim($request->string('search')->toString());
+        $page = max(1, $request->integer('page', 1));
+        $perPage = 20;
+
+        $result = $this->api->adminOrders(array_filter([
+            'status' => $status ?: null,
+            'search' => $search ?: null,
+            'page' => $page,
+            'per_page' => $perPage,
+        ]));
+
+        $items = $result['data'] ?? [];
+        $meta = $result['meta'] ?? [];
+        $statusCounts = $meta['status_counts'] ?? [];
 
         // Label berorientasi TINDAKAN (bukan cuma nama status teknis), supaya
         // admin langsung tahu apa yang perlu dilakukan begitu lihat labelnya.
@@ -739,28 +750,13 @@ class AdminController extends Controller
         ];
 
         $statusTabs = [
-            ['key' => 'all', 'label' => 'Semua', 'count' => $allOrders->count()],
+            ['key' => 'all', 'label' => 'Semua', 'count' => $meta['total_count'] ?? 0],
             ...collect($statusLabels)->map(fn (string $label, string $key): array => [
                 'key' => $key,
                 'label' => $label,
-                'count' => $allOrders->where('status', $key)->count(),
+                'count' => $statusCounts[$key] ?? 0,
             ])->values()->all(),
         ];
-
-        if ($status !== '' && $status !== 'all') {
-            $orders = $orders->where('status', $status);
-        }
-
-        if ($search !== '') {
-            $needle = mb_strtolower($search);
-            $orders = $orders->filter(function (array $order) use ($needle): bool {
-                return str_contains(mb_strtolower($order['code']), $needle)
-                    || str_contains(mb_strtolower($order['customer'] ?? ''), $needle)
-                    || str_contains(mb_strtolower($order['phone'] ?? ''), $needle);
-            });
-        }
-
-        $items = $orders->values()->all();
 
         return view('admin.orders.index', [
             'orders' => $items,
@@ -768,11 +764,17 @@ class AdminController extends Controller
             'statusTabs' => $statusTabs,
             'statusLabels' => $statusLabels,
             'search' => $search,
+            'pagination' => [
+                'current_page' => $meta['current_page'] ?? 1,
+                'last_page' => $meta['last_page'] ?? 1,
+                'total' => $meta['total'] ?? 0,
+                'per_page' => $meta['per_page'] ?? $perPage,
+            ],
             'stats' => [
-                ['label' => $statusLabels['pending_payment'], 'value' => (string) collect($items)->where('status', 'pending_payment')->count(), 'note' => 'Perlu follow up pembayaran'],
-                ['label' => $statusLabels['paid'], 'value' => (string) collect($items)->where('status', 'paid')->count(), 'note' => 'Siap dibuat shipment'],
-                ['label' => $statusLabels['processing'], 'value' => (string) collect($items)->where('status', 'processing')->count(), 'note' => 'Sedang dipacking'],
-                ['label' => $statusLabels['shipped'], 'value' => (string) collect($items)->where('status', 'shipped')->count(), 'note' => 'Sudah memiliki AWB'],
+                ['label' => $statusLabels['pending_payment'], 'value' => (string) ($statusCounts['pending_payment'] ?? 0), 'note' => 'Perlu follow up pembayaran'],
+                ['label' => $statusLabels['paid'], 'value' => (string) ($statusCounts['paid'] ?? 0), 'note' => 'Siap dibuat shipment'],
+                ['label' => $statusLabels['processing'], 'value' => (string) ($statusCounts['processing'] ?? 0), 'note' => 'Sedang dipacking'],
+                ['label' => $statusLabels['shipped'], 'value' => (string) ($statusCounts['shipped'] ?? 0), 'note' => 'Sudah memiliki AWB'],
             ],
         ]);
     }
@@ -1736,9 +1738,10 @@ class AdminController extends Controller
 
     private function findOrderByCode(string $code): array
     {
-        $summary = collect($this->api->adminOrders())->firstWhere('code', strtoupper($code));
-        abort_if($summary === null, 404);
-
-        return $this->api->adminOrder((int) $summary['id']);
+        try {
+            return $this->api->adminOrderByCode($code);
+        } catch (LarashopApiException $exception) {
+            abort(404);
+        }
     }
 }

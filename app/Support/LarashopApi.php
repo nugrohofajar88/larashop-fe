@@ -324,9 +324,9 @@ class LarashopApi
         return $this->requestAsAdmin('POST', '/admin/customers/bulk-delete', ['json' => ['customer_codes' => $codes]])['data'] ?? [];
     }
 
-    public function adminOrders(): array
+    public function adminOrders(array $params = []): array
     {
-        return $this->requestAsAdmin('GET', '/admin/orders')['data'] ?? [];
+        return $this->requestAsAdmin('GET', '/admin/orders', ['query' => $params]);
     }
 
     public function adminDashboard(): array
@@ -416,6 +416,11 @@ class LarashopApi
     public function adminOrder(int $id): array
     {
         return $this->requestAsAdmin('GET', '/admin/orders/'.$id)['data'] ?? [];
+    }
+
+    public function adminOrderByCode(string $code): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/orders/by-code/'.$code)['data'] ?? [];
     }
 
     public function validateAdminOrderPayment(int $id): array
