@@ -39,6 +39,28 @@ class AdminController extends Controller
         ]);
     }
 
+    public function aiAssistant(): View
+    {
+        return view('admin.ai-assistant.index');
+    }
+
+    public function aiAssistantAsk(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'question' => ['required', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $result = $this->api->askAdminAiAssistant($validated['question']);
+        } catch (LarashopApiException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+
+        return response()->json([
+            'answer' => $result['data']['answer'] ?? 'Maaf, tidak ada jawaban.',
+        ]);
+    }
+
     public function reportTrend(Request $request): View
     {
         $granularity = $request->query('granularity') === 'month' ? 'month' : 'day';

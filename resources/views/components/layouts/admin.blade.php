@@ -62,6 +62,9 @@
                 <a href="{{ route('admin.reports.products') }}" class="block rounded-2xl px-4 py-3 {{ request()->routeIs('admin.reports.*') ? 'bg-white/10 text-white' : 'text-stone-300 hover:bg-white/5 hover:text-white' }}">
                     Laporan
                 </a>
+                <a href="{{ route('admin.ai-assistant') }}" class="block rounded-2xl px-4 py-3 {{ request()->routeIs('admin.ai-assistant*') ? 'bg-white/10 text-white' : 'text-stone-300 hover:bg-white/5 hover:text-white' }}">
+                    AI Assistant
+                </a>
                 <a href="{{ route('admin.rajaongkir-balance') }}" class="block rounded-2xl px-4 py-3 {{ request()->routeIs('admin.rajaongkir-balance*') ? 'bg-white/10 text-white' : 'text-stone-300 hover:bg-white/5 hover:text-white' }}">
                     Saldo RajaOngkir
                 </a>

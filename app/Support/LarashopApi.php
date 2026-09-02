@@ -355,6 +355,12 @@ class LarashopApi
         return $this->requestAsAdmin('GET', '/admin/reports/trend', ['query' => ['granularity' => $granularity]]);
     }
 
+    public function askAdminAiAssistant(string $question): array
+    {
+        // Bisa butuh beberapa putaran tool-calling + retry rate-limit di BE.
+        return $this->requestAsAdmin('POST', '/admin/ai-assistant/ask', ['json' => ['question' => $question]], timeout: 60);
+    }
+
     public function adminReportProducts(?string $month = null): array
     {
         return $this->requestAsAdmin('GET', '/admin/reports/products', ['query' => array_filter(['month' => $month])]);
