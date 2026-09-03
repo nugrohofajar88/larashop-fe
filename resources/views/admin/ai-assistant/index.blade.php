@@ -66,14 +66,61 @@
 
             const escapeHtml = (str) => str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-            // Konversi minimal Markdown (bold + tabel) dari jawaban AI ke HTML - jawaban
-            // dari model sering pakai format ini. Teks sumbernya sendiri sudah di-escape
-            // duluan (escapeHtml), jadi aman dari HTML injection walau AI ikut format teks.
+            // Konversi Markdown (bold, tabel GFM, bullet list) dari jawaban AI ke HTML -
+            // jawaban model sering pakai format ini (mis. tabel produk terlaris). SEMUA
+            // teks di-escape LEBIH DULU (escapeHtml) sebelum dibungkus tag - AI tidak
+            // pernah diizinkan kirim HTML mentah (data yg dijawabnya berasal dari database,
+            // bukan input tepercaya, jadi tetap aman dari HTML/script injection).
+            const inlineMd = (str) => str.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+            const parseTableRow = (line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+            const isTableSeparator = (line) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(line || '');
+
             const renderAnswer = (text) => {
-                let html = escapeHtml(text);
-                html = html.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
-                html = html.replace(/\n/g, '<br>');
-                return html;
+                const lines = escapeHtml(text).split('\n');
+                const blocks = [];
+                let i = 0;
+
+                while (i < lines.length) {
+                    // Tabel GFM: baris header ber-'|', lalu baris pemisah '---|---'.
+                    if (lines[i].includes('|') && isTableSeparator(lines[i + 1])) {
+                        const head = parseTableRow(lines[i]);
+                        let j = i + 2;
+                        const rows = [];
+                        while (j < lines.length && lines[j].includes('|')) {
+                            rows.push(parseTableRow(lines[j]));
+                            j++;
+                        }
+                        let table = '<div class="my-2 overflow-x-auto"><table class="w-full border-collapse text-xs"><thead><tr>';
+                        head.forEach((c) => { table += '<th class="border border-stone-200 bg-stone-100 px-2 py-1.5 text-left font-semibold">' + inlineMd(c) + '</th>'; });
+                        table += '</tr></thead><tbody>';
+                        rows.forEach((r) => {
+                            table += '<tr>';
+                            r.forEach((c) => { table += '<td class="border border-stone-200 px-2 py-1.5">' + inlineMd(c) + '</td>'; });
+                            table += '</tr>';
+                        });
+                        table += '</tbody></table></div>';
+                        blocks.push(table);
+                        i = j;
+                        continue;
+                    }
+
+                    // Bullet list ('- item' atau '* item').
+                    if (/^\s*[-*]\s+/.test(lines[i])) {
+                        const items = [];
+                        while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
+                            items.push(lines[i].replace(/^\s*[-*]\s+/, ''));
+                            i++;
+                        }
+                        blocks.push('<ul class="my-1 list-disc space-y-0.5 pl-5">' + items.map((it) => '<li>' + inlineMd(it) + '</li>').join('') + '</ul>');
+                        continue;
+                    }
+
+                    blocks.push(inlineMd(lines[i]) + '<br>');
+                    i++;
+                }
+
+                return blocks.join('');
             };
 
             const appendMessage = (role, html) => {
