@@ -43,12 +43,13 @@
                         </button>
                     </form>
                 @elseif ($order['status'] === 'processing')
-                    <form method="POST" action="{{ route('admin.orders.process-shipment', $order['code']) }}">
+                    {{-- Disembunyikan sementara --}}
+                    {{-- <form method="POST" action="{{ route('admin.orders.process-shipment', $order['code']) }}">
                         @csrf
                         <button type="submit" class="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white">
                             Tandai Dikirim
                         </button>
-                    </form>
+                    </form> --}}
                 @endif
                 @if (! empty($order['awb']))
                     <a href="{{ route('admin.orders.label', $order['code']) }}" target="_blank" rel="noopener"

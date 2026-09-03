@@ -89,7 +89,7 @@
                         Cetak Label (<span data-count-awb>0</span>)
                     </button>
                 </div>
-                <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; order <b>processing</b> → <b>Tandai Dikirim</b>; order yang sudah punya AWB → <b>Cetak Label</b> (gabung jadi 1 PDF, <b>maks 20</b> per cetak).</p>
+                <p class="mt-2 text-xs text-stone-500">Centang order <b>paid</b> (sudah ter-booking) → <b>Jadwalkan Pickup</b>; order yang sudah punya AWB → <b>Cetak Label</b> (gabung jadi 1 PDF, <b>maks 20</b> per cetak).</p>
                 <p data-label-warn class="mt-1 hidden text-xs font-semibold text-amber-700">Cetak Label dibatasi maksimal 20 order sekali jalan. Kurangi pilihan order ber-AWB jadi 20 atau kurang.</p>
             </form>
 
