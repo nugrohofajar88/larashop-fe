@@ -68,10 +68,13 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'question' => ['required', 'string', 'max:1000'],
+            'history' => ['nullable', 'array', 'max:6'],
+            'history.*.role' => ['required_with:history', 'string', 'in:user,assistant'],
+            'history.*.content' => ['required_with:history', 'string', 'max:4000'],
         ]);
 
         try {
-            $result = $this->api->askAdminAiAssistant($validated['question']);
+            $result = $this->api->askAdminAiAssistant($validated['question'], $validated['history'] ?? []);
         } catch (LarashopApiException $exception) {
             return response()->json(['message' => $exception->getMessage()], 422);
         }

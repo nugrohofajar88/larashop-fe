@@ -394,12 +394,17 @@ class LarashopApi
         return $this->requestAsAdmin('GET', '/admin/reports/trend', ['query' => ['granularity' => $granularity]]);
     }
 
-    public function askAdminAiAssistant(string $question): array
+    /**
+     * @param  array<int,array{role:string,content:string}>  $history  Riwayat percakapan
+     *   sebelumnya (BE-nya sendiri stateless, tidak simpan sesi) - lihat
+     *   ai-assistant/index.blade.php yang menyimpan & mengirim riwayatnya.
+     */
+    public function askAdminAiAssistant(string $question, array $history = []): array
     {
         // Bisa butuh beberapa putaran tool-calling (maks 4), tiap putaran bisa retry
         // 2x kalau kena rate-limit (nunggu maks ~10s/retry) - worst-case realistis
         // bisa >60s, kasih ruang lebih supaya gak keburu timeout duluan di sisi FE.
-        return $this->requestAsAdmin('POST', '/admin/ai-assistant/ask', ['json' => ['question' => $question]], timeout: 120);
+        return $this->requestAsAdmin('POST', '/admin/ai-assistant/ask', ['json' => ['question' => $question, 'history' => $history]], timeout: 120);
     }
 
     public function adminReportProducts(?string $month = null): array

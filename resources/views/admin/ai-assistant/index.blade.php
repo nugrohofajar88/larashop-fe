@@ -1,11 +1,16 @@
 <x-layouts.admin title="Admin Sobat Akar Tani Kimia | AI Assistant">
     <section class="space-y-6">
-        <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-700">Admin</p>
-            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-stone-950">AI Assistant</h1>
-            <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
-                Tanya apa saja soal data order, pelanggan, atau produk - AI ini cuma bisa <b>membaca</b> data, tidak bisa mengubah/menghapus apa pun.
-            </p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-700">Admin</p>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-stone-950">AI Assistant</h1>
+                <p class="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
+                    Tanya apa saja soal data order, pelanggan, atau produk - AI ini cuma bisa <b>membaca</b> data, tidak bisa mengubah/menghapus apa pun.
+                </p>
+            </div>
+            <button type="button" data-ai-reset class="shrink-0 rounded-2xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-600 hover:bg-stone-50">
+                Percakapan Baru
+            </button>
         </div>
 
         <section class="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm">
@@ -48,7 +53,16 @@
             const log = document.querySelector('[data-ai-chat-log]');
             const input = document.querySelector('[data-ai-chat-input]');
             const submitBtn = document.querySelector('[data-ai-chat-submit]');
+            const resetBtn = document.querySelector('[data-ai-reset]');
             const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+            const greetingHtml = log.innerHTML;
+
+            // Asisten di BE stateless (tiap request dibangun ulang dari nol) - riwayat
+            // percakapan disimpan & dikirim balik dari SINI tiap tanya, supaya AI
+            // "nyambung" dgn pertanyaan sebelumnya. Dibatasi 3 pasang tanya-jawab (6
+            // pesan) biar tidak makin boros token tiap giliran (limit Groq 8.000 TPM).
+            const MAX_HISTORY = 6;
+            let history = [];
 
             const escapeHtml = (str) => str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -85,9 +99,15 @@
                     const res = await fetch('{{ route('admin.ai-assistant.ask') }}', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
-                        body: JSON.stringify({ question }),
+                        body: JSON.stringify({ question, history }),
                     });
                     const data = await res.json();
+                    if (data.answer) {
+                        // Cuma simpan ke riwayat kalau beneran dapat jawaban - biar
+                        // giliran yang gagal/error tidak ikut mengotori context.
+                        history.push({ role: 'user', content: question }, { role: 'assistant', content: data.answer });
+                        history = history.slice(-MAX_HISTORY);
+                    }
                     thinking.innerHTML = renderAnswer(data.answer || data.message || 'Maaf, tidak ada jawaban.');
                 } catch (err) {
                     thinking.innerHTML = 'Maaf, ada gangguan koneksi. Coba lagi.';
@@ -107,6 +127,11 @@
 
             document.querySelectorAll('[data-ai-suggestion]').forEach((btn) => {
                 btn.addEventListener('click', () => ask(btn.textContent.trim()));
+            });
+
+            resetBtn?.addEventListener('click', () => {
+                history = [];
+                log.innerHTML = greetingHtml;
             });
         })();
     </script>
