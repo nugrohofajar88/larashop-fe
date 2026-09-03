@@ -34,12 +34,13 @@
                 </button>
             </form>
         @elseif ($order['status'] === 'processing')
-            <form method="POST" action="{{ route('admin.orders.process-shipment', $order['code']) }}">
+            {{-- Disembunyikan sementara --}}
+            {{-- <form method="POST" action="{{ route('admin.orders.process-shipment', $order['code']) }}">
                 @csrf
                 <button type="submit" class="block w-full px-4 py-3 text-left text-sm font-medium text-stone-700 transition hover:bg-stone-50">
                     Tandai dikirim
                 </button>
-            </form>
+            </form> --}}
         @elseif ($order['status'] === 'shipped')
             <form method="POST" action="{{ route('admin.orders.complete', $order['code']) }}">
                 @csrf

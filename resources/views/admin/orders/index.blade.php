@@ -81,9 +81,10 @@
                     <button type="submit" data-bulk-pickup-btn class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">
                         Jadwalkan Pickup (<span data-count-paid>0</span>)
                     </button>
-                    <button type="submit" formaction="{{ route('admin.orders.mark-shipped-bulk') }}" data-bulk-ship-btn class="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40">
+                    {{-- Disembunyikan sementara --}}
+                    {{-- <button type="submit" formaction="{{ route('admin.orders.mark-shipped-bulk') }}" data-bulk-ship-btn class="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40">
                         Tandai Dikirim (<span data-count-processing>0</span>)
-                    </button>
+                    </button> --}}
                     <button type="submit" formaction="{{ route('admin.orders.print-labels-bulk') }}" formtarget="_blank" data-bulk-label-btn class="rounded-xl bg-stone-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-40">
                         Cetak Label (<span data-count-awb>0</span>)
                     </button>
@@ -248,11 +249,11 @@
                 const nPaid = checked.filter(c => c.dataset.status === 'paid').length;
                 const nProc = checked.filter(c => c.dataset.status === 'processing').length;
                 const nAwb = checked.filter(c => c.dataset.awb === '1').length;
-                cPaid.textContent = nPaid;
-                cProc.textContent = nProc;
-                cAwb.textContent = nAwb;
-                btnPickup.disabled = nPaid === 0;
-                btnShip.disabled = nProc === 0;
+                if (cPaid) cPaid.textContent = nPaid;
+                if (cProc) cProc.textContent = nProc;
+                if (cAwb) cAwb.textContent = nAwb;
+                if (btnPickup) btnPickup.disabled = nPaid === 0;
+                if (btnShip) btnShip.disabled = nProc === 0;
                 // Satu call gabungan ke Komerce (order_no dipisah koma) → batas wajar 20 per cetak.
                 const LABEL_MAX = 20;
                 btnLabel.disabled = nAwb === 0 || nAwb > LABEL_MAX;
