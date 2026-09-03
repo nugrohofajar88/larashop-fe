@@ -330,7 +330,7 @@ class LarashopApi
     }
 
     /**
-     * Export data penjualan (CSV: marketplace/order_no/resi/sku/nama_produk/qty)
+     * Export data penjualan (Excel: marketplace/order_no/resi/sku/nama_produk/qty)
      * dari BE - semua order kecuali dibatalkan. Biner mentah, sama pola dgn
      * exportAdminAccounting().
      *
@@ -347,7 +347,7 @@ class LarashopApi
 
         return [
             'content' => $response->body(),
-            'content_type' => $response->header('Content-Type') ?: 'text/csv',
+            'content_type' => $response->header('Content-Type') ?: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ];
     }
 

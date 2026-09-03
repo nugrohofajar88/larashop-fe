@@ -999,7 +999,7 @@ class AdminController extends Controller
 
         return response($export['content'], 200, [
             'Content-Type' => $export['content_type'],
-            'Content-Disposition' => 'attachment; filename="orders-penjualan-' . now()->format('Y-m-d_His') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="orders-penjualan-' . now()->format('Y-m-d_His') . '.xlsx"',
         ]);
     }
 

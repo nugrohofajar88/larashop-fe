@@ -42,7 +42,7 @@
                 </div>
             </form>
 
-            {{-- Export CSV data penjualan (marketplace/order_no/resi/sku/nama_produk/qty) - semua
+            {{-- Export Excel data penjualan (marketplace/order_no/resi/sku/nama_produk/qty) - semua
                  order kecuali dibatalkan (order yang belum punya AWB tetap ikut, resi dikosongkan).
                  Rentang tanggal opsional (berdasarkan tanggal order dibuat), terpisah dari filter
                  status/search di atas supaya bisa export lintas status/halaman sekaligus. --}}
@@ -56,7 +56,7 @@
                     <input type="date" name="date_to" class="mt-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
                 </div>
                 <button type="submit" class="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">
-                    Export CSV Penjualan
+                    Download Excel Penjualan
                 </button>
                 <p class="basis-full text-xs text-stone-500">Kosongkan tanggal untuk export semua order (kecuali yang dibatalkan). Order yang belum punya resi/AWB tetap ikut, kolom resi dikosongkan.</p>
             </form>
