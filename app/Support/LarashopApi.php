@@ -329,6 +329,28 @@ class LarashopApi
         return $this->requestAsAdmin('GET', '/admin/orders', ['query' => $params]);
     }
 
+    /**
+     * Export data penjualan (CSV: marketplace/order_no/resi/sku/nama_produk/qty)
+     * dari BE - semua order kecuali dibatalkan. Biner mentah, sama pola dgn
+     * exportAdminAccounting().
+     *
+     * @return array{content:string, content_type:string}
+     */
+    public function exportAdminOrders(?string $dateFrom = null, ?string $dateTo = null): array
+    {
+        $response = $this->requestRawAsAdmin('GET', '/admin/orders/export', [
+            'query' => array_filter([
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ]),
+        ]);
+
+        return [
+            'content' => $response->body(),
+            'content_type' => $response->header('Content-Type') ?: 'text/csv',
+        ];
+    }
+
     public function adminDashboard(): array
     {
         return $this->requestAsAdmin('GET', '/admin/dashboard')['data'] ?? [];

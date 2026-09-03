@@ -92,6 +92,7 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::post('/orders/schedule-pickup-bulk', [AdminController::class, 'schedulePickupBulk'])->name('admin.orders.schedule-pickup-bulk');
     Route::post('/orders/mark-shipped-bulk', [AdminController::class, 'markShippedBulk'])->name('admin.orders.mark-shipped-bulk');
     Route::post('/orders/print-labels-bulk', [AdminController::class, 'printLabelsBulk'])->name('admin.orders.print-labels-bulk');
+    Route::get('/orders/export', [AdminController::class, 'exportOrders'])->name('admin.orders.export');
     Route::get('/orders/{code}', [AdminController::class, 'showOrder'])->name('admin.orders.show');
     Route::post('/orders/{code}/validate-payment', [AdminController::class, 'validatePayment'])->name('admin.orders.validate-payment');
     Route::post('/orders/{code}/retry-booking', [AdminController::class, 'retryBooking'])->name('admin.orders.retry-booking');

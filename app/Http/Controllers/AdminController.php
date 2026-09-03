@@ -981,6 +981,25 @@ class AdminController extends Controller
         ]);
     }
 
+    public function exportOrders(Request $request)
+    {
+        $validated = $request->validate([
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+        ]);
+
+        try {
+            $export = $this->api->exportAdminOrders($validated['date_from'] ?? null, $validated['date_to'] ?? null);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal export data: ' . $e->getMessage());
+        }
+
+        return response($export['content'], 200, [
+            'Content-Type' => $export['content_type'],
+            'Content-Disposition' => 'attachment; filename="orders-penjualan-' . now()->format('Y-m-d_His') . '.csv"',
+        ]);
+    }
+
     public function orderLabel(string $code)
     {
         $order = $this->findOrderByCode($code);
