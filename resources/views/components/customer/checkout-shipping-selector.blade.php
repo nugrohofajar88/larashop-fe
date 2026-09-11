@@ -22,6 +22,11 @@
         <p class="mt-1 font-body-sm text-body-sm text-on-surface-variant" data-shipping-estimate>{{ ($selectedShipping['estimate'] ?? '') !== '' ? 'Estimasi '.$selectedShipping['estimate'] : '' }}</p>
     </div>
 
+    <div class="mt-3 flex items-start gap-2 rounded-2xl border border-secondary-container bg-secondary-container/30 px-4 py-3 font-body-sm text-body-sm text-on-secondary-container">
+        <span class="material-symbols-outlined text-[18px]">info</span>
+        <p><span class="font-semibold">COD luar Pulau Jawa tidak tersedia.</span> Untuk tujuan luar Pulau Jawa disarankan pakai <span class="font-semibold">Lion Parcel</span>.</p>
+    </div>
+
     <div class="fixed inset-0 z-[60] hidden p-4 backdrop-blur-sm" style="background-color: rgba(12,10,9,0.45);" data-selector-modal aria-hidden="true">
         <div class="mx-auto flex min-h-full max-w-2xl items-center justify-center">
             <div class="w-full rounded-3xl bg-surface-container-lowest p-5 shadow-2xl sm:p-6">
@@ -33,7 +38,15 @@
                     <button type="button" class="rounded-full border border-surface-container-highest px-3 py-2 text-xs font-semibold text-on-surface-variant" data-selector-close>Tutup</button>
                 </div>
 
-                <div class="mt-5 max-h-[60vh] space-y-3 overflow-y-auto pr-1" data-selector-options>
+                <div class="mt-5 flex items-start gap-3 rounded-2xl border border-secondary-container bg-secondary-container/30 px-4 py-3 font-body-sm text-body-sm text-on-secondary-container">
+                    <span class="material-symbols-outlined text-[20px]">info</span>
+                    <ul class="list-disc space-y-1 pl-4">
+                        <li><span class="font-semibold">COD luar Pulau Jawa tidak tersedia</span> — sebagian besar kurir hanya melayani COD untuk tujuan di Pulau Jawa.</li>
+                        <li><span class="font-semibold">Luar Pulau Jawa</span> disarankan pakai <span class="font-semibold">Lion Parcel</span> — biasanya paling terjangkau untuk paket berat ke luar Jawa.</li>
+                    </ul>
+                </div>
+
+                <div class="mt-3 max-h-[60vh] space-y-3 overflow-y-auto pr-1" data-selector-options>
                     @forelse ($shippingOptions as $option)
                         <label class="block cursor-pointer rounded-2xl border {{ $option['selected'] ? 'border-primary bg-secondary-container/20' : 'border-surface-container-highest bg-surface-container-lowest' }} px-4 py-4 transition" data-selector-option>
                             <div class="flex items-start gap-3">
