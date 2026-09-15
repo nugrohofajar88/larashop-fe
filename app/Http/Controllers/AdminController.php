@@ -139,6 +139,17 @@ class AdminController extends Controller
         ]);
     }
 
+    public function reportWhatsapp(Request $request): View
+    {
+        $month = trim((string) $request->query('month', ''));
+        $result = $this->api->adminReportWhatsapp($month !== '' ? $month : null);
+
+        return view('admin.reports.whatsapp', [
+            'stats' => $result['data'] ?? [],
+            'meta' => $result['meta'] ?? [],
+        ]);
+    }
+
     public function rajaOngkirBalance(): View
     {
         $result = $this->api->adminRajaOngkirBalance();

@@ -427,6 +427,11 @@ class LarashopApi
         return $this->requestAsAdmin('GET', '/admin/reports/customers', ['query' => array_filter(['month' => $month])]);
     }
 
+    public function adminReportWhatsapp(?string $month = null): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/reports/whatsapp', ['query' => array_filter(['month' => $month])]);
+    }
+
     public function adminRajaOngkirBalance(): array
     {
         return $this->requestAsAdmin('GET', '/admin/rajaongkir-balance');
