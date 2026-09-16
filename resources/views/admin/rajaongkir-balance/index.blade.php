@@ -35,6 +35,10 @@
                         <dt class="text-stone-500">Biaya Retry-Booking ({{ $meta['retry_fee_count'] ?? 0 }}x)</dt>
                         <dd class="font-medium text-rose-600">(-{{ $meta['total_retry_fee'] ?? 'Rp0' }})</dd>
                     </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <dt class="text-stone-500">Total Withdrawal ({{ $meta['withdrawal_count'] ?? 0 }}x)</dt>
+                        <dd class="font-medium text-rose-600">(-{{ $meta['total_withdrawal'] ?? 'Rp0' }})</dd>
+                    </div>
                 </dl>
 
                 <div class="my-5 border-t border-dashed border-stone-200"></div>
@@ -130,10 +134,10 @@
             </section>
         @endif
 
-        {{-- Sinkronisasi biaya generate QRIS dari file mutasi --}}
+        {{-- Sinkronisasi biaya generate QRIS + Withdrawal dari file mutasi --}}
         <section class="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm">
-            <h3 class="text-sm font-semibold text-stone-900">Sinkronisasi Biaya QRIS</h3>
-            <p class="mt-1 text-xs text-stone-500">Upload file mutasi RajaOngkir/Komerce (format CSV, kolom "Tanggal", "Jenis Transaksi", "Mutasi") untuk update total biaya generate QRIS di atas. Baris yang sudah pernah tercatat otomatis dilewati, jadi aman diulang.</p>
+            <h3 class="text-sm font-semibold text-stone-900">Sinkronisasi Mutasi (QRIS &amp; Withdrawal)</h3>
+            <p class="mt-1 text-xs text-stone-500">Upload file mutasi RajaOngkir/Komerce (format CSV, kolom "Tanggal", "Jenis Transaksi", "Mutasi") untuk update total biaya generate QRIS <strong>dan</strong> total Withdrawal di atas sekaligus dari 1 file yang sama. Baris yang sudah pernah tercatat otomatis dilewati, jadi aman diulang.</p>
             <form method="POST" action="{{ route('admin.rajaongkir-balance.sync-qris') }}" enctype="multipart/form-data" class="mt-4 flex flex-wrap items-center gap-3">
                 @csrf
                 <input type="file" name="file" accept=".csv,text/csv" required class="block w-full max-w-xs text-sm text-stone-600 file:mr-3 file:rounded-xl file:border-0 file:bg-stone-900 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white">
