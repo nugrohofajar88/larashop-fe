@@ -105,6 +105,7 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/orders/{code}/label', [AdminController::class, 'orderLabel'])->name('admin.orders.label');
     Route::get('/orders/{code}/label-diy', [AdminController::class, 'orderLabelDiy'])->name('admin.orders.label-diy');
     Route::post('/orders/{code}/complete', [AdminController::class, 'completeOrder'])->name('admin.orders.complete');
+    Route::post('/orders/{code}/sync-tracking', [AdminController::class, 'syncOrderTracking'])->name('admin.orders.sync-tracking');
     Route::get('/qris', [AdminController::class, 'qris'])->name('admin.qris.index');
     Route::post('/qris/upload', [AdminController::class, 'qrisUpload'])->name('admin.qris.upload');
     Route::post('/qris/{id}/activate', [AdminController::class, 'qrisActivate'])->name('admin.qris.activate');

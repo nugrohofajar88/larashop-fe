@@ -557,6 +557,12 @@ class LarashopApi
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/complete')['data'] ?? [];
     }
 
+    /** Verifikasi status order via tracking resi live (bukan webhook). */
+    public function syncAdminOrderTracking(int $id): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/sync-tracking');
+    }
+
     /**
      * Ambil label/resi (PDF) dari BE. Bukan JSON — kembalikan biner mentah.
      *

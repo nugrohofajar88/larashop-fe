@@ -51,6 +51,16 @@
                         </button>
                     </form> --}}
                 @endif
+                @if (in_array($order['status'], ['processing', 'shipped'], true) && ! empty($order['awb']))
+                    {{-- Verifikasi status via tracking resi langsung ke RajaOngkir - jaga-jaga
+                         webhook Komerce utk kurir tertentu (mis. Lion Parcel) tidak konsisten masuk. --}}
+                    <form method="POST" action="{{ route('admin.orders.sync-tracking', $order['code']) }}">
+                        @csrf
+                        <button type="submit" class="rounded-2xl border border-emerald-600 px-5 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50">
+                            🔄 Sync Status Tracking
+                        </button>
+                    </form>
+                @endif
                 @if (! empty($order['awb']))
                     <a href="{{ route('admin.orders.label', $order['code']) }}" target="_blank" rel="noopener"
                        class="inline-flex items-center gap-2 rounded-2xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-700">
