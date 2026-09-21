@@ -1110,6 +1110,20 @@ class AdminController extends Controller
         return redirect()->route('admin.orders.show', $updated['code'])->with('success', "Order {$updated['code']} berhasil ditandai selesai.");
     }
 
+    public function restoreOrder(string $code): RedirectResponse
+    {
+        $order = $this->findOrderByCode($code);
+
+        try {
+            $result = $this->api->restoreAdminOrder($order['id']);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal memulihkan order: ' . $e->getMessage());
+        }
+
+        return redirect()->route('admin.orders.show', $code)
+            ->with('success', $result['message'] ?? 'Order dipulihkan.');
+    }
+
     public function syncOrderTracking(string $code): RedirectResponse
     {
         $order = $this->findOrderByCode($code);

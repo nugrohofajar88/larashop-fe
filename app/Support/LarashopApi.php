@@ -557,6 +557,12 @@ class LarashopApi
         return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/complete')['data'] ?? [];
     }
 
+    /** Pulihkan order yang batal otomatis karena telat bayar. */
+    public function restoreAdminOrder(int $id): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/orders/'.$id.'/restore');
+    }
+
     /** Verifikasi status order via tracking resi live (bukan webhook). */
     public function syncAdminOrderTracking(int $id): array
     {

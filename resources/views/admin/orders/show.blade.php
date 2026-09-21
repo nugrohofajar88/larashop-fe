@@ -51,6 +51,15 @@
                         </button>
                     </form> --}}
                 @endif
+                @if (! empty($order['can_restore']))
+                    {{-- Order batal otomatis karena telat bayar - pulihkan kalau pelanggan ternyata sudah transfer. --}}
+                    <form method="POST" action="{{ route('admin.orders.restore', $order['code']) }}" data-confirm="Pulihkan order ini? Stok akan dipotong lagi dan status kembali Menunggu Pembayaran (tenggat baru 24 jam). Gagal kalau stok sudah tidak cukup." data-confirm-title="Pulihkan order" data-confirm-ok="Ya, pulihkan">
+                        @csrf
+                        <button type="submit" class="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+                            ♻️ Pulihkan order
+                        </button>
+                    </form>
+                @endif
                 @if (in_array($order['status'], ['processing', 'shipped'], true) && ! empty($order['awb']))
                     {{-- Verifikasi status via tracking resi langsung ke RajaOngkir - jaga-jaga
                          webhook Komerce utk kurir tertentu (mis. Lion Parcel) tidak konsisten masuk. --}}
