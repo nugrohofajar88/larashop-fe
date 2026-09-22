@@ -1310,6 +1310,18 @@ class AdminController extends Controller
         return redirect()->route('admin.payments.settings')->with('success', 'Nomor WhatsApp toko berhasil disimpan.');
     }
 
+    /** Toggle cepat terima-order-baru dari tombol di sidebar admin (bukan form Pengaturan Toko). */
+    public function toggleStoreStatus(): RedirectResponse
+    {
+        try {
+            $result = $this->api->toggleStoreStatus();
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', 'Gagal mengubah status toko: '.$exception->getMessage());
+        }
+
+        return back()->with('success', $result['message'] ?? 'Status toko berhasil diubah.');
+    }
+
     public function storePaymentAccount(Request $request): RedirectResponse
     {
         $validated = $this->validatePaymentAccount($request);

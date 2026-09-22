@@ -59,5 +59,20 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('storeWhatsapp', $storeWhatsapp);
         });
+
+        // Status buka/tutup toko (toggle admin) - dipakai badge di sidebar admin,
+        // tampil di SEMUA halaman admin. Fail-open (anggap "buka") kalau API gagal
+        // - ini cuma tampilan badge, penegakan aturan sesungguhnya tetap di server.
+        View::composer('components.layouts.admin', function ($view): void {
+            $storeOpen = true;
+
+            try {
+                $storeOpen = (bool) (app(LarashopApi::class)->adminSettings()['store_open'] ?? true);
+            } catch (\Throwable) {
+                $storeOpen = true;
+            }
+
+            $view->with('storeOpen', $storeOpen);
+        });
     }
 }

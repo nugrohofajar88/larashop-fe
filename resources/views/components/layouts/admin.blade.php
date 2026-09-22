@@ -94,7 +94,27 @@
                 </a>
             </nav>
 
-            <form method="POST" action="{{ route('admin.logout') }}" class="mt-8">
+            {{-- Toggle terima-order-baru - selalu terlihat di semua halaman admin,
+                 supaya admin bisa "tutup toko" (mis. hari libur) dari mana saja
+                 tanpa buka form Pengaturan Toko. --}}
+            <div class="mt-6 rounded-2xl border {{ $storeOpen ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-rose-500/30 bg-rose-500/10' }} px-4 py-3">
+                <p class="flex items-center gap-2 text-sm font-semibold {{ $storeOpen ? 'text-emerald-300' : 'text-rose-300' }}">
+                    <span class="inline-block h-2 w-2 rounded-full {{ $storeOpen ? 'bg-emerald-400' : 'bg-rose-400' }}"></span>
+                    Toko: {{ $storeOpen ? 'Buka' : 'Tutup' }}
+                </p>
+                <p class="mt-1 text-xs text-stone-400">
+                    {{ $storeOpen ? 'Customer bisa checkout web & WhatsApp.' : 'Checkout web & WhatsApp sedang diblokir.' }}
+                </p>
+                <form method="POST" action="{{ route('admin.store-status.toggle') }}" class="mt-2"
+                    @if ($storeOpen) data-confirm="Customer TIDAK BISA checkout (web & WhatsApp) selama toko ditutup. Lanjutkan tutup toko?" data-confirm-title="Tutup toko sementara" data-confirm-ok="Ya, tutup toko" @endif>
+                    @csrf
+                    <button type="submit" class="w-full rounded-xl px-3 py-2 text-xs font-semibold {{ $storeOpen ? 'bg-rose-500/20 text-rose-200 hover:bg-rose-500/30' : 'bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30' }}">
+                        {{ $storeOpen ? 'Tutup Toko Sementara' : 'Buka Toko Kembali' }}
+                    </button>
+                </form>
+            </div>
+
+            <form method="POST" action="{{ route('admin.logout') }}" class="mt-4">
                 @csrf
                 <button
                     type="submit"

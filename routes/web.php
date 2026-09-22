@@ -121,6 +121,7 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::put('/payments/accounts/{id}', [AdminController::class, 'updatePaymentAccount'])->name('admin.payments.accounts.update');
     Route::delete('/payments/accounts/{id}', [AdminController::class, 'deletePaymentAccount'])->name('admin.payments.accounts.destroy');
     Route::put('/payments/store-settings', [AdminController::class, 'updateStoreSettings'])->name('admin.payments.store-settings.update');
+    Route::post('/store-status/toggle', [AdminController::class, 'toggleStoreStatus'])->name('admin.store-status.toggle');
 
     Route::get('/categories', [AdminController::class, 'categories'])->name('admin.categories.index');
     Route::post('/categories', [AdminController::class, 'storeCategory'])->name('admin.categories.store');

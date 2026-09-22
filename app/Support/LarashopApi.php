@@ -269,6 +269,12 @@ class LarashopApi
         return $this->requestAsAdmin('PUT', '/admin/settings', ['json' => $payload])['data'] ?? [];
     }
 
+    /** Toggle cepat terima-order-baru (tombol di sidebar admin). */
+    public function toggleStoreStatus(): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/settings/store-status/toggle');
+    }
+
     public function adminProducts(array $query = []): array
     {
         return $this->requestAsAdmin('GET', '/admin/products', ['query' => $query])['data'] ?? [];
