@@ -125,6 +125,7 @@
                             <th class="px-4 py-3 font-medium">Status</th>
                             <th class="px-4 py-3 font-medium">Shipment</th>
                             <th class="px-4 py-3 font-medium">Cetak</th>
+                            <th class="px-4 py-3 font-medium">Dipickup</th>
                             <th class="rounded-tr-2xl px-4 py-3 font-medium">Aksi</th>
                         </tr>
                     </thead>
@@ -160,12 +161,15 @@
                                     <span title="{{ $order['printed_label'] ?? '' }}" class="rounded-full px-3 py-1 text-xs font-semibold {{ ! empty($order['is_printed']) ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500' }}">{{ ! empty($order['is_printed']) ? 'Ya' : 'Tidak' }}</span>
                                 </td>
                                 <td class="px-4 py-4 align-top">
+                                    <span title="{{ $order['picked_up_label'] ?? '' }}" class="rounded-full px-3 py-1 text-xs font-semibold {{ ! empty($order['is_picked_up']) ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500' }}">{{ ! empty($order['is_picked_up']) ? 'Ya' : 'Tidak' }}</span>
+                                </td>
+                                <td class="px-4 py-4 align-top">
                                     @include('admin.orders._row-actions')
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada order yang cocok dengan filter saat ini.</td>
+                                <td colspan="9" class="px-4 py-8 text-center text-sm text-stone-500">Belum ada order yang cocok dengan filter saat ini.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -208,6 +212,10 @@
                             <div class="flex items-start justify-between gap-3">
                                 <dt class="text-stone-500">Cetak Label</dt>
                                 <dd class="text-right"><span title="{{ $order['printed_label'] ?? '' }}" class="rounded-full px-2.5 py-1 text-xs font-semibold {{ ! empty($order['is_printed']) ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500' }}">{{ ! empty($order['is_printed']) ? 'Ya' : 'Tidak' }}</span></dd>
+                            </div>
+                            <div class="flex items-start justify-between gap-3">
+                                <dt class="text-stone-500">Dipickup Kurir</dt>
+                                <dd class="text-right"><span title="{{ $order['picked_up_label'] ?? '' }}" class="rounded-full px-2.5 py-1 text-xs font-semibold {{ ! empty($order['is_picked_up']) ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500' }}">{{ ! empty($order['is_picked_up']) ? 'Ya' : 'Tidak' }}</span></dd>
                             </div>
                         </dl>
                     </article>
