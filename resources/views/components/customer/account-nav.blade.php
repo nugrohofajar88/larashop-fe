@@ -4,6 +4,7 @@
     $initial = strtoupper(substr($username, 0, 1));
     $isProfile = request()->routeIs('profile');
     $isAddresses = request()->routeIs('addresses');
+    $isReseller = request()->routeIs('reseller.dashboard');
     $pillActive = 'bg-secondary-container text-on-secondary-container font-bold';
     $pillIdle = 'text-on-surface-variant hover:bg-surface-container-low';
 @endphp
@@ -35,6 +36,12 @@
                     <span class="material-symbols-outlined" @if($isAddresses) style="font-variation-settings: 'FILL' 1;" @endif>location_on</span>
                     <span class="font-body-md text-body-md">Alamat</span>
                 </a>
+                @if (config('features.reseller'))
+                    <a href="{{ route('reseller.dashboard') }}" class="flex items-center gap-3 rounded-full px-4 py-3 transition-all {{ $isReseller ? $pillActive : $pillIdle }}">
+                        <span class="material-symbols-outlined" @if($isReseller) style="font-variation-settings: 'FILL' 1;" @endif>handshake</span>
+                        <span class="font-body-md text-body-md">Reseller</span>
+                    </a>
+                @endif
             </nav>
         </div>
         <hr class="my-4 border-surface-container-highest">
@@ -55,6 +62,11 @@
         <a href="{{ route('addresses') }}" class="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm {{ $isAddresses ? $pillActive : 'border border-surface-container-highest bg-surface-container-lowest text-on-surface-variant shadow-sm' }}">
             <span class="material-symbols-outlined text-[20px]">location_on</span> Alamat
         </a>
+        @if (config('features.reseller'))
+            <a href="{{ route('reseller.dashboard') }}" class="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm {{ $isReseller ? $pillActive : 'border border-surface-container-highest bg-surface-container-lowest text-on-surface-variant shadow-sm' }}">
+                <span class="material-symbols-outlined text-[20px]">handshake</span> Reseller
+            </a>
+        @endif
         <form method="POST" action="{{ route('logout') }}" class="shrink-0">
             @csrf
             <button type="submit" class="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-error-container bg-error-container/40 px-5 py-2.5 text-sm text-error shadow-sm">

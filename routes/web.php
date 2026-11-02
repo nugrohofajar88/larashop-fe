@@ -42,6 +42,12 @@ Route::get('/orders/{code}/qris/status', [StorefrontController::class, 'orderQri
 Route::post('/orders/{code}/cancel', [StorefrontController::class, 'cancelOrder'])->name('customer.orders.cancel');
 Route::post('/orders/{code}/complete', [StorefrontController::class, 'completeOrder'])->name('customer.orders.complete');
 
+if (config('features.reseller')) {
+    Route::get('/reseller', [StorefrontController::class, 'reseller'])->name('reseller.dashboard');
+    Route::post('/reseller/register', [StorefrontController::class, 'registerAsReseller'])->name('reseller.register');
+    Route::post('/reseller/withdrawals', [StorefrontController::class, 'requestResellerWithdrawal'])->name('reseller.withdrawals.store');
+}
+
 Route::prefix('admin')->group(function (): void {
     Route::get('/login', [AdminController::class, 'login'])->name('admin.login');
     Route::post('/login', [AdminController::class, 'authenticate'])->name('admin.login.store');
@@ -58,6 +64,9 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::get('/reports/shipping', [AdminController::class, 'reportShipping'])->name('admin.reports.shipping');
     Route::get('/reports/stock', [AdminController::class, 'reportStock'])->name('admin.reports.stock');
     Route::get('/reports/customers', [AdminController::class, 'reportCustomers'])->name('admin.reports.customers');
+    if (config('features.reseller')) {
+        Route::get('/reports/resellers', [AdminController::class, 'reportResellers'])->name('admin.reports.resellers');
+    }
     Route::get('/reports/whatsapp', [AdminController::class, 'reportWhatsapp'])->name('admin.reports.whatsapp');
     Route::get('/rajaongkir-balance', [AdminController::class, 'rajaOngkirBalance'])->name('admin.rajaongkir-balance');
     Route::post('/rajaongkir-balance/topups', [AdminController::class, 'storeRajaOngkirTopup'])->name('admin.rajaongkir-balance.store-topup');
@@ -127,4 +136,17 @@ Route::prefix('admin')->middleware('admin.session')->group(function (): void {
     Route::post('/categories', [AdminController::class, 'storeCategory'])->name('admin.categories.store');
     Route::put('/categories/{id}', [AdminController::class, 'updateCategory'])->name('admin.categories.update');
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory'])->name('admin.categories.destroy');
+
+    if (config('features.reseller')) {
+        Route::get('/resellers', [AdminController::class, 'resellers'])->name('admin.resellers.index');
+        Route::get('/resellers/{id}', [AdminController::class, 'showReseller'])->name('admin.resellers.show');
+        Route::post('/resellers/{id}/approve', [AdminController::class, 'approveReseller'])->name('admin.resellers.approve');
+        Route::post('/resellers/{id}/reject', [AdminController::class, 'rejectReseller'])->name('admin.resellers.reject');
+        Route::post('/resellers/{id}/suspend', [AdminController::class, 'suspendReseller'])->name('admin.resellers.suspend');
+        Route::post('/resellers/{id}/reactivate', [AdminController::class, 'reactivateReseller'])->name('admin.resellers.reactivate');
+        Route::put('/resellers/{id}/commission', [AdminController::class, 'updateResellerCommission'])->name('admin.resellers.commission.update');
+        Route::get('/reseller-withdrawals', [AdminController::class, 'resellerWithdrawals'])->name('admin.reseller-withdrawals.index');
+        Route::post('/reseller-withdrawals/{id}/approve', [AdminController::class, 'approveResellerWithdrawal'])->name('admin.reseller-withdrawals.approve');
+        Route::post('/reseller-withdrawals/{id}/reject', [AdminController::class, 'rejectResellerWithdrawal'])->name('admin.reseller-withdrawals.reject');
+    }
 });

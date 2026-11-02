@@ -92,6 +92,11 @@
                 <a href="{{ route('admin.qris.index') }}" class="block rounded-2xl px-4 py-3 {{ request()->routeIs('admin.qris.*') ? 'bg-white/10 text-white' : 'text-stone-300 hover:bg-white/5 hover:text-white' }}">
                     QRIS
                 </a>
+                @if (config('features.reseller'))
+                    <a href="{{ route('admin.resellers.index') }}" class="block rounded-2xl px-4 py-3 {{ request()->routeIs('admin.resellers.*') || request()->routeIs('admin.reseller-withdrawals.*') ? 'bg-white/10 text-white' : 'text-stone-300 hover:bg-white/5 hover:text-white' }}">
+                        Reseller
+                    </a>
+                @endif
             </nav>
 
             {{-- Toggle terima-order-baru - selalu terlihat di semua halaman admin,

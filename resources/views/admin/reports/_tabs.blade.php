@@ -5,6 +5,7 @@
         ['route' => 'admin.reports.shipping', 'label' => 'Performa Ekspedisi'],
         ['route' => 'admin.reports.stock', 'label' => 'Stok'],
         ['route' => 'admin.reports.customers', 'label' => 'Pelanggan'],
+        ...(config('features.reseller') ? [['route' => 'admin.reports.resellers', 'label' => 'Reseller']] : []),
         ['route' => 'admin.reports.whatsapp', 'label' => 'WhatsApp'],
     ];
 @endphp

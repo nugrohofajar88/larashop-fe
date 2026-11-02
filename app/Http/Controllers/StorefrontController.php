@@ -1167,6 +1167,88 @@ class StorefrontController extends Controller
             ->with('success', "Pesanan {$code} ditandai sudah diterima.");
     }
 
+    public function reseller(): View|RedirectResponse
+    {
+        $token = $this->customerToken();
+
+        if ($token === null) {
+            return redirect()->route('login')->with('error', 'Silakan login dulu untuk membuka halaman reseller.');
+        }
+
+        try {
+            $reseller = $this->api->resellerMe($token);
+        } catch (LarashopApiException $exception) {
+            return $this->handleCustomerAccessException($exception);
+        }
+
+        if ($reseller === null) {
+            return view('storefront.reseller.register');
+        }
+
+        $commissions = [];
+        $withdrawals = [];
+
+        if ($reseller['status'] === 'active') {
+            try {
+                $commissions = $this->api->resellerCommissions($token);
+            } catch (LarashopApiException) {
+                $commissions = [];
+            }
+
+            try {
+                $withdrawals = $this->api->resellerWithdrawals($token);
+            } catch (LarashopApiException) {
+                $withdrawals = [];
+            }
+        }
+
+        return view('storefront.reseller.dashboard', [
+            'reseller' => $reseller,
+            'commissions' => $commissions,
+            'withdrawals' => $withdrawals,
+            'referralUrl' => route('home', ['ref' => $reseller['referral_code']]),
+        ]);
+    }
+
+    public function registerAsReseller(): RedirectResponse
+    {
+        $token = $this->customerToken();
+
+        if ($token === null) {
+            return redirect()->route('login')->with('error', 'Silakan login dulu untuk daftar sebagai reseller.');
+        }
+
+        try {
+            $this->api->resellerRegister($token);
+        } catch (LarashopApiException $exception) {
+            return redirect()->route('reseller.dashboard')->with('error', $exception->getMessage());
+        }
+
+        return redirect()->route('reseller.dashboard')->with('success', 'Pendaftaran reseller berhasil dikirim. Menunggu persetujuan admin.');
+    }
+
+    public function requestResellerWithdrawal(Request $request): RedirectResponse
+    {
+        $token = $this->customerToken();
+
+        if ($token === null) {
+            return redirect()->route('login')->with('error', 'Silakan login dulu.');
+        }
+
+        $validated = $request->validate([
+            'amount' => ['required', 'integer', 'min:1'],
+        ]);
+
+        try {
+            $this->api->storeResellerWithdrawal($token, $validated['amount']);
+        } catch (LarashopApiException $exception) {
+            return redirect()->route('reseller.dashboard')
+                ->withErrors($exception->errors !== [] ? $exception->errors : ['amount' => $exception->getMessage()]);
+        }
+
+        return redirect()->route('reseller.dashboard')->with('success', 'Pengajuan pencairan berhasil dikirim, menunggu diproses admin.');
+    }
+
     protected function catalogQuery(Request $request): array
     {
         return collect($request->only(['search', 'category', 'status', 'sort']))
@@ -1222,6 +1304,22 @@ class StorefrontController extends Controller
             'customer.token' => $payload['token'],
             'customer.user' => $payload['user'],
         ]);
+
+        // Kode referral reseller yang nempel dari ?ref=KODE (lihat middleware
+        // CaptureReferralCode) - ikat sekarang, begitu customer sudah punya token.
+        // Gagal (kode invalid/kedaluwarsa/sudah tertaut sebelumnya) sengaja
+        // diabaikan - tidak boleh menggagalkan login/registrasi.
+        $referralCode = session('pending_referral_code');
+
+        if (is_string($referralCode) && $referralCode !== '') {
+            try {
+                $this->api->bindResellerReferral($payload['token'], $referralCode);
+            } catch (LarashopApiException) {
+                // Diamkan.
+            }
+
+            session()->forget('pending_referral_code');
+        }
     }
 
     protected function handleCustomerAccessException(LarashopApiException $exception): RedirectResponse

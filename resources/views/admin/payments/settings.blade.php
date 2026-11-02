@@ -82,6 +82,41 @@
                         </span>
                     </label>
                 </div>
+                <p class="mt-2 text-xs text-stone-400">Boleh aktif lebih dari satu. Kalau semua mati, sistem otomatis pakai Transfer Bank.</p>
+            </div>
+
+            {{-- Program reseller/afiliasi - cuma tampil kalau kill switch deploy-nya nyala (RESELLER_FEATURE_ENABLED, lihat config/features.php) --}}
+            @if (config('features.reseller'))
+            <div class="mt-5 border-t border-stone-100 pt-5">
+                <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+                    <input type="checkbox" name="reseller_enabled" value="1" {{ old('reseller_enabled', ($settings['reseller_enabled'] ?? false)) ? 'checked' : '' }} class="mt-0.5 h-5 w-5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500">
+                    <span>
+                        <span class="text-sm font-medium text-stone-900">Aktifkan Program Reseller</span>
+                        <span class="block text-xs text-stone-500">Izinkan customer daftar jadi reseller & dapat komisi dari referral mereka. Lihat & kelola pendaftar di menu Reseller.</span>
+                    </span>
+                </label>
+                <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                    <div>
+                        <label class="{{ $labelClass }}">Komisi Default</label>
+                        <select name="reseller_default_commission_type" class="{{ $inputClass }}">
+                            <option value="percentage" {{ old('reseller_default_commission_type', $settings['reseller_default_commission_type'] ?? 'percentage') === 'percentage' ? 'selected' : '' }}>Persen (%)</option>
+                            <option value="fixed" {{ old('reseller_default_commission_type', $settings['reseller_default_commission_type'] ?? 'percentage') === 'fixed' ? 'selected' : '' }}>Nominal tetap (Rp)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="{{ $labelClass }}">Nilai Komisi Default</label>
+                        <input type="number" name="reseller_default_commission_value" min="0" value="{{ old('reseller_default_commission_value', $settings['reseller_default_commission_value'] ?? 5) }}" class="{{ $inputClass }}">
+                    </div>
+                    <div>
+                        <label class="{{ $labelClass }}">Minimal Pencairan (Rp)</label>
+                        <input type="number" name="reseller_min_withdraw" min="0" value="{{ old('reseller_min_withdraw', $settings['reseller_min_withdraw'] ?? 50000) }}" class="{{ $inputClass }}">
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-stone-400">Berlaku untuk reseller baru yang disetujui. Komisi reseller yang sudah aktif bisa diubah sendiri-sendiri di menu Reseller.</p>
+            </div>
+            @endif
+
+            <div class="mt-5">
                 @if (($settings['payment_qris_enabled'] ?? true) && ! ($qrisReady ?? false))
                     <div class="mt-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                         ⚠️ QRIS dicentang tapi <b>belum ada QRIS toko yang aktif</b>. Pembayaran QRIS tidak akan muncul ke pelanggan (otomatis jatuh ke transfer) sampai kamu

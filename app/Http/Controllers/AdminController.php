@@ -139,6 +139,17 @@ class AdminController extends Controller
         ]);
     }
 
+    public function reportResellers(Request $request): View
+    {
+        $month = trim((string) $request->query('month', ''));
+        $result = $this->api->adminReportResellers($month !== '' ? $month : null);
+
+        return view('admin.reports.resellers', [
+            'resellers' => $result['data'] ?? [],
+            'meta' => $result['meta'] ?? [],
+        ]);
+    }
+
     public function reportWhatsapp(Request $request): View
     {
         $month = trim((string) $request->query('month', ''));
@@ -1260,6 +1271,123 @@ class AdminController extends Controller
         return redirect()->route('admin.shipments.settings')->with('success', 'Setting shipment berhasil diperbarui.');
     }
 
+    public function resellers(Request $request): View
+    {
+        $status = $request->string('status')->toString();
+        $result = $this->api->adminResellers(array_filter(['status' => $status !== '' ? $status : null]));
+
+        return view('admin.resellers.index', [
+            'resellers' => $result['data'] ?? [],
+            'activeStatus' => $status === '' ? 'all' : $status,
+        ]);
+    }
+
+    public function showReseller(int $id): View
+    {
+        return view('admin.resellers.show', [
+            'reseller' => $this->api->adminReseller($id),
+        ]);
+    }
+
+    public function approveReseller(int $id): RedirectResponse
+    {
+        try {
+            $this->api->approveAdminReseller($id);
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Reseller disetujui dan sudah aktif.');
+    }
+
+    public function rejectReseller(Request $request, int $id): RedirectResponse
+    {
+        $validated = $request->validate(['reason' => ['nullable', 'string', 'max:255']]);
+
+        try {
+            $this->api->rejectAdminReseller($id, $validated['reason'] ?? null);
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Pendaftaran reseller ditolak.');
+    }
+
+    public function suspendReseller(int $id): RedirectResponse
+    {
+        try {
+            $this->api->suspendAdminReseller($id);
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Reseller ditangguhkan.');
+    }
+
+    public function reactivateReseller(int $id): RedirectResponse
+    {
+        try {
+            $this->api->reactivateAdminReseller($id);
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Reseller diaktifkan kembali.');
+    }
+
+    public function updateResellerCommission(Request $request, int $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'commission_type' => ['required', 'in:percentage,fixed'],
+            'commission_value' => ['required', 'integer', 'min:0'],
+        ]);
+
+        try {
+            $this->api->updateAdminResellerCommission($id, $validated);
+        } catch (LarashopApiException $exception) {
+            return back()->withErrors($exception->errors !== [] ? $exception->errors : ['commission_value' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', 'Aturan komisi reseller berhasil diperbarui.');
+    }
+
+    public function resellerWithdrawals(Request $request): View
+    {
+        $status = $request->string('status')->toString();
+        $result = $this->api->adminResellerWithdrawals(array_filter(['status' => $status !== '' ? $status : null]));
+
+        return view('admin.resellers.withdrawals', [
+            'withdrawals' => $result['data'] ?? [],
+            'activeStatus' => $status === '' ? 'all' : $status,
+        ]);
+    }
+
+    public function approveResellerWithdrawal(int $id): RedirectResponse
+    {
+        try {
+            $this->api->approveAdminResellerWithdrawal($id);
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Pencairan disetujui. Jangan lupa transfer manual ke reseller.');
+    }
+
+    public function rejectResellerWithdrawal(Request $request, int $id): RedirectResponse
+    {
+        // Form kirim field "reason" (lihat data-cancel-reason-form di layout admin),
+        // diteruskan ke BE sebagai admin_note.
+        $validated = $request->validate(['reason' => ['nullable', 'string', 'max:255']]);
+
+        try {
+            $this->api->rejectAdminResellerWithdrawal($id, $validated['reason'] ?? null);
+        } catch (LarashopApiException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Pengajuan pencairan ditolak.');
+    }
+
     public function paymentSettings(): View
     {
         // Apakah sudah ada QRIS toko aktif (qris_id). Kalau QRIS dicentang tapi belum
@@ -1290,6 +1418,10 @@ class AdminController extends Controller
             'payment_transfer_enabled' => ['nullable', 'boolean'],
             'payment_qris_enabled' => ['nullable', 'boolean'],
             'payment_cod_enabled' => ['nullable', 'boolean'],
+            'reseller_enabled' => ['nullable', 'boolean'],
+            'reseller_min_withdraw' => ['nullable', 'integer', 'min:0'],
+            'reseller_default_commission_type' => ['nullable', 'in:percentage,fixed'],
+            'reseller_default_commission_value' => ['nullable', 'integer', 'min:0'],
         ]);
 
         // Checkbox: selalu kirim true/false eksplisit (kalau tak dicentang, key tak ada).
@@ -1297,6 +1429,7 @@ class AdminController extends Controller
         $validated['payment_transfer_enabled'] = $request->boolean('payment_transfer_enabled');
         $validated['payment_qris_enabled'] = $request->boolean('payment_qris_enabled');
         $validated['payment_cod_enabled'] = $request->boolean('payment_cod_enabled');
+        $validated['reseller_enabled'] = $request->boolean('reseller_enabled');
 
         try {
             $this->api->updateAdminSettings($validated);

@@ -177,6 +177,45 @@ class LarashopApi
         return $this->request('GET', '/customer/orders/'.$code.'/qris/status', token: $token)['data'] ?? [];
     }
 
+    public function resellerRegister(string $token): array
+    {
+        return $this->request('POST', '/reseller/register', [], $token)['data'] ?? [];
+    }
+
+    /** null kalau user ini belum terdaftar sebagai reseller (BE balas 404). */
+    public function resellerMe(string $token): ?array
+    {
+        try {
+            return $this->request('GET', '/reseller/me', [], $token)['data'] ?? null;
+        } catch (LarashopApiException $exception) {
+            if ($exception->status === 404) {
+                return null;
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function bindResellerReferral(string $token, string $referralCode): array
+    {
+        return $this->request('POST', '/reseller/bind', ['json' => ['referral_code' => $referralCode]], $token);
+    }
+
+    public function resellerCommissions(string $token): array
+    {
+        return $this->request('GET', '/reseller/commissions', [], $token)['data'] ?? [];
+    }
+
+    public function resellerWithdrawals(string $token): array
+    {
+        return $this->request('GET', '/reseller/withdrawals', [], $token)['data'] ?? [];
+    }
+
+    public function storeResellerWithdrawal(string $token, int $amount): array
+    {
+        return $this->request('POST', '/reseller/withdrawals', ['json' => ['amount' => $amount]], $token)['data'] ?? [];
+    }
+
     public function checkout(string $token, ?int $addressId = null, bool $useUniqueCodeBalance = false): array
     {
         $query = [];
@@ -433,6 +472,11 @@ class LarashopApi
         return $this->requestAsAdmin('GET', '/admin/reports/customers', ['query' => array_filter(['month' => $month])]);
     }
 
+    public function adminReportResellers(?string $month = null): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/reports/resellers', ['query' => array_filter(['month' => $month])]);
+    }
+
     public function adminReportWhatsapp(?string $month = null): array
     {
         return $this->requestAsAdmin('GET', '/admin/reports/whatsapp', ['query' => array_filter(['month' => $month])]);
@@ -649,6 +693,56 @@ class LarashopApi
     public function deleteAdminCustomerAddress(int $customerId, int $addressId): void
     {
         $this->requestAsAdmin('DELETE', "/admin/customers/{$customerId}/addresses/{$addressId}");
+    }
+
+    public function adminResellers(array $query = []): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/resellers', ['query' => $query]);
+    }
+
+    public function adminReseller(int $id): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/resellers/'.$id)['data'] ?? [];
+    }
+
+    public function approveAdminReseller(int $id): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/resellers/'.$id.'/approve')['data'] ?? [];
+    }
+
+    public function rejectAdminReseller(int $id, ?string $reason = null): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/resellers/'.$id.'/reject', ['json' => ['reason' => $reason]])['data'] ?? [];
+    }
+
+    public function suspendAdminReseller(int $id): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/resellers/'.$id.'/suspend')['data'] ?? [];
+    }
+
+    public function reactivateAdminReseller(int $id): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/resellers/'.$id.'/reactivate')['data'] ?? [];
+    }
+
+    public function updateAdminResellerCommission(int $id, array $payload): array
+    {
+        return $this->requestAsAdmin('PUT', '/admin/resellers/'.$id.'/commission', ['json' => $payload])['data'] ?? [];
+    }
+
+    public function adminResellerWithdrawals(array $query = []): array
+    {
+        return $this->requestAsAdmin('GET', '/admin/reseller-withdrawals', ['query' => $query]);
+    }
+
+    public function approveAdminResellerWithdrawal(int $id): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/reseller-withdrawals/'.$id.'/approve')['data'] ?? [];
+    }
+
+    public function rejectAdminResellerWithdrawal(int $id, ?string $note = null): array
+    {
+        return $this->requestAsAdmin('POST', '/admin/reseller-withdrawals/'.$id.'/reject', ['json' => ['admin_note' => $note]])['data'] ?? [];
     }
 
     protected function requestAsAdmin(string $method, string $uri, array $options = [], ?int $timeout = null): array
